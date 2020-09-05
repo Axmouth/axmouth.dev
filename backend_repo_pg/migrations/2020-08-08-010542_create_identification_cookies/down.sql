@@ -1,0 +1,6 @@
+
+DROP INDEX idx_identification_cookies_id_hash;
+DROP INDEX idx_identification_cookies_token;
+DROP INDEX idx_identification_cookies_id;
+
+DROP TABLE identification_cookies;

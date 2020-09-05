@@ -1,0 +1,2 @@
+
+DROP INDEX idx_blog_posts_categories_blog_post_id_category_id;

@@ -1,0 +1,69 @@
+<div class="card my-4">
+  <h5 class="card-header text-light bg-primary">Contact Me</h5>
+  <div class="card-body">
+    <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+      <p>
+        <label for="id_from_email">Your email:</label>
+        <input
+          type="email"
+          formControlName="from_email"
+          name="from_email"
+          class="form-control"
+          aria-required="true"
+          maxlength="100"
+          required
+          id="id_from_email"
+        />
+      </p>
+      <p>
+        <label for="id_subject">Message Subject:</label>
+        <input
+          type="text"
+          formControlName="subject"
+          name="subject"
+          class="form-control"
+          aria-required="true"
+          maxlength="100"
+          required
+          id="id_subject"
+        />
+      </p>
+      <p>
+        <label for="id_message">Your Message:</label>
+        <textarea
+          formControlName="message"
+          name="message"
+          cols="40"
+          rows="10"
+          class="form-control"
+          aria-required="true"
+          maxlength="5000"
+          required
+          id="id_message"
+        ></textarea>
+      </p>
+      <div
+        nbHCaptcha
+        lang="en"
+        [key]="HCAPTCHA_SITE_KEY"
+        formControlName="hcaptcha"
+        name="hcaptcha"
+        #hcaptcha
+        (captchaResponse)="onCaptchaResponse($event)"
+        (captchaExpired)="onCaptchaExpired()"
+        [config]="captchaConfig"
+      ></div>
+      <div class="form-actions">
+        <button
+          autocomplete="off"
+          id="contact-button"
+          type="submit"
+          class="btn btn-primary mb-2"
+          [disabled]="!contactForm.valid || !captchaDone"
+        >
+          Message Me
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

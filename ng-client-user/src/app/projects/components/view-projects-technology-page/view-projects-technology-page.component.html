@@ -1,0 +1,5 @@
+<h1>Technology: {{ technologyName }}</h1>
+<br />
+<div class="row">
+  <app-project-preview *ngFor="let project of projectsList" [project]="project"></app-project-preview>
+</div>

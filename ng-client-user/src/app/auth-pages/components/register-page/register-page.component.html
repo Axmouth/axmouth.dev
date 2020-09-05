@@ -1,0 +1,161 @@
+<div class="card my-4">
+  <h5 class="card-header bg-primary text-light">Register</h5>
+  <div class="card-body">
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <div class="form-group row">
+        <label for="email" class="col-md-4 col-form-label text-md-right">E-Mail Address</label>
+        <div class="col-md-6">
+          <input type="text" id="email" class="form-control" name="email" formControlName="email" required autofocus />
+        </div>
+      </div>
+      <div class="row">
+        <div
+          *ngIf="registerForm.controls['email']?.touched && registerForm.controls['email']?.invalid"
+          class="alert alert-danger col-md-5 offset-md-5"
+        >
+          <div *ngIf="registerForm.controls['email']?.errors?.required">E-Mail Address is required.</div>
+          <div *ngIf="registerForm.controls['email']?.errors?.email">
+            E-Mail Address must be a valid email format.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <label for="displayName" class="col-md-4 col-form-label text-md-right">Display Name</label>
+        <div class="col-md-6">
+          <input
+            type="text"
+            id="displayName"
+            class="form-control"
+            name="displayName"
+            formControlName="displayName"
+            required
+            autofocus
+          />
+        </div>
+      </div>
+      <div class="row">
+        <div
+          *ngIf="registerForm.controls['displayName']?.touched && registerForm.controls['displayName']?.invalid"
+          class="col-md-5 offset-md-5"
+        >
+          <div *ngIf="registerForm.controls['displayName']?.errors?.required" class="alert alert-danger">
+            Display Name is required.
+          </div>
+          <div *ngIf="registerForm.controls['displayName']?.errors?.minlength" class="alert alert-danger">
+            Display Name must be at least
+            {{ registerForm.controls['displayName']?.errors?.minlength?.requiredLength }} characters. (Current is
+            {{ registerForm.controls['displayName']?.errors?.minlength?.actualLength }})
+          </div>
+          <div *ngIf="registerForm.controls['displayName'].errors.maxlength" class="alert alert-danger">
+            Display Name must be
+            {{ registerForm.controls['displayName']?.errors?.maxlength?.requiredLength }} characters or fewer. (Current
+            is {{ registerForm.controls['displayName']?.errors?.maxlength?.actualLength }})
+          </div>
+          <div *ngIf="registerForm.controls['displayName']?.errors?.hasNoSpecialCharacters" class="alert alert-danger">
+            Display Name must <b>not</b> contain a special character: {{ '!@#$%^&*()_+-=[]{};\':"\\|,.<>/?' }}
+          </div>
+          <div *ngIf="registerForm.controls['displayName']?.errors?.hasSpacePrefixOrSuffix" class="alert alert-danger">
+            Display Name must start or end with a space.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <label for="password" class="col-md-4 col-form-label text-md-right">Password</label>
+        <div class="col-md-6">
+          <input
+            type="password"
+            id="password"
+            class="form-control"
+            name="password"
+            formControlName="password"
+            minlength="6"
+            required
+          />
+        </div>
+      </div>
+      <div class="row">
+        <div
+          *ngIf="registerForm.controls['password']?.touched && registerForm.controls['password']?.invalid"
+          class="col-md-5 offset-md-5"
+        >
+          <div *ngIf="registerForm.controls['password']?.errors?.required" class="alert alert-danger">
+            Password is required.
+          </div>
+          <div *ngIf="registerForm.controls['password']?.errors?.minlength" class="alert alert-danger">
+            Password must be at least
+            {{ registerForm.controls['password']?.errors?.minlength?.requiredLength }} characters. (Current is
+            {{ registerForm.controls['password']?.errors?.minlength?.actualLength }})
+          </div>
+          <div *ngIf="registerForm.controls['password']?.errors?.maxlength" class="alert alert-danger">
+            Password must be
+            {{ registerForm.controls['password']?.errors?.maxlength?.requiredLength }} characters or fewer. (Current is
+            {{ registerForm.controls['password']?.errors?.maxlength?.actualLength }})
+          </div>
+          <div *ngIf="registerForm.controls['password']?.errors?.hasLowerCase" class="alert alert-danger">
+            Password must contain a lower case letter.
+          </div>
+          <div *ngIf="registerForm.controls['password']?.errors?.hasUpperCase" class="alert alert-danger">
+            Password must contain an upper case letter.
+          </div>
+          <div *ngIf="registerForm.controls['password']?.errors?.hasNumber" class="alert alert-danger">
+            Password must contain a number.
+          </div>
+          <div *ngIf="registerForm.controls['password']?.errors?.hasSpecialCharacters" class="alert alert-danger">
+            Password must contain a special character : {{ '!@#$%^&*()_+-=[]{};\':"\\|,.<>/?' }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <label for="password2" class="col-md-4 col-form-label text-md-right">Confirm Password</label>
+        <div class="col-md-6">
+          <input
+            type="password"
+            id="password2"
+            class="form-control"
+            name="password2"
+            formControlName="password2"
+            required
+          />
+        </div>
+      </div>
+      <div class="row">
+        <div
+          *ngIf="registerForm.controls['password2'].touched && registerForm.controls['password2'].invalid"
+          class="alert alert-danger col-md-5 offset-md-5"
+        >
+          <div *ngIf="registerForm.controls['password2'].errors.required">Confirm Password is required.</div>
+
+          <div *ngIf="registerForm.controls['password2'].errors.mismatch">
+            Password and Confirm Password must match.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group row" *ngIf="false">
+        <div class="col-md-6 offset-md-4">
+          <div class="checkbox">
+            <label> <input type="checkbox" name="remember" /> Remember Me </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 offset-md-4">
+        <button type="submit" class="btn btn-primary" [disabled]="!registerForm.valid || registerInProgress">
+          Register
+        </button>
+        <a href="#" class="btn btn-link" *ngIf="false">
+          Forgot Your Password?
+        </a>
+      </div>
+      <br /><br />
+      <div class="col-md-8 offset-md-4">
+        <a href="/auth/login" routerLink="/auth/login" class="btn btn-link">
+          Already have an account? Login here
+        </a>
+      </div>
+    </form>
+  </div>
+</div>

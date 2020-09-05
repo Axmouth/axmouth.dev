@@ -1,0 +1,21 @@
+<h1>{{ post?.title }}</h1>
+
+<div class="alert alert-warning alert-dismissible fade show" *ngIf="post?.published">
+  <strong>Warning!</strong> This Blog Post is not published.
+</div>
+<small> {{ post?.createdAt | date: 'mediumDate' }}&nbsp; </small>
+<div class="blog-content">
+  <app-editor-js-renderer [content]="postBodyData"></app-editor-js-renderer>
+</div>
+<br /><br />
+Categories:&nbsp;
+<a
+  href="/blog/category/{{ categoryName }}"
+  routerLink="/blog/category/{{ categoryName }}"
+  *ngFor="let categoryName of post?.categories"
+>
+  {{ categoryName }} </a
+>&nbsp; <br /><br /><br /><br /><br />
+<h1>{{ commentsCount }} Comments</h1>
+<app-comment-form (commentPosted)="onCommentPosted()"></app-comment-form>
+<app-blog-post-comments-list [blogPostComments]="blogPostComments"></app-blog-post-comments-list>

@@ -1,0 +1,7 @@
+
+DROP INDEX idx_blog_post_comment_ratings_comment_id;
+DROP INDEX idx_blog_post_comment_ratings_user_id;
+DROP INDEX idx_blog_post_comment_ratings_is_like;
+DROP INDEX idx_blog_post_comment_ratings_id;
+
+DROP TABLE blog_post_comment_ratings;

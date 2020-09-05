@@ -1,0 +1,29 @@
+<div id="comments" class="container-fluid py-3">
+  <div class="media comment-box" id="c{{ comment.id }}" *ngFor="let comment of blogPostComments">
+    <a name="c4"></a>
+    <div class="media-left">
+      <img class="img-responsive user-photo" src="https://ssl.gstatic.com/accounts/ui/avatar_2x.png" />
+    </div>
+    <div class="media-body">
+      <div class="media-heading text-light bg-primary">
+        <strong>{{ comment?.author?.displayName }}</strong> &nbsp;<span
+          class="badge badge-secondary"
+          *ngIf="comment?.author?.role === 'Admin' || comment?.author?.role === 'Moderator'"
+          >{{ comment?.author?.role }}</span
+        >
+        <a
+          href="/blog/{{ postId }}#c{{ comment.id }}"
+          routerLink="/blog/{{ postId }}#c{{ comment.id }}"
+          class="float-right"
+          ><span class="text-muted pt-5 pt-sm-3 posted-at"> posted at {{ comment.createdAt | date: 'short' }}</span></a
+        >
+      </div>
+      <div class="comment bg-light">
+        <span> </span>
+        <div class="content pb-3">
+          {{ comment.body }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,9 @@
+<mat-selection-list #entities [multiple]="false">
+  <mat-list-option *ngFor="let entity of entitiesList" [value]="entity[displayField]">
+    <a
+      href="/categories/{{ categoryName }}/models/{{ modelName }}/{{ entity[idField] }}"
+      routerLink="/categories/{{ categoryName }}/models/{{ modelName }}/{{ entity[idField] }}"
+      >{{ entity[displayField] }}</a
+    >
+  </mat-list-option>
+</mat-selection-list>

@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "backend_api",
+    "backend_cli",
+    "backend_repo_pg",
+]

@@ -1,0 +1,10 @@
+<mat-selection-list #listModel [(ngModel)]="contentSelected">
+  <mat-list-option *ngFor="let element of content">
+    {{ element }}
+  </mat-list-option>
+</mat-selection-list>
+
+<button mat-raised-button color="accent" (click)="onAddClick()">Add</button>
+<button mat-raised-button color="warn" (click)="onRemoveClick()">Remove</button>
+
+<p>Options selected: {{ contentSelected?.length }}</p>

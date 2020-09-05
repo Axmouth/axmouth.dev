@@ -1,0 +1,11 @@
+ng-client-user/
+ng-client-admin/
+target/
+Dockerfile
+./docker=compose.yml
+.gitignore
+.prettierrc
+backend_api/.env*
+backend_repo_pg/.env*
+backend_cli/.env*
+.github

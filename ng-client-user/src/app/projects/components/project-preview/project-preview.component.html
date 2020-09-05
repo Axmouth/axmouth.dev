@@ -1,0 +1,26 @@
+<div class="col-md-12">
+  <div class="card mb-2">
+    <img class="card-img-top" src="{{ project?.coverImage }}" style="max-height: 24rem" />
+    <div class="card-body">
+      <h5 class="card-title">{{ project?.name }}</h5>
+
+      <div class="alert alert-warning alert-dismissible fade show" *ngIf="project?.published === false">
+        <strong>Warning!</strong> This Project is not published.
+      </div>
+      <p class="card-text">{{ project?.description }}</p>
+      <a href="/projects/{{ project?.id }}" routerLink="/projects/{{ project?.id }}" class="btn btn-primary">
+        Read More </a
+      >&nbsp;
+      <br />
+      <br />
+      Technologies used:&nbsp;
+      <a
+        href="/projects/technology/{{ technologyName }}"
+        routerLink="/projects/technology/{{ technologyName }}"
+        *ngFor="let technologyName of projectTechnologiesList"
+      >
+        {{ technologyName }} </a
+      >&nbsp;
+    </div>
+  </div>
+</div>

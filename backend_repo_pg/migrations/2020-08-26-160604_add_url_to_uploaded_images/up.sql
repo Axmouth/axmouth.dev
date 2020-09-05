@@ -1,0 +1,2 @@
+ALTER TABLE uploaded_images
+  ADD url VARCHAR NOT NULL DEFAULT '';

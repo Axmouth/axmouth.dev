@@ -1,0 +1,49 @@
+<form [formGroup]="commentForm">
+  <fieldset>
+    <div class="row form-group">
+      <div class="offset-md-1 col-md-10">
+        <textarea
+          name="body"
+          formControlName="body"
+          placeholder="Your comment"
+          class="form-control"
+          maxlength="3000"
+          required
+          id="id_comment"
+        ></textarea>
+      </div>
+    </div>
+
+    <div class="row form-group" *ngIf="false">
+      <div class="offset-md-3 col-md-7">
+        <div class="custom-control custom-checkbox">
+          <input type="checkbox" name="followup" id="id_followup" class="custom-control-input" />
+          <label for="id_followup" class="custom-control-label">&nbsp;Notify me about follow-up comments</label>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <div class="row form-group" *ngIf="loggedIn === true">
+    <div class="offset-md-1 col-md-7">
+      <button class="btn btn-primary" (click)="OnSubmit()" autocomplete="off" [disabled]="!commentForm.valid">
+        Send
+      </button>
+      <button class="btn btn-secondary" (click)="OnPreview()" autocomplete="off" [disabled]="!commentForm.valid">
+        Preview
+      </button>
+    </div>
+  </div>
+
+  <div class="row form-group" *ngIf="loggedIn === false">
+    <div class="col-md-8 offset-md-4">
+      <a href="/auth/login" routerLink="/auth/login" class="btn btn-link">
+        Login here to post a comment
+      </a>
+      <hr />
+      <a href="/auth/register" routerLink="/auth/register" class="btn btn-link">
+        Or create a new account here
+      </a>
+    </div>
+  </div>
+</form>

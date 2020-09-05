@@ -1,0 +1,24 @@
+version: "3"
+services:
+  axmouth.dev-backend:
+    working_dir: /var/lib/axmouth/axmouth.dev/backend
+    restart: unless-stopped
+    network_mode: host
+    tty: true
+    image: ghcr.io/axmouth/axmouth.dev-backend:latest
+    container_name: axmouth.dev-backend
+    ports:
+      - "39051:39051"
+    env_file:
+      - ./.env
+    environment:
+      - JWT_SECRET
+      - DATABASE_URL
+      - CAPTCHA_SECRET
+      - MAIL_USERNAME
+      - MAIL_PASSWORD
+      - MAIL_PORT
+    volumes:
+      - axmouth.dev-files:/var/lib/axmouth/axmouth.dev/static-assets:rw
+volumes:
+  axmouth.dev-files:

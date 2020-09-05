@@ -1,0 +1,107 @@
+<div [ngSwitch]="fieldOptions.type">
+  <div *ngSwitchCase="'titleField'">
+    <app-title-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-title-field>
+  </div>
+  <div *ngSwitchCase="'textField'">
+    <app-text-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-text-field>
+  </div>
+  <div *ngSwitchCase="'integerField'">
+    <app-integer-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-integer-field>
+  </div>
+  <div *ngSwitchCase="'floatField'">
+    <app-float-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-float-field>
+  </div>
+  <div *ngSwitchCase="'unsignedFloatField'">
+    <app-unsigned-float-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-unsigned-float-field>
+  </div>
+  <div *ngSwitchCase="'unsignedIntegetField'">
+    <app-unsigned-integer-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-unsigned-integer-field>
+  </div>
+  <div *ngSwitchCase="'editorJsField'">
+    <app-editorjs-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-editorjs-field>
+  </div>
+  <div *ngSwitchCase="'markdownField'">
+    <app-markdown-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-markdown-field>
+  </div>
+  <div *ngSwitchCase="'nameListField'">
+    <app-name-list-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-name-list-field>
+  </div>
+  <div *ngSwitchCase="'imageField'">
+    <app-image-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-image-field>
+  </div>
+  <div *ngSwitchCase="'linkField'">
+    <app-link-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-link-field>
+  </div>
+  <div *ngSwitchCase="'dateField'">
+    <app-date-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-date-field>
+  </div>
+  <div *ngSwitchCase="'booleanField'">
+    <app-boolean-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-boolean-field>
+  </div>
+  <div *ngSwitchCase="'enumField'">
+    <app-enum-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-enum-field>
+  </div>
+  <div *ngSwitchDefault>
+    <app-text-field
+      [content]="content"
+      (contentChange)="onContentChanged($event)"
+      [fieldOptions]="fieldOptions"
+    ></app-text-field>
+  </div>
+</div>

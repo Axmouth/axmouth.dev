@@ -1,0 +1,20 @@
+<h2>
+  <a href="/blog/{{ post.id }}" routerLink="/blog/{{ post.id }}">{{ post.title }}</a>
+</h2>
+
+<div class="alert alert-warning alert-dismissible fade show" *ngIf="!post.published">
+  <strong>Warning!</strong> This Blog Post is not published.
+</div>
+<small>
+  {{ post.createdAt | date: 'mediumDate' }} |&nbsp; Categories:&nbsp;
+  <a
+    href="/blog/category/{{ categoryName }}"
+    routerLink="/blog/category/{{ categoryName }}"
+    *ngFor="let categoryName of post?.categories"
+  >
+    {{ categoryName }} </a
+  >&nbsp;
+</small>
+<p>
+  {{ post.description }}
+</p>

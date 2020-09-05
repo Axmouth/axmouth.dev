@@ -1,0 +1,20 @@
+<mat-toolbar color="primary">
+  <a mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon" href="/" routerLink="/">
+    <mat-icon>home</mat-icon>
+  </a>
+  <span>axmouth.dev admin</span>
+  <span class="example-spacer"></span>
+  <a *ngIf="loggedIn" mat-icon-button class="example-icon" aria-label="Example icon-button with share icon">
+    <mat-icon>person</mat-icon>
+  </a>
+  <a
+    *ngIf="loggedIn"
+    mat-icon-button
+    class="example-icon"
+    aria-label="Example icon-button with share icon"
+    href="/logout"
+    routerLink="/logout"
+  >
+    <mat-icon>logout</mat-icon>
+  </a>
+</mat-toolbar>

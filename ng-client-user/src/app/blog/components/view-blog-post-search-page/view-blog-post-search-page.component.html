@@ -1,0 +1,4 @@
+<h1>Blog Search : {{ searchQuery }}</h1>
+<h5>{{ resultNumber }} Entries</h5>
+<hr />
+<app-blog-post-preview [post]="post" *ngFor="let post of blogPostsList"></app-blog-post-preview>

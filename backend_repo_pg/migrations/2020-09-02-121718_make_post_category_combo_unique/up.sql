@@ -1,0 +1,4 @@
+
+
+CREATE UNIQUE INDEX idx_blog_posts_categories_blog_post_id_category_id
+ON blog_posts_categories(blog_post_id, category_id);

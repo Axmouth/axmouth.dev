@@ -1,0 +1,4 @@
+
+
+CREATE UNIQUE INDEX idx_projects_technologies_project_id_technology_id
+ON projects_technologies(project_id, technology_id);

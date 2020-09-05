@@ -1,0 +1,95 @@
+/* You can add global styles to this file, and also import other style files */
+
+// Bootstrap
+//@import '~bootstrap/dist/css/bootstrap.min.css';
+
+// @import 'styles/variables';
+// @import 'styles/custom';
+@import 'styles/boostvariables';
+
+/* Importing Bootstrap SCSS file. */
+@import '~bootstrap/scss/bootstrap';
+
+/* Import Journal Theme */
+@import 'styles/boosttheme';
+
+// highlight.js
+@import '~highlight.js/styles/vs2015.css';
+
+.main-content {
+    margin-top: 7em;
+    min-height: 100vh;
+}
+
+footer {
+    margin-top: 50px;
+}
+
+.comment-card {
+    border-radius: 5px;
+    background-color: #fff;
+    margin-top: 10px;
+    padding: 10px 60px 30px;
+}
+
+.comment-box {
+    margin-top: 30px !important;
+}
+
+.comment-box img {
+    width: 50px;
+    height: 50px;
+}
+
+.comment-box .media-left {
+    padding-right: 10px;
+    width: 65px;
+}
+
+.comment-box .media-body .comment {
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+.comment-box .media-body .media p {
+    margin-bottom: 0;
+}
+
+.comment-box .media-heading {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    padding: 7px 10px;
+    position: relative;
+    margin-bottom: -1px;
+}
+
+.comment-box .media-heading:before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    // background-color: #2C3E50;
+    background-color: #eb6864;
+    border: 1px solid #ddd;
+    border-width: 1px 0 0 1px;
+    -webkit-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+    position: absolute;
+    top: 10px;
+    left: -6px;
+}
+
+.blog-content {
+    max-width: 100%;
+}
+
+iframe {
+    max-width: 95%;
+}
+
+img {
+    max-width: 95%;
+}
+
+.btn+.btn {
+    margin-left: 0.2em;
+}
