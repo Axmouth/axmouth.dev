@@ -2,7 +2,7 @@ use crate::{
     app::AppState,
     auth_tokens::Claims,
     errors::FileUploadError,
-    util::{server_error_response, upload_bad_request_response, upload_error_response},
+    util::{upload_bad_request_response, upload_error_response},
 };
 use backend_repo_pg::{
     insertables::NewUploadedImage,
@@ -11,9 +11,10 @@ use backend_repo_pg::{
 use bytes::BufMut;
 use chrono::Utc;
 use futures::{Stream, TryFutureExt, TryStreamExt};
+use std::{ffi::OsStr, path::Path};
 use tokio::{fs::File, io::AsyncWriteExt, prelude::AsyncWrite};
 use warp::{hyper::StatusCode, Buf};
-use warp::{multipart, Filter};
+use warp::{multipart, reject, Filter};
 
 pub async fn editor_js_upload(
     form: multipart::FormData,
@@ -60,8 +61,17 @@ pub async fn image_upload(
     let upload_details =
         upload_file(filename, file_data, upload_folder, claims, state.clone()).await?;
 
+    let extension = match get_extension_from_filename(filename) {
+        Some(value) => value,
+        None => {
+            return Err(reject::custom(FileUploadError::new(
+                "Could not get file extension".to_string(),
+            )));
+        }
+    };
+
     let new_uploaded_image = NewUploadedImage {
-        extension: ".png".to_string(),
+        extension,
         height: None,
         width: None,
         user_id: 1,
@@ -114,7 +124,7 @@ async fn upload_file(
     filename: &String,
     file_data: &Vec<u8>,
     upload_folder: String,
-    claims: Claims,
+    _: Claims,
     state: AppState,
 ) -> Result<FileUploadedDetails, FileUploadError> {
     let new_filename = format!(
@@ -134,4 +144,11 @@ async fn upload_file(
         url: new_filename.replace(state.static_file_dir.as_str(), &state.static_file_address),
         path: new_filename,
     });
+}
+
+fn get_extension_from_filename(filename: &str) -> Option<String> {
+    Path::new(filename)
+        .extension()
+        .and_then(OsStr::to_str)
+        .map(|s| s.to_string())
 }

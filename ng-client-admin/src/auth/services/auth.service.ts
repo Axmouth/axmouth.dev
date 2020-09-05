@@ -1,8 +1,18 @@
 import { Injectable, Inject } from '@angular/core';
 import { TokenService } from './token.service';
-import { map, switchMap, catchError, mergeMap, concatMap, concatMapTo, switchMapTo, flatMap } from 'rxjs/operators';
+import {
+  map,
+  switchMap,
+  catchError,
+  mergeMap,
+  concatMap,
+  concatMapTo,
+  switchMapTo,
+  flatMap,
+  retry,
+} from 'rxjs/operators';
 import { Observable, of, observable } from 'rxjs';
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpResponse, HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { AuthSuccess } from 'src/app/models/api/auth-success-response';
 import { AuthResult } from '../internal/auth-result';
@@ -46,7 +56,7 @@ export class AuthService {
         }
         const payload = token.getPayload();
         if (payload) {
-          return payload.displayName;
+          return payload.display_name;
         }
         return null;
       }),
@@ -79,16 +89,12 @@ export class AuthService {
    *
    */
   getProfile(): Observable<HttpResponse<Response<User>>> {
-    const result = this.http
-      .get<Response<User>>(`${this.authEndpointPrefix}profile`, {
-        observe: 'response',
-        withCredentials: true,
-      })
-      .pipe(
-        map((res) => {
-          return res;
-        }),
-      );
+    const url = `${this.authEndpointPrefix}profile`;
+    const result = baseApiRequest<Response<User>>(this.http, url, {}, 'get', undefined).pipe(
+      map((res) => {
+        return res;
+      }),
+    );
     return result;
   }
 
@@ -103,26 +109,23 @@ export class AuthService {
    *
    */
   authenticate(data?: any): Observable<AuthResult> {
-    const result = this.http
-      .post<Response<AuthSuccess>>(`${this.authEndpointPrefix}admin-login`, data, {
-        observe: 'response',
-        withCredentials: true,
-      })
-      .pipe(
-        map((res) => {
-          return new AuthResult(
-            true,
-            res.body,
-            true,
-            [], // ['Login/Email combination is not correct, please try again.'],
-            ['You have been successfully logged in.'],
-            this.createToken(res.body?.data?.token, true),
-          );
-        }),
-        catchError((res) => {
-          return this.handleResponseError(res);
-        }),
-      );
+    const url = `${this.authEndpointPrefix}admin-login`;
+
+    const result = baseApiRequest<Response<AuthSuccess>>(this.http, url, {}, 'post', data).pipe(
+      map((res) => {
+        return new AuthResult(
+          true,
+          res.body,
+          true,
+          [], // ['Login/Email combination is not correct, please try again.'],
+          ['You have been successfully logged in.'],
+          this.createToken(res.body?.data?.token, true),
+        );
+      }),
+      catchError((res) => {
+        return this.handleResponseError(res);
+      }),
+    );
     return result.pipe(
       switchMap((authResult: AuthResult) => {
         return this.processResultToken(authResult);
@@ -145,7 +148,7 @@ export class AuthService {
         if (!url) {
           return of(res);
         }
-        return this.http.delete<Response<null>>(url, { observe: 'response', withCredentials: true });
+        return baseApiRequest<Response<null>>(this.http, url, {}, 'delete', undefined);
       }),
       map((res) => {
         return new AuthResult(
@@ -183,23 +186,21 @@ export class AuthService {
    */
   register(data?: any): Observable<AuthResult> {
     const url = `${this.authEndpointPrefix}register`;
-    const result = this.http
-      .post<Response<AuthSuccess>>(url, data, { observe: 'response', withCredentials: true })
-      .pipe(
-        map((res) => {
-          return new AuthResult(
-            true,
-            res,
-            true,
-            [], // ['Something went wrong, please try again.'],
-            ['You have been successfully registered.'],
-            this.createToken(res.body?.data?.token, true),
-          );
-        }),
-        catchError((res) => {
-          return this.handleResponseError(res);
-        }),
-      );
+    const result = baseApiRequest<Response<AuthSuccess>>(this.http, url, {}, 'post', data).pipe(
+      map((res) => {
+        return new AuthResult(
+          true,
+          res,
+          true,
+          [], // ['Something went wrong, please try again.'],
+          ['You have been successfully registered.'],
+          this.createToken(res.body?.data?.token, true),
+        );
+      }),
+      catchError((res) => {
+        return this.handleResponseError(res);
+      }),
+    );
     return result.pipe(
       switchMap((authResult: AuthResult) => {
         return this.processResultToken(authResult);
@@ -285,8 +286,7 @@ export class AuthService {
     this.authenticating = true;
 
     const url = `${this.authEndpointPrefix}refresh`;
-    const refresh$ = this.http
-      .post<Response<AuthSuccess>>(url, data, { observe: 'response', withCredentials: true })
+    const refresh$ = baseApiRequest<Response<AuthSuccess>>(this.http, url, {}, 'post', data)
       .pipe(
         map((res) => {
           const token = AuthCreateJWTToken(res.body?.data?.token, 'refreshToken');
@@ -352,7 +352,7 @@ export class AuthService {
    */
   requestPasswordReset(data?: any): Observable<AuthResult> {
     const url = `${this.authEndpointPrefix}password-reset-email`;
-    return this.http.post(url, data, { observe: 'response', withCredentials: true }).pipe(
+    return baseApiRequest(this.http, url, {}, 'post', data).pipe(
       map((res) => {
         return new AuthResult(
           true,
@@ -390,7 +390,7 @@ export class AuthService {
     if (this.route.snapshot.queryParams[emailQueryKey]) {
       data[emailKey] = this.route.snapshot.queryParams[emailQueryKey];
     }
-    return this.http.post(url, data, { observe: 'response', withCredentials: true }).pipe(
+    return baseApiRequest(this.http, url, {}, 'post', data).pipe(
       map((res) => {
         return new AuthResult(
           true,
@@ -429,7 +429,7 @@ export class AuthService {
     if (this.route.snapshot.queryParams[emailQueryKey]) {
       data[emailKey] = this.route.snapshot.queryParams[emailQueryKey];
     }
-    return this.http.post(url, data, { observe: 'response', withCredentials: true }).pipe(
+    return baseApiRequest(this.http, url, {}, 'post', data).pipe(
       map((res) => {
         return new AuthResult(
           true,
@@ -454,7 +454,7 @@ export class AuthService {
    */
   requestVerificationEmail(data?: any): Observable<AuthResult> {
     const url = `${this.authEndpointPrefix}email-confirm-email`;
-    return this.http.post(url, data, { observe: 'response', withCredentials: true }).pipe(
+    return baseApiRequest(this.http, url, {}, 'post', data).pipe(
       map((res) => {
         return new AuthResult(
           true,
@@ -493,4 +493,41 @@ export class AuthService {
     }
     return token;
   }
+}
+
+function paramsToQuery(params: any) {
+  return Object.keys(params)
+    .map((key) => {
+      if (Array.isArray(params[key])) {
+        return params[key]
+          .map((value: string | number | boolean) => {
+            if (value === undefined || value === null) {
+              return '';
+            }
+            return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+          })
+          .join('&');
+      }
+      if (params[key] === undefined || params[key] === null) {
+        return '';
+      }
+      return `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
+    })
+    .filter((s) => s !== '')
+    .join('&');
+}
+
+type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
+
+function baseApiRequest<T>(http: HttpClient, url: string, queryParams: any, method: HttpMethod, body: any) {
+  const headers = new HttpHeaders();
+  headers.append('Content-Type', 'application/json');
+  const queryString = paramsToQuery(queryParams);
+  let newUrl = url;
+  if (queryString && queryString.length > 0) {
+    newUrl = `${newUrl}?${queryString}`;
+  }
+  return http
+    .request<T>(method, newUrl, { body, headers, withCredentials: true, observe: 'response' })
+    .pipe(retry(2));
 }

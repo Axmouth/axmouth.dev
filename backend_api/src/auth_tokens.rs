@@ -27,9 +27,9 @@ pub struct Claims {
     display_name: String,
     role: UserRole,             // user role
     aud: AxmouthDotDevAudience, // audience
-    exp: u64,                   // seconds since the epoch
-    iat: u64,                   // issued at
-    nbf: u64,                   // time before which the token can't be used
+    exp: i64,                   // seconds since the epoch
+    iat: i64,                   // issued at
+    nbf: i64,                   // time before which the token can't be used
     iss: AxmouthDotDevIssuer,   // token issuer
     jti: uuid::Uuid,            // token identifuer
 }
@@ -41,9 +41,9 @@ impl Claims {
             role,
             display_name,
             aud: AxmouthDotDevAudience::AxmouthDotDev,
-            exp: (Utc::now() + Duration::seconds(15)).timestamp() as u64,
-            iat: Utc::now().timestamp() as u64,
-            nbf: Utc::now().timestamp() as u64,
+            exp: (Utc::now() + Duration::seconds(15)).timestamp(),
+            iat: Utc::now().timestamp(),
+            nbf: Utc::now().timestamp(),
             iss: AxmouthDotDevIssuer::AxmouthDotDev,
             jti: jti,
         }
@@ -54,9 +54,9 @@ impl Claims {
             role,
             display_name,
             aud: AxmouthDotDevAudience::AdminDotAxmouthDotDev,
-            exp: (Utc::now() + Duration::seconds(15)).timestamp() as u64,
-            iat: Utc::now().timestamp() as u64,
-            nbf: Utc::now().timestamp() as u64,
+            exp: (Utc::now() + Duration::seconds(15)).timestamp(),
+            iat: Utc::now().timestamp(),
+            nbf: Utc::now().timestamp(),
             iss: AxmouthDotDevIssuer::AdminDotAxmouthDotDev,
             jti: jti,
         }
@@ -91,7 +91,7 @@ impl Claims {
     }
 
     pub fn is_expired(&self) -> bool {
-        Utc::now().timestamp() as u64 > self.exp
+        Utc::now().timestamp() > self.exp
     }
 
     pub fn is_valid(&self) -> bool {
@@ -104,9 +104,9 @@ impl Claims {
             role: self.role.clone(),
             display_name: self.display_name.clone(),
             aud: self.aud.clone(),
-            exp: (Utc::now() + Duration::seconds(15)).timestamp() as u64,
-            iat: Utc::now().timestamp() as u64,
-            nbf: Utc::now().timestamp() as u64,
+            exp: (Utc::now() + Duration::seconds(15)).timestamp(),
+            iat: Utc::now().timestamp(),
+            nbf: Utc::now().timestamp(),
             iss: self.iss.clone(),
             jti,
         }

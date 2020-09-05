@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { retry } from 'rxjs/operators';
+import { retry, switchMap } from 'rxjs/operators';
+import { AuthService } from 'src/auth';
 
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
@@ -43,31 +44,56 @@ function baseApiRequest<T>(http: HttpClient, url: string, queryParams: any, meth
   providedIn: 'root',
 })
 export class RestApiService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
 
   getAll<T>(baseUrl: string, queryParams: any) {
     const url = `${baseUrl}`;
-    return baseApiRequest<T>(this.http, url, queryParams, 'get', undefined);
+
+    return this.authService.isAuthenticatedOrRefresh(undefined).pipe(
+      switchMap(() => {
+        return baseApiRequest<T>(this.http, url, queryParams, 'get', undefined);
+      }),
+    );
   }
 
   get<T>(baseUrl: string, id: string, queryParams: any) {
     const url = `${baseUrl}/${id}`;
-    return baseApiRequest<T>(this.http, url, queryParams, 'get', undefined);
+
+    return this.authService.isAuthenticatedOrRefresh(undefined).pipe(
+      switchMap(() => {
+        return baseApiRequest<T>(this.http, url, queryParams, 'get', undefined);
+      }),
+    );
   }
 
   create<T>(baseUrl: string, body: any, queryParams: any) {
     const url = `${baseUrl}`;
-    return baseApiRequest<T>(this.http, url, queryParams, 'post', body);
+
+    return this.authService.isAuthenticatedOrRefresh(undefined).pipe(
+      switchMap(() => {
+        return baseApiRequest<T>(this.http, url, queryParams, 'post', body);
+      }),
+    );
   }
 
   update<T>(baseUrl: string, id: string, body: any, queryParams: any) {
     const url = `${baseUrl}/${id}`;
-    return baseApiRequest<T>(this.http, url, queryParams, 'put', body);
+
+    return this.authService.isAuthenticatedOrRefresh(undefined).pipe(
+      switchMap(() => {
+        return baseApiRequest<T>(this.http, url, queryParams, 'put', body);
+      }),
+    );
   }
 
   delete<T>(baseUrl: string, id: string, queryParams: any) {
     const url = `${baseUrl}/${id}`;
-    return baseApiRequest<T>(this.http, url, queryParams, 'delete', undefined);
+
+    return this.authService.isAuthenticatedOrRefresh(undefined).pipe(
+      switchMap(() => {
+        return baseApiRequest<T>(this.http, url, queryParams, 'delete', undefined);
+      }),
+    );
   }
 
   // TODO Delete Many - Update Many - Create Many

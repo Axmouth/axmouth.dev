@@ -4,6 +4,7 @@ on: [push]
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
 
     strategy:
@@ -41,6 +42,6 @@ jobs:
           USERNAME: ${{ secrets.SERVER_USERNAME }}
           PORT: 22
         with:
-          source: './ng-client-user/dist/ng-user-client/'
-          target: '/var/lib/axmouth/axmouth.dev/ng-client-user/'
+          source: "./ng-client-user/dist/ng-user-client/"
+          target: "/var/lib/axmouth/axmouth.dev/ng-client-user/"
           strip_components: 3 # this is important

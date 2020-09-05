@@ -8,6 +8,12 @@ pub struct FileUploadError {
 
 impl warp::reject::Reject for FileUploadError {}
 
+impl FileUploadError {
+    pub fn new(err_message: String) -> Self {
+        Self { err_message }
+    }
+}
+
 impl ToString for FileUploadError {
     fn to_string(&self) -> String {
         return self.err_message.clone();
