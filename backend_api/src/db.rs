@@ -24,7 +24,7 @@ pub struct Repo {
 impl Repo {
     /// Creates a repo using default configuration for the underlying connection pool.
     pub async fn new(database_url: String) -> Self {
-        let pool = get_pg_pool(database_url);
+        let pool = get_pg_pool(database_url, 64);
         Self {
             blog_post_repository: BlogPostRepo::new(pool.clone()),
             blog_comment_repository: BlogPostCommentRepo::new(pool.clone()),

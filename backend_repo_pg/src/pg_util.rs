@@ -7,10 +7,10 @@ use diesel::pg::PgConnection;
 use diesel::r2d2::ConnectionManager;
 use r2d2::Pool;
 
-pub fn get_pg_pool(database_url: String) -> Pool<ConnectionManager<PgConnection>> {
+pub fn get_pg_pool(database_url: String, max_size: u32) -> Pool<ConnectionManager<PgConnection>> {
     let manager = ConnectionManager::new(database_url.as_str());
     let connection_pool = r2d2::Builder::default()
-        .max_size(64)
+        .max_size(max_size)
         .build(manager)
         .expect("Could not instantiate db pool");
     let conn = connection_pool
