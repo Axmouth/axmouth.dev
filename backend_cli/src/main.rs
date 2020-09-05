@@ -123,9 +123,11 @@ pub fn parse_args() -> CmdType {
 }
 
 pub static HELP_TEXT: &str = "Commands:
+
     create-super-user:
-        -p/--password <password>
-        -d/--display-name <display name>
-        -e/--email <email>
+        -p/--password <password> (required)
+        -d/--display-name <display name> (required)
+        -e/--email <email> (required)
+
     help (this message)
     ";

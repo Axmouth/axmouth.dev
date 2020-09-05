@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { retry, switchMap } from 'rxjs/operators';
+import { retry, switchMap, concatMap } from 'rxjs/operators';
 import { AuthService } from 'src/auth';
 
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
@@ -49,8 +49,8 @@ export class RestApiService {
   getAll<T>(baseUrl: string, queryParams: any) {
     const url = `${baseUrl}`;
 
-    return this.authService.isAuthenticatedOrRefresh(undefined).pipe(
-      switchMap(() => {
+    return this.authService.isAuthenticatedOrRefresh().pipe(
+      concatMap(() => {
         return baseApiRequest<T>(this.http, url, queryParams, 'get', undefined);
       }),
     );
@@ -59,8 +59,8 @@ export class RestApiService {
   get<T>(baseUrl: string, id: string, queryParams: any) {
     const url = `${baseUrl}/${id}`;
 
-    return this.authService.isAuthenticatedOrRefresh(undefined).pipe(
-      switchMap(() => {
+    return this.authService.isAuthenticatedOrRefresh().pipe(
+      concatMap(() => {
         return baseApiRequest<T>(this.http, url, queryParams, 'get', undefined);
       }),
     );
@@ -69,8 +69,8 @@ export class RestApiService {
   create<T>(baseUrl: string, body: any, queryParams: any) {
     const url = `${baseUrl}`;
 
-    return this.authService.isAuthenticatedOrRefresh(undefined).pipe(
-      switchMap(() => {
+    return this.authService.isAuthenticatedOrRefresh().pipe(
+      concatMap(() => {
         return baseApiRequest<T>(this.http, url, queryParams, 'post', body);
       }),
     );
@@ -79,8 +79,8 @@ export class RestApiService {
   update<T>(baseUrl: string, id: string, body: any, queryParams: any) {
     const url = `${baseUrl}/${id}`;
 
-    return this.authService.isAuthenticatedOrRefresh(undefined).pipe(
-      switchMap(() => {
+    return this.authService.isAuthenticatedOrRefresh().pipe(
+      concatMap(() => {
         return baseApiRequest<T>(this.http, url, queryParams, 'put', body);
       }),
     );
@@ -89,8 +89,8 @@ export class RestApiService {
   delete<T>(baseUrl: string, id: string, queryParams: any) {
     const url = `${baseUrl}/${id}`;
 
-    return this.authService.isAuthenticatedOrRefresh(undefined).pipe(
-      switchMap(() => {
+    return this.authService.isAuthenticatedOrRefresh().pipe(
+      concatMap(() => {
         return baseApiRequest<T>(this.http, url, queryParams, 'delete', undefined);
       }),
     );

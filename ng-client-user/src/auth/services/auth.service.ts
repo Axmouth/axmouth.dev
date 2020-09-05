@@ -10,8 +10,9 @@ import {
   switchMapTo,
   flatMap,
   retry,
+  take,
 } from 'rxjs/operators';
-import { Observable, of, observable } from 'rxjs';
+import { Observable, of, observable, Subject } from 'rxjs';
 import { HttpClient, HttpResponse, HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { AuthSuccess } from 'src/app/models/api/auth-success-response';
@@ -31,6 +32,8 @@ import { Response } from 'src/app/models/api/response';
 })
 export class AuthService {
   authenticating = false;
+  authenticatingNotifier = new Subject<AuthResult>();
+
   authEndpointPrefix: string;
 
   constructor(
@@ -226,6 +229,10 @@ export class AuthService {
     if (!this.isBrowserService.isInBrowser()) {
       return of(false);
     }
+    if (this.authenticating) {
+      // check if auth request is in progress and do nothing then
+      return this.authenticatingNotifier.pipe(take(1)).pipe(map((authResult) => authResult.isSuccess()));
+    }
     return this.getToken().pipe(
       switchMap((token) => {
         if (token.getValue() && !token.isValid()) {
@@ -280,7 +287,11 @@ export class AuthService {
   refreshToken(data?: any, callback$?: Observable<any>): Observable<AuthResult> {
     if (this.authenticating) {
       // check if auth request is in progress and do nothing then
-      return of(null);
+      return this.authenticatingNotifier.pipe(take(1)).pipe(
+        switchMap((value, index) => {
+          return this.refreshToken(data, callback$);
+        }),
+      );
     }
     // set the flag that there is an auth request in progress
     this.authenticating = true;
@@ -291,7 +302,7 @@ export class AuthService {
         map((res) => {
           const token = AuthCreateJWTToken(res.body?.data?.token, 'refreshToken');
           this.authenticating = false;
-          return new AuthResult(
+          const authResult = new AuthResult(
             true,
             res,
             true,
@@ -299,15 +310,21 @@ export class AuthService {
             ['Your token has been successfully refreshed.'],
             token,
           );
+          this.authenticatingNotifier.next(authResult);
+          return authResult;
         }),
         catchError((res) => {
           this.authenticating = false;
+          this.handleResponseError(res).subscribe((authResult) => {
+            this.authenticatingNotifier.next(authResult);
+          });
           return this.handleResponseError(res);
         }),
       )
       .pipe(
         switchMap((result: AuthResult) => {
           this.authenticating = false;
+          this.authenticatingNotifier.next(result);
           return this.processResultToken(result);
         }),
       );
@@ -317,8 +334,6 @@ export class AuthService {
     }
     return callback$.pipe(
       switchMap((obj) => {
-        // console.log('refreshToken$1');
-        // console.log(obj);
         return refresh$;
       }),
     );
