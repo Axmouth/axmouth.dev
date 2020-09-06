@@ -11,6 +11,7 @@ import { LinksSideWidgetComponent } from './shared/components/links-side-widget/
 import { SharedModule } from './shared/shared.module';
 import { HCaptchaDirective } from './shared/directives/h-captcha.directive';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { jwtWhitelist } from 'src/environments/environment';
 
 @NgModule({
   declarations: [AppComponent],
@@ -23,15 +24,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     AuthModule.forRoot({
       config: {
         authEndpointPrefix: `${apiRoot}/auth/`,
-        whitelistedDomains: [
-          'localhost',
-          'localhost:39051',
-          '[::1]:39051',
-          'localhost:4200',
-          'axmouth.dev',
-          'admin.axmouth.dev',
-          'backend.axmouth.dev',
-        ],
+        whitelistedDomains: jwtWhitelist,
         blacklistedRoutes: [],
         // authScheme: ""
       },

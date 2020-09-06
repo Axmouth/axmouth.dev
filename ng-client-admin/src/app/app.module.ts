@@ -53,6 +53,7 @@ import { AddToListDialogComponent } from './field-components/add-to-list-dialog/
 import { EditEntityComponent } from './components/edit-entity/edit-entity.component';
 import { BooleanFieldComponent } from './field-components/boolean-field/boolean-field.component';
 import { EnumFieldComponent } from './field-components/enum-field/enum-field.component';
+import { jwtWhitelist } from 'src/environments/environment';
 
 @NgModule({
   declarations: [
@@ -112,15 +113,7 @@ import { EnumFieldComponent } from './field-components/enum-field/enum-field.com
     AuthModule.forRoot({
       config: {
         authEndpointPrefix: `${apiRoot}/auth/`,
-        whitelistedDomains: [
-          'localhost',
-          'localhost:39051',
-          '[::1]:39051',
-          'localhost:4200',
-          'axmouth.dev',
-          'admin.axmouth.dev',
-          'backend.axmouth.dev',
-        ],
+        whitelistedDomains: jwtWhitelist,
         blacklistedRoutes: [],
         // authScheme: ""
       },

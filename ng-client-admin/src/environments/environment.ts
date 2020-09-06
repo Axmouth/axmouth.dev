@@ -7,6 +7,7 @@ export const environment = {
 };
 
 export const apiRoot = 'http://localhost:39051/api/v1';
+export const jwtWhitelist = ['localhost', 'localhost:39051', '[::1]:39051', 'localhost:4200'];
 /*
  * For easier debugging in development mode, you can import the following file
  * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.
