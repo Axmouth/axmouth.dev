@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { retry, switchMap, concatMap } from 'rxjs/operators';
 import { AuthService } from 'src/auth';
+import { Observable } from 'rxjs';
 
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
@@ -46,7 +47,7 @@ function baseApiRequest<T>(http: HttpClient, url: string, queryParams: any, meth
 export class RestApiService {
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  getAll<T>(baseUrl: string, queryParams: any) {
+  getAll<T>(baseUrl: string, queryParams: any): Observable<T> {
     const url = `${baseUrl}`;
 
     return this.authService.isAuthenticatedOrRefresh().pipe(
@@ -56,7 +57,7 @@ export class RestApiService {
     );
   }
 
-  get<T>(baseUrl: string, id: string, queryParams: any) {
+  get<T>(baseUrl: string, id: string, queryParams: any): Observable<T> {
     const url = `${baseUrl}/${id}`;
 
     return this.authService.isAuthenticatedOrRefresh().pipe(
@@ -66,7 +67,7 @@ export class RestApiService {
     );
   }
 
-  create<T>(baseUrl: string, body: any, queryParams: any) {
+  create<T>(baseUrl: string, body: any, queryParams: any): Observable<T> {
     const url = `${baseUrl}`;
 
     return this.authService.isAuthenticatedOrRefresh().pipe(
@@ -76,7 +77,7 @@ export class RestApiService {
     );
   }
 
-  update<T>(baseUrl: string, id: string, body: any, queryParams: any) {
+  update<T>(baseUrl: string, id: string, body: any, queryParams: any): Observable<T> {
     const url = `${baseUrl}/${id}`;
 
     return this.authService.isAuthenticatedOrRefresh().pipe(
@@ -86,7 +87,7 @@ export class RestApiService {
     );
   }
 
-  delete<T>(baseUrl: string, id: string, queryParams: any) {
+  delete<T>(baseUrl: string, id: string, queryParams: any): Observable<T> {
     const url = `${baseUrl}/${id}`;
 
     return this.authService.isAuthenticatedOrRefresh().pipe(

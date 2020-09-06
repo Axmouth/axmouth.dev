@@ -24,6 +24,7 @@ import * as Marker from '@editorjs/marker';
 import * as Code from '@editorjs/code';
 import { ModelValuesService } from '../../services/model-values.service';
 import { apiRoot } from 'src/environments/environment';
+import { UploadService } from '../../services/upload.service';
 
 @Component({
   selector: 'app-editorjs-field',
@@ -45,6 +46,7 @@ export class EditorjsFieldComponent implements OnInit, AfterViewInit {
     private http: HttpClient,
     private authService: AuthService,
     private modelValuesService: ModelValuesService,
+    private uploadService: UploadService,
   ) {}
 
   ngOnInit(): void {
@@ -56,7 +58,7 @@ export class EditorjsFieldComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    const http = this.http;
+    const uploadService = this.uploadService;
     const authService = this.authService;
     const editor = new EditorJS({
       onChange: async (api: API) => {
@@ -79,17 +81,9 @@ export class EditorjsFieldComponent implements OnInit, AfterViewInit {
           config: {
             uploader: {
               async uploadByFile(file: File): Promise<{ success: number; file: { url: string } }> {
-                const _ = await authService.isAuthenticatedOrRefresh().toPromise();
-                const myFormData = new FormData();
-                const headers = new HttpHeaders();
-                headers.append('Content-Type', 'multipart/form-data');
-                headers.append('Accept', 'application/json');
-                myFormData.append('image', file);
-                return http
-                  .post<{ success: number; file: { url: string } }>(`${apiRoot}/files/upload/editorjs`, myFormData, {
-                    headers,
-                    withCredentials: true,
-                  })
+                const url = `${apiRoot}/files/upload/editorjs`;
+                return uploadService
+                  .uploadFile<{ success: number; file: { url: string } }>(url, 'image', file)
                   .toPromise();
               },
 

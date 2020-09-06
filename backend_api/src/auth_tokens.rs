@@ -35,26 +35,32 @@ pub struct Claims {
 }
 
 impl Claims {
-    fn new(user_id: i32, role: UserRole, jti: Uuid, display_name: String) -> Self {
+    fn new(user_id: i32, role: UserRole, jti: Uuid, display_name: String, duration: i64) -> Self {
         Self {
             sub: user_id,
             role,
             display_name,
             aud: AxmouthDotDevAudience::AxmouthDotDev,
-            exp: (Utc::now() + Duration::seconds(15)).timestamp(),
+            exp: (Utc::now() + Duration::seconds(duration)).timestamp(),
             iat: Utc::now().timestamp(),
             nbf: Utc::now().timestamp(),
             iss: AxmouthDotDevIssuer::AxmouthDotDev,
             jti: jti,
         }
     }
-    fn new_admin(user_id: i32, role: UserRole, jti: Uuid, display_name: String) -> Self {
+    fn new_admin(
+        user_id: i32,
+        role: UserRole,
+        jti: Uuid,
+        display_name: String,
+        duration: i64,
+    ) -> Self {
         Self {
             sub: user_id,
             role,
             display_name,
             aud: AxmouthDotDevAudience::AdminDotAxmouthDotDev,
-            exp: (Utc::now() + Duration::seconds(15)).timestamp(),
+            exp: (Utc::now() + Duration::seconds(duration)).timestamp(),
             iat: Utc::now().timestamp(),
             nbf: Utc::now().timestamp(),
             iss: AxmouthDotDevIssuer::AdminDotAxmouthDotDev,
@@ -98,13 +104,13 @@ impl Claims {
         !self.is_expired()
     }
 
-    pub fn new_refreshed(&self, jti: uuid::Uuid) -> Self {
+    pub fn new_refreshed(&self, jti: uuid::Uuid, duration: i64) -> Self {
         Self {
             sub: self.sub.clone(),
             role: self.role.clone(),
             display_name: self.display_name.clone(),
             aud: self.aud.clone(),
-            exp: (Utc::now() + Duration::seconds(15)).timestamp(),
+            exp: (Utc::now() + Duration::seconds(duration)).timestamp(),
             iat: Utc::now().timestamp(),
             nbf: Utc::now().timestamp(),
             iss: self.iss.clone(),
@@ -128,10 +134,11 @@ pub fn encode_token(
     role: UserRole,
     jti: Uuid,
     display_name: String,
+    duration: i64,
 ) -> String {
     encode(
         &Header::default(),
-        &Claims::new(sub, role, jti, display_name),
+        &Claims::new(sub, role, jti, display_name, duration),
         &EncodingKey::from_secret(secret.as_ref()),
     )
     .unwrap()
@@ -143,10 +150,11 @@ pub fn encode_admin_token(
     role: UserRole,
     jti: Uuid,
     display_name: String,
+    duration: i64,
 ) -> String {
     encode(
         &Header::default(),
-        &Claims::new_admin(sub, role, jti, display_name),
+        &Claims::new_admin(sub, role, jti, display_name, duration),
         &EncodingKey::from_secret(secret.as_ref()),
     )
     .unwrap()
@@ -178,6 +186,7 @@ mod tests {
             UserRole::User,
             Uuid::new_v4(),
             "usahname".to_string(),
+            100,
         );
         let decoded = decode::<Claims>(
             &token,

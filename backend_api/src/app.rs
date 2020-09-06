@@ -17,6 +17,7 @@ const APPLICATION_NAME: &str = env!("CARGO_PKG_NAME");
 pub struct AppState {
     pub repository: Repo,
     pub jwt_secret: String,
+    pub jwt_duration: i64,
     pub captcha_secret: String,
     pub refresh_cookie_builder: CookieBuilder,
     pub static_file_dir: String,
@@ -27,7 +28,8 @@ pub struct AppState {
 pub async fn start() {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let static_file_dir = env::var("STATIC_FILE_DIR").expect("STATIC_FILE_DIR must be set");
-    let static_file_address = env::var("STATIC_FILE_ADDRESS").expect("STATIC_FILE_ADDRESS must be set");
+    let static_file_address =
+        env::var("STATIC_FILE_ADDRESS").expect("STATIC_FILE_ADDRESS must be set");
     let repository = Repo::new(database_url).await;
 
     let bind_address: SocketAddr = env::var("BIND_ADDRESS")
@@ -36,6 +38,10 @@ pub async fn start() {
         .expect("BIND_ADDRESS is invalid");
 
     let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
+    let jwt_duration = env::var("JWT_DURATION")
+        .expect("JWT_DURATION must be set")
+        .parse()
+        .unwrap();
     let captcha_secret = env::var("CAPTCHA_SECRET").expect("CAPTCHA_SECRET must be set");
     let refresh_cookie_builder = CookieBuilder::new()
         .with_name("refresh_token".into())
@@ -46,6 +52,7 @@ pub async fn start() {
     let app_state = AppState {
         repository,
         jwt_secret,
+        jwt_duration,
         captcha_secret,
         refresh_cookie_builder,
         static_file_dir,

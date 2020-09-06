@@ -51,6 +51,7 @@ pub async fn login(
             user.role,
             jti,
             user.display_name,
+            state.jwt_duration,
         ),
         _ => auth_tokens::encode_token(
             state.jwt_secret.as_str(),
@@ -58,6 +59,7 @@ pub async fn login(
             user.role,
             jti,
             user.display_name,
+            state.jwt_duration,
         ),
     };
     let refresh_token =
@@ -114,6 +116,7 @@ pub async fn admin_login(
         user.role,
         jti,
         user.display_name,
+        state.jwt_duration,
     );
     let refresh_token =
         match create_refresh_token(user.id, jti, state.repository.refresh_token_repository).await {
@@ -155,6 +158,7 @@ pub async fn register(
         UserRole::Ghost,
         jti.clone(),
         request.display_name,
+        state.jwt_duration,
     );
     let refresh_token = match create_refresh_token(
         user_result.id,
@@ -234,7 +238,7 @@ pub async fn refresh(
     let jti = uuid::Uuid::new_v4();
 
     let jwt_token = claims
-        .new_refreshed(jti)
+        .new_refreshed(jti, state.jwt_duration)
         .to_token(state.jwt_secret.as_str());
     let refresh_token = match create_refresh_token(
         claims.user_id(),

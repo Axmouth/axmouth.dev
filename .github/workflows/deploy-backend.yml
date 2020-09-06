@@ -59,6 +59,7 @@ jobs:
             touch .env
             echo "DATABASE_URL=$DATABASE_URL" >> .env
             echo "JWT_SECRET=$JWT_SECRET" >> .env
+            echo "JWT_DURATION=500" >> .env
             echo "CAPTCHA_SECRET=$CAPTCHA_SECRET" >> .env
             echo "MAIL_USERNAME=$MAIL_USERNAME" >> .env
             echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env
