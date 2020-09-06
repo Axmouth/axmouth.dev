@@ -30,10 +30,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
           'localhost:4200',
           'axmouth.dev',
           'admin.axmouth.dev',
-          'api.axmouth.dev',
-          'giorgosnikolop.info',
-          'admin.giorgosnikolop.info',
-          'api.giorgosnikolop.info',
+          'backend.axmouth.dev',
         ],
         blacklistedRoutes: [],
         // authScheme: ""

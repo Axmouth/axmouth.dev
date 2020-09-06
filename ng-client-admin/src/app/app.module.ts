@@ -119,10 +119,7 @@ import { EnumFieldComponent } from './field-components/enum-field/enum-field.com
           'localhost:4200',
           'axmouth.dev',
           'admin.axmouth.dev',
-          'api.axmouth.dev',
-          'giorgosnikolop.info',
-          'admin.giorgosnikolop.info',
-          'api.giorgosnikolop.info',
+          'backend.axmouth.dev',
         ],
         blacklistedRoutes: [],
         // authScheme: ""
