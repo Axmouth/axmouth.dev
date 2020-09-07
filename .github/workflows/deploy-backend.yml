@@ -50,7 +50,7 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
-        run: DOCKER_HOST="ssh://$SERVER_USERNAME@$SERVER_IP" echo $SSH_KEY > ~/ssh/id_rsa && docker-compose up -d && rm ~/ssh/id_rsa
+        run: DOCKER_HOST="ssh://$SERVER_USERNAME@$SERVER_IP" mkdir - ~/ssh && echo $SSH_KEY > ~/ssh/id_rsa && docker-compose up -d && rm ~/ssh/id_rsa
       #- name: Push to GitHub Packages
       #  uses: docker/build-push-action@v1
       #  with:
