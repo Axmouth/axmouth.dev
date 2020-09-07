@@ -12,12 +12,23 @@ services:
     env_file:
       - ./.env
     environment:
-      - JWT_SECRET
-      - DATABASE_URL
+      - BIND_ADDRESS
       - CAPTCHA_SECRET
-      - MAIL_USERNAME
+      - CAPTCHA_VERIFY_URL
+      - CONTACT_ADDRESS
+      - DATABASE_URL
+      - JWT_SECRET
+      - JWT_DURATION
+      - MAIL_FROM_NAME
+      - MAIL_FROM_ADDRESS
+      - MAIL_HOST
       - MAIL_PASSWORD
       - MAIL_PORT
+      - MAIL_USERNAME
+      - RUST_LOG
+      - STATIC_FILE_DIR
+      - STATIC_FILE_ADDRESS
+      - WEBSITE_URL
     volumes:
       - axmouth.dev-files:/var/lib/axmouth/axmouth.dev/static-assets:rw
 volumes:

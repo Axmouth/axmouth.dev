@@ -11,35 +11,42 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v2
 
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-      - name: Push to GitHub Packages
-        uses: docker/build-push-action@v1
-        with:
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GHCR_TOKEN }}
-          registry: ghcr.io
-          repository: axmouth/axmouth.dev-backend
-          cache_froms: ghcr.io/axmouth/axmouth.dev-backend
-          tag_with_ref: true
-          tags: latest
+      - run: echo ${{ secrets.GHCR_TOKEN }} | docker login docker.pkg.github.com -u $GITHUB_ACTOR --password-stdin
+      - run: docker pull ghcr.io/axmouth/axmouth.dev-backend || true
+      - run: docker build . -t latest --cache-from=ghcr.io/axmouth/axmouth.dev-backend
+      - run: docker tag latest ghcr.io/axmouth/axmouth.dev-backend && docker push ghcr.io/axmouth/axmouth.dev-backend || true
+      #- name: Push to GitHub Packages
+      #  uses: docker/build-push-action@v1
+      #  with:
+      #    username: ${{ github.repository_owner }}
+      #    password: ${{ secrets.GHCR_TOKEN }}
+      #    registry: ghcr.io
+      #    repository: axmouth/axmouth.dev-backend
+      #    cache_froms: ghcr.io/axmouth/axmouth.dev-backend
+      #    tag_with_ref: true
+      #    tags: latest
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@master
         env:
+          BIND_ADDRESS: 0.0.0.0:39051
+          CAPTCHA_SECRET: ${{ secrets.CAPTCHA_SECRET }}
+          CAPTCHA_VERIFY_URL: https://hcaptcha.com/siteverify
+          CONTACT_ADDRESS: ${{ secrets.CONTACT_ADDRESS }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          CAPTCHA_SECRET: ${{ secrets.CAPTCHA_SECRET }}
+          JWT_DURATION: 500
+          MAIL_FROM_ADDRESS: noreply@axmouth.dev
+          MAIL_FROM_NAME: axmouth.dev
           MAIL_HOST: ${{ secrets.MAIL_HOST }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
           MAIL_PORT: ${{ secrets.MAIL_PORT }}
           MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          RUST_LOG: backend_api=error
+          STATIC_FILE_DIR: /var/lib/axmouth/axmouth.dev/static-assets
+          STATIC_FILE_ADDRESS: https://axmouth.dev/static
+          WEBSITE_URL: axmouth.dev
         with:
           envs: GHCR_TOKEN,GITHUB_ACTOR,DATABASE_URL,JWT_SECRET,CAPTCHA_SECRET,MAIL_HOST,MAIL_PORT,MAIL_USERNAME,MAIL_PASSWORD
           key: ${{ secrets.SSH_KEY }}
@@ -57,21 +64,21 @@ jobs:
             cd axmouth.dev
             export HOST_GATEWAY=$(dig +short myip.opendns.com @resolver1.opendns.com)
             touch .env
+            echo "BIND_ADDRESS=0.0.0.0:39051" >> .env
+            echo "CAPTCHA_SECRET=$CAPTCHA_SECRET" >> .env
+            echo 'CAPTCHA_VERIFY_URL=https://hcaptcha.com/siteverify' >> .env
+            echo 'CONTACT_ADDRESS=$CONTACT_ADDRESS' >> .env
             echo "DATABASE_URL=$DATABASE_URL" >> .env
             echo "JWT_SECRET=$JWT_SECRET" >> .env
             echo "JWT_DURATION=500" >> .env
-            echo "CAPTCHA_SECRET=$CAPTCHA_SECRET" >> .env
-            echo "MAIL_USERNAME=$MAIL_USERNAME" >> .env
+            echo 'MAIL_FROM_ADDRESS=noreply@axmouth.dev' >> .env
+            echo 'MAIL_FROM_NAME="Dragonfly"' >> .env
+            echo "MAIL_HOST=$MAIL_HOST" >> .env
             echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env
             echo "MAIL_PORT=$MAIL_PORT" >> .env
-            echo "MAIL_HOST=$MAIL_HOST" >> .env
-            echo "BIND_ADDRESS=0.0.0.0:39051" >> .env
-            echo 'CAPTCHA_VERIFY_URL=https://hcaptcha.com/siteverify' >> .env
+            echo "MAIL_USERNAME=$MAIL_USERNAME" >> .env
             echo "RUST_LOG=backend_api=error" >> .env
             echo 'STATIC_FILE_DIR=/var/lib/axmouth/axmouth.dev/static-assets' >> .env
             echo 'STATIC_FILE_ADDRESS=https://axmouth.dev/static' >> .env
-            echo 'CONTACT_ADDRESS=axmouth@axmouth.dev' >> .env
-            echo 'MAIL_FROM_NAME="Dragonfly"' >> .env
-            echo 'MAIL_FROM_ADDRESS=noreply@axmouth.dev' >> .env
             echo 'WEBSITE_URL=axmouth.dev' >> .env
             docker-compose up -d --remove-orphans

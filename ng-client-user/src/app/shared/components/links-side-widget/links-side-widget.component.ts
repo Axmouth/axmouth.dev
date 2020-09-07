@@ -9,7 +9,7 @@ import { ActivatedRoute } from '@angular/router';
   styleUrls: ['./links-side-widget.component.scss'],
 })
 export class LinksSideWidgetComponent implements OnInit {
-  linksList: HomePageLink[] = [];
+  linksList: HomePageLink[] = LinkService.getAllLinksFromCache()?.data;
   resultNumber = 0;
   page: number;
   pageSize: number;

@@ -34,6 +34,13 @@ jobs:
         run: npm run build:ci
         env:
           CI: true
+      - name: Cache built objects for Ivy
+        uses: actions/cache@v1
+        with:
+          path: ~/.build
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Copy File via SSH Hey
         uses: appleboy/scp-action@master
         env:

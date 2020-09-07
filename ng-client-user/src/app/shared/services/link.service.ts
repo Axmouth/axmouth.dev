@@ -9,14 +9,19 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class LinkService {
-  url = `${apiRoot}/links`;
+  static url = `${apiRoot}/links`;
+
+  static getAllLinksFromCache(page?: number, pageSize?: number): Response<HomePageLink[]> {
+    return RestApiService.getFromCache<Response<HomePageLink[]>>(LinkService.url, { page, pageSize });
+  }
+
   constructor(private apiService: RestApiService) {}
 
   getLink(id: string): Observable<Response<HomePageLink>> {
-    return this.apiService.get<Response<HomePageLink>>(this.url, id, {});
+    return this.apiService.get<Response<HomePageLink>>(LinkService.url, id, {});
   }
 
   getAllLinks(page?: number, pageSize?: number): Observable<Response<HomePageLink[]>> {
-    return this.apiService.getAll<Response<HomePageLink[]>>(this.url, { page, pageSize });
+    return this.apiService.getAll<Response<HomePageLink[]>>(LinkService.url, { page, pageSize }, true);
   }
 }
