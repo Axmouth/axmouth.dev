@@ -13,19 +13,20 @@ jobs:
 
       - name: Login to Github Container Registry with Docker
         run: echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
-      - name: Pull the previous version of Docker image from Github Container Registry
-        run: docker pull ghcr.io/axmouth/axmouth.dev-backend || true
-      - name: Build the new version with latest tag
-        run: docker build . -t latest --cache-from=ghcr.io/axmouth/axmouth.dev-backend
-      - name: Tag and Push the new version with latest tag
-        run: docker tag latest ghcr.io/axmouth/axmouth.dev-backend && docker push ghcr.io/axmouth/axmouth.dev-backend || true
+      #- name: Pull the previous version of Docker image from Github Container Registry
+      #  run: docker pull ghcr.io/axmouth/axmouth.dev-backend || true
       - name: Cache Docker build, to keep builder image
+        id: cache-docker
         uses: actions/cache@v1
         with:
-          path: ~/.docker-build
-          key: ${{ runner.os }}-docker-
-          restore-keys: |
-            ${{ runner.os }}-docker-
+          path: /tmp/docker-save
+          key: docker-save-${{ hashFiles('Dockerfile') }}
+      - name: Build the new version with latest tag
+        run: docker build . -t latest --cache-from=build-cache && docker save build-cache -o /tmp/docker-save/snapshot.tar && ls -lh /tmp/docker-save || true
+      - name: Tag and Push the new version with latest tag
+        run: docker tag latest build-cache ghcr.io/axmouth/axmouth.dev-backend && docker push ghcr.io/axmouth/axmouth.dev-backend || true
+      - run: docker load -i /tmp/docker-save/snapshot.tar || true
+        if: steps.cache-docker.outputs.cache-hit == 'true'
       - name: Use docker-compose to deploy remotely
         env:
           BIND_ADDRESS: 0.0.0.0:39051
@@ -50,7 +51,7 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
-        run: DOCKER_HOST="ssh://$SERVER_USERNAME@$SERVER_IP" mkdir - ~/ssh && echo $SSH_KEY > ~/ssh/id_rsa && docker-compose up -d && rm ~/ssh/id_rsa
+        run: DOCKER_HOST="ssh://$SERVER_USERNAME@$SERVER_IP" mkdir - ~/ssh && echo $SSH_KEY > ~/ssh/id_rsa && touch .env && docker-compose up -d && rm ~/ssh/id_rsa
       #- name: Push to GitHub Packages
       #  uses: docker/build-push-action@v1
       #  with:
