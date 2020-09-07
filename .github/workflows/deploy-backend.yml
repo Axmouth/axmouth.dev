@@ -1,4 +1,4 @@
-name: Publish Docker image of axmouth.dev Backend to MCR then update the image version on server
+name: Publish Docker image of axmouth.dev Backend to GHCR then update the image version on server
 
 on: [push]
 
@@ -22,9 +22,9 @@ jobs:
           path: /tmp/docker-save
           key: docker-save-${{ hashFiles('Dockerfile') }}
       - name: Build the new version with latest tag
-        run: docker build . -t latest --cache-from=build-cache
+        run: docker build . -t latest --cache-from=backend-build-cache
       - name: Tag and Push the new version with latest tag
-        run: docker tag latest build-cache ghcr.io/axmouth/axmouth.dev-backend && docker push ghcr.io/axmouth/axmouth.dev-backend || true && mkdir -p /tmp/docker-save && docker save thing-cache -o /tmp/docker-save/snapshot.tar && ls -lh /tmp/docker-save || true
+        run: docker tag latest backend-build-cache ghcr.io/axmouth/axmouth.dev-backend && docker push ghcr.io/axmouth/axmouth.dev-backend || true && mkdir -p /tmp/docker-save && docker save backend-build-cache -o /tmp/docker-save/snapshot.tar && ls -lh /tmp/docker-save || true
       - run: docker load -i /tmp/docker-save/snapshot.tar || true
         if: steps.cache-docker.outputs.cache-hit == 'true'
       - name: Use docker-compose to deploy remotely

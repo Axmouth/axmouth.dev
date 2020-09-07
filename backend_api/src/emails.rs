@@ -25,8 +25,12 @@ pub struct EmailSender {
 impl EmailSender {
     pub fn new() -> Self {
         EmailSender {
-            contact_address: env::var("CONTACT_ADDRESS").expect("CONTACT_ADDRESS is not set"),
-            from_address: env::var("MAIL_FROM_ADDRESS").expect("MAIL_FROM_ADDRESS is not set"),
+            contact_address: env::var("CONTACT_ADDRESS")
+                .expect("CONTACT_ADDRESS is not set")
+                .trim(),
+            from_address: env::var("MAIL_FROM_ADDRESS")
+                .expect("MAIL_FROM_ADDRESS is not set")
+                .trim(),
             host: env::var("MAIL_HOST").expect("MAIL_HOST is not set"),
             port: env::var("MAIL_PORT")
                 .expect("MAIL_PORT is not set")
