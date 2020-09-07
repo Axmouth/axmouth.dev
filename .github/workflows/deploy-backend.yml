@@ -11,7 +11,7 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v2
 
-      - run: echo ${{ secrets.GHCR_TOKEN }} | docker login docker.pkg.github.com -u $GITHUB_ACTOR --password-stdin
+      - run: echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
       - run: docker pull ghcr.io/axmouth/axmouth.dev-backend || true
       - run: docker build . -t latest --cache-from=ghcr.io/axmouth/axmouth.dev-backend
       - run: docker tag latest ghcr.io/axmouth/axmouth.dev-backend && docker push ghcr.io/axmouth/axmouth.dev-backend || true
