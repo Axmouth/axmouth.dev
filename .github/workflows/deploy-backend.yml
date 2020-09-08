@@ -67,5 +67,3 @@ jobs:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
         run: DOCKER_HOST="ssh://$SERVER_USERNAME@$SERVER_IP" docker-compose up --remove-orphans -d
-      - name: Remove ssh key. In case
-        run: rm ~/ssh/id_rsa
