@@ -26,11 +26,7 @@ jobs:
         env:
           SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
-        run: ssh $SERVER_USERNAME@SERVER_IP -c echo 'hello world'
-      #- name: Add ssh config
-      #  env:
-      #    SSH_CONFIG: ${{ secrets.SSH_CONFIG }}
-      #  run: echo $SSH_CONFIG > ~/.ssh/config
+        run: ssh $SERVER_USERNAME@$SERVER_IP  "echo 'hello world'"
       - name: Create empty .env file
         run: touch .env
       - name: Use docker-compose to deploy remotely
