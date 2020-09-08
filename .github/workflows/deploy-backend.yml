@@ -35,6 +35,14 @@ jobs:
       - name: Save Docker artifacts to an archive
         run: docker save backend-build-cache -o /tmp/docker-save/snapshot.tar
       - run: ls -lh /tmp/docker-save || true
+      - name: Create .ssh folder if missing
+        run: mkdir - ~/ssh
+      - name: Add ssh key
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        run: echo $SSH_KEY > ~/ssh/id_rsa
+      - name: Create empty .env file
+        run: touch .env
       - name: Use docker-compose to deploy remotely
         env:
           BIND_ADDRESS: 0.0.0.0:39051
@@ -56,7 +64,8 @@ jobs:
           STATIC_FILE_DIR: /var/lib/axmouth/axmouth.dev/static-assets
           STATIC_FILE_ADDRESS: https://axmouth.dev/static
           WEBSITE_URL: axmouth.dev
-          SSH_KEY: ${{ secrets.SSH_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
-        run: mkdir - ~/ssh && echo $SSH_KEY > ~/ssh/id_rsa && touch .env && DOCKER_HOST="ssh://$SERVER_USERNAME@$SERVER_IP" docker-compose up --remove-orphans -d && rm ~/ssh/id_rsa --host
+        run: DOCKER_HOST="ssh://$SERVER_USERNAME@$SERVER_IP" docker-compose up --remove-orphans -d
+      - name: Remove ssh key. In case
+        run: rm ~/ssh/id_rsa
