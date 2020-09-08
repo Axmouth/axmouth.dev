@@ -36,15 +36,15 @@ jobs:
         run: docker save backend-build-cache -o /tmp/docker-save/snapshot.tar
       - run: ls -lh /tmp/docker-save || true
       - name: Create .ssh folder if missing
-        run: mkdir -p ~/ssh
+        run: mkdir -p ~/.ssh
       - name: Add ssh key
         env:
           SSH_CONFIG: ${{ secrets.SSH_CONFIG }}
-        run: echo $SSH_CONFIG > ~/ssh/id_rsa
+        run: echo $SSH_CONFIG > ~/.ssh/id_rsa
       - name: Add ssh config
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
-        run: echo $SSH_KEY > ~/ssh/config
+        run: echo $SSH_KEY > ~/.ssh/config
       - name: Create empty .env file
         run: touch .env
       - name: Use docker-compose to deploy remotely
