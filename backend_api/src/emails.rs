@@ -75,6 +75,10 @@ impl EmailSender {
         subject: String,
         body: String,
     ) -> Result<(), EmailError> {
+        println!("{}", self.contact_address);
+        println!("{}", from_email);
+        println!("{}", subject);
+        println!("{}", body);
         let email = Email::builder()
             // Addresses can be specified by the tuple (email, alias)
             .to(self.contact_address.clone())
