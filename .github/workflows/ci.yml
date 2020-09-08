@@ -16,18 +16,11 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: echo derp
 
-      - name: Create .ssh folder if missing
-        run: mkdir -p ~/.ssh
-      - name: Add ssh key
-        env:
-          SSH_KEY: ${{ secrets.SSH_KEY }}
-        run: echo $SSH_KEY > ~/.ssh/id_rsa
-      - name: Change key permissions
-        run: chmod 600 ~/.ssh/id_rsa
-      - name: Add known hosts
-        env:
-          KNOWN_HOSTS: ${{ secrets.KNOWN_HOSTS }}
-        run: echo $KNOWN_HOSTS > ~/.ssh/known_hosts
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
       - name: Test ssh
         env:
           SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
