@@ -36,7 +36,7 @@ jobs:
         run: docker save backend-build-cache -o /tmp/docker-save/snapshot.tar
       - run: ls -lh /tmp/docker-save || true
       - name: Create .ssh folder if missing
-        run: mkdir - ~/ssh
+        run: mkdir -p ~/ssh
       - name: Add ssh key
         env:
           SSH_CONFIG: ${{ secrets.SSH_CONFIG }}

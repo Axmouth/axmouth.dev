@@ -8,16 +8,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Push to server
+      - name: Connect to server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
-          password: ${{ secrets.SERVER_PASSWORD }}
+          key: ${{ secrets.SSH_KEY }}
           script: echo derp # mkdir -p ${{ secrets.PROJECT_PATH }} && cd ${{ secrets.PROJECT_PATH }} && git pull
 
       - name: Create .ssh folder if missing
-        run: mkdir - ~/ssh
+        run: mkdir -p ~/ssh
       - name: Add ssh key
         env:
           SSH_CONFIG: ${{ secrets.SSH_CONFIG }}
