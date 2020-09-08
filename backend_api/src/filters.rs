@@ -5,7 +5,7 @@ use crate::{
 };
 use serde::de::DeserializeOwned;
 use validator::{Validate, ValidationError, ValidationErrors};
-use warp::{hyper::StatusCode, reject, Filter, Rejection, Reply};
+use warp::{reject, Filter};
 
 #[derive(Debug, Clone)]
 pub struct MissingAuthentication {}
@@ -157,10 +157,7 @@ pub fn auth_admin_filter(
 pub fn auth_opt_filter(
     jwt_secret: String,
 ) -> impl Filter<Extract = (Option<Claims>,), Error = warp::Rejection> + Clone {
-    warp::header::<String>("authorization")
-        .map(|token: String| Some(token))
-        .or(warp::any().map(|| None))
-        .unify()
+    warp::header::optional::<String>("authorization")
         .and(warp::any().map(move || jwt_secret.clone()))
         .and_then(|token: Option<String>, secret: String| async move {
             let token = match token {

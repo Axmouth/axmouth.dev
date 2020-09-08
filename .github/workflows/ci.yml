@@ -15,3 +15,42 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: echo derp # mkdir -p ${{ secrets.PROJECT_PATH }} && cd ${{ secrets.PROJECT_PATH }} && git pull
+
+      - name: Create .ssh folder if missing
+        run: mkdir - ~/ssh
+      - name: Add ssh key
+        env:
+          SSH_CONFIG: ${{ secrets.SSH_CONFIG }}
+        run: echo $SSH_CONFIG > ~/ssh/id_rsa
+      - name: Add ssh config
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        run: echo $SSH_KEY > ~/ssh/config
+      - name: Create empty .env file
+        run: touch .env
+      - name: Use docker-compose to deploy remotely
+        env:
+          BIND_ADDRESS: 0.0.0.0:39051
+          CAPTCHA_SECRET: ${{ secrets.CAPTCHA_SECRET }}
+          CAPTCHA_VERIFY_URL: https://hcaptcha.com/siteverify
+          CONTACT_ADDRESS: ${{ secrets.CONTACT_ADDRESS }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_DURATION: 500
+          MAIL_FROM_ADDRESS: noreply@axmouth.dev
+          MAIL_FROM_NAME: axmouth.dev
+          MAIL_HOST: ${{ secrets.MAIL_HOST }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_PORT: ${{ secrets.MAIL_PORT }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          RUST_LOG: backend_api=error
+          STATIC_FILE_DIR: /var/lib/axmouth/axmouth.dev/static-assets
+          STATIC_FILE_ADDRESS: https://axmouth.dev/static
+          WEBSITE_URL: axmouth.dev
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+        run: DOCKER_HOST="ssh://$SERVER_USERNAME@$SERVER_IP" docker-compose up --remove-orphans -d
+      - name: Remove ssh key. In case
+        run: rm ~/ssh/id_rsa

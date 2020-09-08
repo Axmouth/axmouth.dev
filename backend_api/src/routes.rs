@@ -378,7 +378,8 @@ pub fn routes(
         health_route,
     );
 
-    warp::path("api")
+    warp::any()
+        .and(warp::path("api"))
         .and(warp::path("v1"))
         .and(handlers)
         .or(files_get)
@@ -458,5 +459,5 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
         success: Some(false),
     });
 
-    Ok(warp::reply::with_status(json, code))
+    Ok(warp::reply::with_status(json, code).into_response())
 }
