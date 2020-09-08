@@ -59,7 +59,8 @@ impl EmailSender {
             ClientSecurity::Opportunistic(tls_parameters),
         )?;
         if let (Some(username), Some(password)) = (self.username.clone(), self.password.clone()) {
-            let credentials: Credentials = Credentials::new(username, password);
+            let credentials: Credentials =
+                Credentials::new(username.trim().to_string(), password.trim().to_string());
             mailer = mailer
                 .credentials(credentials)
                 .authentication_mechanism(Mechanism::Plain);
