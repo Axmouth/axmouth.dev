@@ -14,7 +14,7 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          script: echo derp # mkdir -p ${{ secrets.PROJECT_PATH }} && cd ${{ secrets.PROJECT_PATH }} && git pull
+          script: echo derp
 
       - name: Create .ssh folder if missing
         run: mkdir -p ~/.ssh
@@ -22,6 +22,11 @@ jobs:
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
         run: echo $SSH_KEY > ~/.ssh/id_rsa
+      - name: Test ssh
+        env:
+          SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+        run: ssh $SERVER_USERNAME@SERVER_IP -c echo 'hello world'
       #- name: Add ssh config
       #  env:
       #    SSH_CONFIG: ${{ secrets.SSH_CONFIG }}
