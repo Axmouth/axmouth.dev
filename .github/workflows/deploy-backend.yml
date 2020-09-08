@@ -20,7 +20,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /tmp/docker-save
-          key: docker-save-${{ hashFiles('Dockerfile') }}
+          key: docker-save-${{ hashFiles('Dockerfile') }}-
       - name: Build the new version with latest tag
         run: docker build . -t latest --cache-from=backend-build-cache
       - name: Tag and Push the new version with latest tag
