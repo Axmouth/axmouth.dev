@@ -22,10 +22,10 @@ jobs:
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
         run: echo $SSH_KEY > ~/.ssh/id_rsa
-      - name: Add ssh config
-        env:
-          SSH_CONFIG: ${{ secrets.SSH_CONFIG }}
-        run: echo $SSH_CONFIG > ~/.ssh/config
+      #- name: Add ssh config
+      #  env:
+      #    SSH_CONFIG: ${{ secrets.SSH_CONFIG }}
+      #  run: echo $SSH_CONFIG > ~/.ssh/config
       - name: Create empty .env file
         run: touch .env
       - name: Use docker-compose to deploy remotely
