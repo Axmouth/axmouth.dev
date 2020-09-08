@@ -20,14 +20,21 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /tmp/docker-save
-          key: docker-save-${{ hashFiles('Dockerfile') }}-
+          key: docker-save-${{ hashFiles('Dockerfile') }}--
       - name: Load cached Docker artifactss
         run: docker load -i /tmp/docker-save/snapshot.tar || true
         if: steps.cache-docker.outputs.cache-hit == 'true'
       - name: Build the new version with latest tag
         run: docker build . -t latest --cache-from=backend-build-cache
-      - name: Tag, Cache and Push the new version with latest tag
-        run: docker tag latest backend-build-cache && docker push ghcr.io/axmouth/axmouth.dev-backend || true && mkdir -p /tmp/docker-save && docker save backend-build-cache -o /tmp/docker-save/snapshot.tar && ls -lh /tmp/docker-save || true
+      - name: Tag Container, Cache and Push the new version with latest tag
+        run: docker tag latest backend-build-cache
+      - name: Push to GHCR
+        run: docker push ghcr.io/axmouth/axmouth.dev-backend || true
+      - name: Create Directory to save Docker artifacts, if not exist
+        run: mkdir -p /tmp/docker-save
+      - name: Save Docker artifacts to an archive
+        run: docker save backend-build-cache -o /tmp/docker-save/snapshot.tar
+      - run: ls -lh /tmp/docker-save || true
       - name: Use docker-compose to deploy remotely
         env:
           BIND_ADDRESS: 0.0.0.0:39051
