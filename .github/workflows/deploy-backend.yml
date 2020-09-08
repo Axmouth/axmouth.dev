@@ -27,7 +27,7 @@ jobs:
       - name: Build the new version with latest tag
         run: docker build . -t latest --cache-from=backend-build-cache
       - name: Tag, Cache and Push the new version with latest tag
-        run: docker tag latest backend-build-cache ghcr.io/axmouth/axmouth.dev-backend && docker push ghcr.io/axmouth/axmouth.dev-backend || true && mkdir -p /tmp/docker-save && docker save backend-build-cache -o /tmp/docker-save/snapshot.tar && ls -lh /tmp/docker-save || true
+        run: docker tag latest backend-build-cache && docker push ghcr.io/axmouth/axmouth.dev-backend || true && mkdir -p /tmp/docker-save && docker save backend-build-cache -o /tmp/docker-save/snapshot.tar && ls -lh /tmp/docker-save || true
       - name: Use docker-compose to deploy remotely
         env:
           BIND_ADDRESS: 0.0.0.0:39051
