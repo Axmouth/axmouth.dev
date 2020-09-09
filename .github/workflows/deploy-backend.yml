@@ -62,7 +62,7 @@ jobs:
           MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
           RUST_LOG: backend_api=error
           STATIC_FILE_DIR: /var/lib/axmouth/axmouth.dev/static-assets
-          STATIC_FILE_ADDRESS: https://axmouth.dev/static
+          STATIC_FILE_ADDRESS: https://backend.axmouth.dev/static
           WEBSITE_URL: axmouth.dev
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
