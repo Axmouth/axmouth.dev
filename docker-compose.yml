@@ -1,5 +1,20 @@
 version: "3"
 services:
+  axmouth.dev-postfix:
+    image: boky/postfix
+    container_name: axmouth.dev-postfix
+    environment:
+      - ALLOW_EMPTY_SENDER_DOMAINS=true
+      - ALLOWED_SENDER_DOMAINS
+      - POSTFIX_myhostname=axmouth.dev-postfix
+      #- POSTFIX_smtpd_recipient_restrictions=permit_sasl_authenticated, permit_mynetworks
+      #- POSTFIX_smtpd_relay_restrictions=permit_mynetworks permit_sasl_authenticated defer_unauth_destination
+      #- POSTFIX_mynetworks= 192.168.1.0/24 127.0.0.0/8
+      #- RELAYHOST_TLS_LEVEL=secure
+      #- POSTFIX_smtpd_use_tls=no
+    ports:
+      - 1587:587
+
   axmouth.dev-backend:
     working_dir: /var/lib/axmouth/axmouth.dev/backend
     restart: unless-stopped

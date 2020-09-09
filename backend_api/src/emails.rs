@@ -56,7 +56,7 @@ impl EmailSender {
         let tls_parameters = ClientTlsParameters::new(self.host.clone(), tls_builder.build()?);
         let mut mailer = SmtpClient::new(
             (self.host.as_str(), self.port),
-            ClientSecurity::Wrapper(tls_parameters),
+            ClientSecurity::Opportunistic(tls_parameters),
         )?;
         if let (Some(username), Some(password)) = (self.username.clone(), self.password.clone()) {
             let credentials: Credentials =
