@@ -34,6 +34,7 @@ jobs:
           CAPTCHA_SECRET: ${{ secrets.CAPTCHA_SECRET }}
           CAPTCHA_VERIFY_URL: https://hcaptcha.com/siteverify
           CONTACT_ADDRESS: ${{ secrets.CONTACT_ADDRESS }}
+          CONTAINER_NAME: axmouth.dev-postfix
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}

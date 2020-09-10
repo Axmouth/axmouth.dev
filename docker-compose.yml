@@ -1,11 +1,10 @@
 version: "3"
 services:
-  axmouth.dev-host-access:
+  docker-host:
     image: qoomon/docker-host
     cap_add: ["NET_ADMIN", "NET_RAW"]
     # mem_limit: 8M
     restart: unless-stopped
-    container_name: axmouth.dev-host-access
   axmouth.dev-postfix:
     image: boky/postfix
     container_name: axmouth.dev-postfix
@@ -24,7 +23,6 @@ services:
   axmouth.dev-backend:
     working_dir: /var/lib/axmouth/axmouth.dev/backend
     restart: unless-stopped
-    #network_mode: host
     tty: true
     image: ghcr.io/axmouth/axmouth.dev-backend:latest
     container_name: axmouth.dev-backend
