@@ -52,4 +52,5 @@ jobs:
           WEBSITE_URL: axmouth.dev
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
-        run: DOCKER_HOST="ssh://$SERVER_USERNAME@$SERVER_IP" docker-compose up --remove-orphans -d
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: DOCKER_HOST="ssh://$SERVER_USERNAME@$SERVER_IP:$SSH_PORT" docker-compose up --remove-orphans -d

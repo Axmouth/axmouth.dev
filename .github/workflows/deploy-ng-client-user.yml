@@ -40,7 +40,7 @@ jobs:
           KEY: ${{ secrets.SSH_KEY }}
           HOST: ${{ secrets.SERVER_IP }}
           USERNAME: ${{ secrets.SERVER_USERNAME }}
-          PORT: 22
+          PORT: ${{ secrets.SSH_PORT }}
         with:
           source: "./ng-client-user/dist/ng-user-client/"
           target: "/var/lib/axmouth/axmouth.dev/ng-client-user/"
