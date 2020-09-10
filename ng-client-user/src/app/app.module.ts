@@ -10,7 +10,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { LinksSideWidgetComponent } from './shared/components/links-side-widget/links-side-widget.component';
 import { SharedModule } from './shared/shared.module';
 import { HCaptchaDirective } from './shared/directives/h-captcha.directive';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModule, NgbAlertModule } from '@ng-bootstrap/ng-bootstrap';
 import { jwtWhitelist } from 'src/environments/environment';
 
 @NgModule({

@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { HCAPTCHA_SITE_KEY } from 'src/environments/environment';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ContactService } from '../../services/contact.service';
+import { Router } from '@angular/router';
+import { catchError } from 'rxjs/operators';
+import { Response } from '../../../models/api/response';
 
 @Component({
   selector: 'app-contact-page',
@@ -22,8 +25,9 @@ export class ContactPageComponent implements OnInit {
   captchaDone = false;
 
   captchaToken: string;
+  errors: string[];
 
-  constructor(private contactService: ContactService) {}
+  constructor(private contactService: ContactService, private router: Router) {}
 
   ngOnInit(): void {}
 
@@ -46,8 +50,17 @@ export class ContactPageComponent implements OnInit {
         this.contactForm.get('message').value,
         this.contactForm.get('hcaptcha').value,
       )
-      .subscribe((result) => {
-        //
-      });
+      .subscribe(
+        (result) => {
+          if (result.success === true) {
+            this.router.navigateByUrl('/contact/success');
+          } else {
+            this.errors = result.errors;
+          }
+        },
+        (err) => {
+          console.log(err);
+        },
+      );
   }
 }

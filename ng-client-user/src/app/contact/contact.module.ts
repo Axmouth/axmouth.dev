@@ -9,10 +9,11 @@ import { ContactMainComponent } from './components/contact-main/contact-main.com
 import { ContactService } from './services/contact.service';
 import { HCaptchaDirective } from '../shared/directives/h-captcha.directive';
 import { ReactiveFormsModule } from '@angular/forms';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [ContactPageComponent, ContactSuccessPageComponent, ContactMainComponent],
-  imports: [CommonModule, ContactRoutingModule, SharedModule, ReactiveFormsModule],
+  imports: [CommonModule, ContactRoutingModule, SharedModule, ReactiveFormsModule, NgbModule],
   providers: [ContactService],
 })
 export class ContactModule {}

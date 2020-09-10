@@ -53,6 +53,7 @@
         (captchaExpired)="onCaptchaExpired()"
         [config]="captchaConfig"
       ></div>
+      <ngb-alert type="danger" *ngFor="let error of errors">{{ error }}</ngb-alert>
       <div class="form-actions">
         <button
           autocomplete="off"
