@@ -2,6 +2,8 @@ ng-client-user/
 ng-client-admin/
 target/
 Dockerfile
+Dockerfile.final
+Dockerfile.builder
 ./docker=compose.yml
 .gitignore
 .prettierrc

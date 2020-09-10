@@ -1,0 +1,34 @@
+
+
+FROM ghcr.io/axmouth/axmouth.dev-backend-builder
+ARG APP=/usr/src/app
+
+RUN apt-get update \
+    && apt-get install -y ca-certificates tzdata libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 39051
+
+ENV TZ=Etc/UTC \
+    APP_USER=appuser
+ENV APP=/var/lib/axmouth/axmouth.dev/backend
+
+RUN groupadd $APP_USER \
+    && useradd -g $APP_USER $APP_USER \
+    && mkdir -p ${APP}
+RUN mkdir -p ${APP}
+COPY --from=ghcr.io/axmouth/axmouth.dev-backend-builder /code/target/release/backend_api ${APP}
+COPY --from=ghcr.io/axmouth/axmouth.dev-backend-builder /code/target/release/backend_cli ${APP}
+RUN touch ${APP}/.env
+
+RUN chown -R $APP_USER:$APP_USER ${APP}
+RUN chmod +x ${APP}/backend_api
+RUN chmod +x ${APP}/backend_cli
+
+
+COPY initialize-static-file-volume-permissions.sh /entrypoint.sh
+ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
+
+WORKDIR ${APP}
+
+CMD ["/var/lib/axmouth/axmouth.dev/backend/backend_api"]
