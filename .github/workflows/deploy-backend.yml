@@ -27,9 +27,9 @@ jobs:
       #  run: docker load -i /tmp/docker-save/snapshot.tar || true
       #  if: steps.cache-docker.outputs.cache-hit == 'true'
       - name: Build the new version of the builder image
-        run: docker build . --file Dockerfile.builder --tag ghcr.io/axmouth/axmouth.dev-backend-builder --cache-from=backend-build-cache
+        run: docker build . --file Dockerfile.builder --tag ghcr.io/axmouth/axmouth.dev-backend-builder --cache-from=ghcr.io/axmouth/axmouth.dev-backend-builder
       - name: Build the new version of the final image
-        run: docker build . --file Dockerfile.final --tag ghcr.io/axmouth/axmouth.dev-backend --cache-from=backend-build-cache
+        run: docker build . --file Dockerfile.final --tag ghcr.io/axmouth/axmouth.dev-backend --cache-from=ghcr.io/axmouth/axmouth.dev-backend
       - name: Tag builder image
         run: docker tag ghcr.io/axmouth/axmouth.dev-backend-builder latest
       - name: Tag final image
