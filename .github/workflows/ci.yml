@@ -26,7 +26,8 @@ jobs:
         env:
           SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
-        run: ssh $SERVER_USERNAME@$SERVER_IP  "echo 'hello world'"
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: ssh $SERVER_USERNAME@$SERVER_IP -p $SSH_PORT  "echo 'hello world'"
       - name: Create empty .env file
         run: touch .env
       - name: Use docker-compose to deploy remotely
