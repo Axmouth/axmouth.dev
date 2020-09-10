@@ -13,6 +13,7 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
+          port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_KEY }}
           script: echo derp
 
