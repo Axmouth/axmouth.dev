@@ -1,6 +1,6 @@
 <h1>{{ post?.title }}</h1>
 
-<div class="alert alert-warning alert-dismissible fade show" *ngIf="post?.published">
+<div class="alert alert-warning alert-dismissible fade show" *ngIf="post?.published === false">
   <strong>Warning!</strong> This Blog Post is not published.
 </div>
 <small> {{ post?.createdAt | date: 'mediumDate' }}&nbsp; </small>

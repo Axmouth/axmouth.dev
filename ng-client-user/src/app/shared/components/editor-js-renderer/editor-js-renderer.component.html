@@ -17,7 +17,7 @@
 
           <!-- Header -->
           <div
-            style="height: fit-content;"
+            style="height: fit-content"
             *ngSwitchCase="'header'"
             innerHTML="{{
               '<h' +
@@ -40,8 +40,9 @@
                     (click)="zoomInOut($event)"
                     class="image-tool__image-picture"
                     [src]="block?.data?.file?.url | safe: 'url'"
+                    loading="lazy"
                   />
-                  <div style="text-align: center; margin-top: 5px;" [innerHTML]="block?.data?.caption"></div>
+                  <div style="text-align: center; margin-top: 5px" [innerHTML]="block?.data?.caption"></div>
                 </ng-container>
 
                 <ng-template #elseTemplate>
@@ -52,7 +53,7 @@
                     controls
                     [src]="block?.data?.file?.url | safe: 'url'"
                   ></video>
-                  <div style="text-align: center; margin-top: 5px;" [innerHTML]="block?.data?.caption"></div>
+                  <div style="text-align: center; margin-top: 5px" [innerHTML]="block?.data?.caption"></div>
                 </ng-template>
               </div>
             </div>
@@ -63,13 +64,13 @@
             <div class="cdx-block embed-tool">
               <iframe
                 class="embed-tool__content"
-                style="width: 100%;"
+                style="width: 100%"
                 height="320"
                 frameborder="0"
                 allowfullscreen
                 [src]="block?.data?.embed | safe: 'resourceUrl'"
               ></iframe>
-              <div style="text-align: center; margin-top: 5px;" [innerHTML]="block?.data?.caption"></div>
+              <div style="text-align: center; margin-top: 5px" [innerHTML]="block?.data?.caption"></div>
             </div>
           </div>
 
@@ -98,7 +99,7 @@
           <!-- Code -->
           <div *ngSwitchCase="'code'">
             <div class="cdx-block ce-code">
-              <span style="text-align: right; margin-bottom: 5px;">{{ block?.data?.language }}</span>
+              <span style="text-align: right; margin-bottom: 5px">{{ block?.data?.language }}</span>
               <pre class="ce-code__textarea"><code [highlight]="block?.data?.code"></code></pre>
             </div>
           </div>

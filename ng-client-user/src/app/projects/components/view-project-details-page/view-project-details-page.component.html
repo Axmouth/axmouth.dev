@@ -1,6 +1,6 @@
 <h1>{{ project?.name }}</h1>
 
-<div class="alert alert-warning alert-dismissible fade show" *ngIf="project?.published">
+<div class="alert alert-warning alert-dismissible fade show" *ngIf="project?.published === false">
   <strong>Warning!</strong> This project is not published.
 </div>
 <div class="row">
