@@ -42,5 +42,5 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           port: ${{ secrets.SSH_PORT }}
           source: "./ng-client-user/dist/ng-user-client/"
-          target: "/var/lib/axmouth/axmouth.dev/ng-client-user/"
+          target: "/var/lib/axmouth/axmouth.dev/"
           strip_components: 3 # this is important
