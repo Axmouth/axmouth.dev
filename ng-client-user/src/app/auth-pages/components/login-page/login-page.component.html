@@ -33,11 +33,10 @@
 
       <div class="col-md-6 offset-md-4">
         <button type="submit" class="btn btn-primary" [disabled]="!loginForm.valid || loginInProgress">
+          <span class="spinner-border spinner-border-sm" *ngIf="loginInProgress"></span>
           Login
         </button>
-        <a href="#" class="btn btn-link" *ngIf="false">
-          Forgot Your Password?
-        </a>
+        <a href="#" class="btn btn-link" *ngIf="false"> Forgot Your Password? </a>
       </div>
 
       <br /><br />

@@ -14,9 +14,7 @@
           class="alert alert-danger col-md-5 offset-md-5"
         >
           <div *ngIf="registerForm.controls['email']?.errors?.required">E-Mail Address is required.</div>
-          <div *ngIf="registerForm.controls['email']?.errors?.email">
-            E-Mail Address must be a valid email format.
-          </div>
+          <div *ngIf="registerForm.controls['email']?.errors?.email">E-Mail Address must be a valid email format.</div>
         </div>
       </div>
 
@@ -144,17 +142,14 @@
 
       <div class="col-md-6 offset-md-4">
         <button type="submit" class="btn btn-primary" [disabled]="!registerForm.valid || registerInProgress">
+          <span class="spinner-border spinner-border-sm" *ngIf="registerInProgress"></span>
           Register
         </button>
-        <a href="#" class="btn btn-link" *ngIf="false">
-          Forgot Your Password?
-        </a>
+        <a href="#" class="btn btn-link" *ngIf="false"> Forgot Your Password? </a>
       </div>
       <br /><br />
       <div class="col-md-8 offset-md-4">
-        <a href="/auth/login" routerLink="/auth/login" class="btn btn-link">
-          Already have an account? Login here
-        </a>
+        <a href="/auth/login" routerLink="/auth/login" class="btn btn-link"> Already have an account? Login here </a>
       </div>
     </form>
   </div>

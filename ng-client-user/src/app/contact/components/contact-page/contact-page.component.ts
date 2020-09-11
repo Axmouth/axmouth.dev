@@ -5,6 +5,7 @@ import { ContactService } from '../../services/contact.service';
 import { Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { Response } from '../../../models/api/response';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-contact-page',
@@ -27,9 +28,11 @@ export class ContactPageComponent implements OnInit {
   captchaToken: string;
   errors: string[];
 
-  constructor(private contactService: ContactService, private router: Router) {}
+  constructor(private contactService: ContactService, private router: Router, private title: Title) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.title.setTitle('axmouth.dev - Contact Me');
+  }
 
   onCaptchaResponse(token: string) {
     this.captchaDone = true;

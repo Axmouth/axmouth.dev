@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ProjectService } from '../../services/project.service';
 import { Project } from '../../../models/api/project';
 import { ActivatedRoute } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-view-projects-page',
@@ -13,8 +14,9 @@ export class ViewProjectsPageComponent implements OnInit {
   resultNumber = 0;
   page: number;
   pageSize: number;
+  loading = true;
 
-  constructor(private projectService: ProjectService, private route: ActivatedRoute) {}
+  constructor(private projectService: ProjectService, private route: ActivatedRoute, private title: Title) {}
 
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
@@ -29,8 +31,13 @@ export class ViewProjectsPageComponent implements OnInit {
   }
 
   initialiseState() {
+    this.title.setTitle('axmouth.dev - Loading Projects');
+    this.loading = true;
     this.projectService.getAllProjects(this.page, this.pageSize).subscribe((result) => {
       this.projectsList = result.data;
+      this.resultNumber = result?.pagination?.totalResults;
+      this.loading = false;
+      this.title.setTitle(`axmouth.dev - Projects Index`);
     });
   }
 }

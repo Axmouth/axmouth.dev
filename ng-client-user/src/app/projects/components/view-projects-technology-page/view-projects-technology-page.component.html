@@ -1,4 +1,8 @@
 <h1>Technology: {{ technologyName }}</h1>
+<div class="spinner-border" *ngIf="loading; else entries"></div>
+<ng-template #entries
+  ><h5>{{ resultNumber }} Entries</h5></ng-template
+>
 <br />
 <div class="row">
   <app-project-preview *ngFor="let project of projectsList" [project]="project"></app-project-preview>

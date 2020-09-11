@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { BlogPost } from '../../../models/api/blog-post';
 import { BlogPostCommentService } from '../../services/blog-post-comment.service';
 import { BlogPostComment } from 'src/app/models/api/blog-post-comment';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-view-blog-post-details-page',
@@ -18,14 +19,18 @@ export class ViewBlogPostDetailsPageComponent implements OnInit {
   blogPostComments: BlogPostComment[] = [];
   commentPage: number;
   commentPageSize: number;
+  notFound = false;
+  loading = true;
 
   constructor(
     private blogPostService: BlogPostService,
     private commentService: BlogPostCommentService,
     private route: ActivatedRoute,
+    private title: Title,
   ) {}
 
   ngOnInit(): void {
+    this.title.setTitle('axmouth.dev - Loading Blog Post');
     this.route.params.subscribe((params) => {
       this.postId = params.id;
       if (isNaN(+params.page) === false) {
@@ -42,13 +47,23 @@ export class ViewBlogPostDetailsPageComponent implements OnInit {
     this.blogPostService.getPost(this.postId).subscribe((result) => {
       this.post = result.data;
       this.postBodyData = JSON.parse(result.data.body);
+      this.loading = false;
+      this.title.setTitle(`axmouth.dev - ${this.post.title}`);
     });
-    this.commentService
-      .getAllCommentsByPost(this.postId, this.commentPage, this.commentPageSize)
-      .subscribe((result) => {
+    this.commentService.getAllCommentsByPost(this.postId, this.commentPage, this.commentPageSize).subscribe(
+      (result) => {
         this.blogPostComments = result.data;
         this.commentsCount = result?.pagination?.totalResults;
-      });
+      },
+      (error) => {
+        console.log(error);
+        if (error.status === 404) {
+          this.notFound = true;
+          this.title.setTitle('axmouth.dev - Blog Post Not Found');
+        }
+        this.loading = false;
+      },
+    );
   }
 
   onCommentPosted() {

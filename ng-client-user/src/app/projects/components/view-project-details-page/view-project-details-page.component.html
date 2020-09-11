@@ -1,26 +1,31 @@
-<h1>{{ project?.name }}</h1>
+<app-not-found-page *ngIf="notFound; else projectPage"></app-not-found-page>
 
-<div class="alert alert-warning alert-dismissible fade show" *ngIf="project?.published === false">
-  <strong>Warning!</strong> This project is not published.
-</div>
-<div class="row">
-  <div class="col-md-12">
-    <img src="{{ project?.coverImage }}" alt="" width="100%" />
+<div class="spinner-border" *ngIf="loading"></div>
+<ng-template #projectPage>
+  <h1>{{ project?.name }}</h1>
+
+  <div class="alert alert-warning alert-dismissible fade show" *ngIf="project?.published === false">
+    <strong>Warning!</strong> This project is not published.
   </div>
-  <div class="col-md-12">
-    <h5>About the project:</h5>
-    <p>{{ project?.description }}</p>
-    <br />
-    <br />
-    Technologies used:&nbsp;
-    <a
-      href="/projects/technology/{{ technologyName }}"
-      routerLink="/projects/technology/{{ technologyName }}"
-      *ngFor="let technologyName of projectTechnologiesList"
-    >
-      {{ technologyName }} </a
-    >&nbsp;
-    <br />
-    <app-editor-js-renderer [content]="projectBodyData"></app-editor-js-renderer>
+  <div class="row">
+    <div class="col-md-12">
+      <img src="{{ project?.coverImage }}" alt="" width="100%" />
+    </div>
+    <div class="col-md-12">
+      <h5>About the project:</h5>
+      <p>{{ project?.description }}</p>
+      <br />
+      <br />
+      Technologies used:&nbsp;
+      <a
+        href="/projects/technology/{{ technologyName }}"
+        routerLink="/projects/technology/{{ technologyName }}"
+        *ngFor="let technologyName of projectTechnologiesList"
+      >
+        {{ technologyName }} </a
+      >&nbsp;
+      <br />
+      <app-editor-js-renderer [content]="projectBodyData"></app-editor-js-renderer>
+    </div>
   </div>
-</div>
+</ng-template>

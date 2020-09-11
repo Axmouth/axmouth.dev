@@ -3,6 +3,7 @@ import { FormGroup, FormControl } from '@angular/forms';
 import { AuthService } from 'src/auth/services/auth.service';
 import { RouteStateService } from 'src/app/shared/services/route-state.service';
 import { Router } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-login-page',
@@ -18,9 +19,16 @@ export class LoginPageComponent implements OnInit {
 
   loginInProgress = false;
 
-  constructor(private authService: AuthService, private router: Router, private routeStateService: RouteStateService) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private routeStateService: RouteStateService,
+    private title: Title,
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.title.setTitle('axmouth.dev - Login');
+  }
 
   onSubmit() {
     this.loginInProgress = true;

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { BlogPost } from '../../../models/api/blog-post';
 import { BlogPostService } from '../../services/blog-post.service';
 import { ActivatedRoute } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-view-blog-posts-category-page',
@@ -14,8 +15,9 @@ export class ViewBlogPostsCategoryPageComponent implements OnInit {
   blogPostsList: BlogPost[] = [];
   page: number;
   pageSize: number;
+  loading = true;
 
-  constructor(private blogPostService: BlogPostService, private route: ActivatedRoute) {}
+  constructor(private blogPostService: BlogPostService, private route: ActivatedRoute, private title: Title) {}
 
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
@@ -31,9 +33,13 @@ export class ViewBlogPostsCategoryPageComponent implements OnInit {
   }
 
   initialiseState() {
+    this.title.setTitle(`axmouth.dev - Loading Blog Posts, Category: ${this.categoryName}`);
+    this.loading = true;
     this.blogPostService.getAllPostsByCategory(this.categoryName, this.page, this.pageSize).subscribe((result) => {
       this.blogPostsList = result.data;
       this.resultNumber = result?.pagination?.totalResults;
+      this.loading = false;
+      this.title.setTitle(`axmouth.dev - Blog Posts Index, Category: ${this.categoryName}`);
     });
   }
 }

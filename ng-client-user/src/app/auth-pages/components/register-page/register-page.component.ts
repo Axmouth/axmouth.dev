@@ -4,6 +4,7 @@ import { AuthService } from 'src/auth';
 import { Router } from '@angular/router';
 import { RouteStateService } from 'src/app/shared/services/route-state.service';
 import { CustomValidators } from 'src/app/shared/helpers/custom-validators';
+import { Title } from '@angular/platform-browser';
 
 export class MismatchValidator {
   static mismatch(otherInputControl: AbstractControl): ValidatorFn {
@@ -49,9 +50,15 @@ export class RegisterPageComponent implements OnInit {
 
   registerInProgress = false;
 
-  constructor(private authService: AuthService, private router: Router, private routeStateService: RouteStateService) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private routeStateService: RouteStateService,
+    private title: Title,
+  ) {}
 
   ngOnInit(): void {
+    this.title.setTitle('axmouth.dev - Register');
     this.setValidators();
   }
 

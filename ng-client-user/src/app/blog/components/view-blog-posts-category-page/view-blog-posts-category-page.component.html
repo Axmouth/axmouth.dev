@@ -1,4 +1,8 @@
 <h1>Category: {{ categoryName }}</h1>
-<h5>{{ resultNumber }} Entries</h5>
+<div class="spinner-border" *ngIf="loading; else entries"></div>
+<ng-template #entries
+  ><h5>{{ resultNumber }} Entries</h5></ng-template
+>
+
 <hr />
 <app-blog-post-preview [post]="post" *ngFor="let post of blogPostsList"></app-blog-post-preview>

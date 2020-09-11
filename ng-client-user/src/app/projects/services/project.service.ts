@@ -3,14 +3,15 @@ import { Response } from 'src/app/models/api/response';
 import { Project } from '../../models/api/project';
 import { apiRoot } from 'src/environments/environment';
 import { RestApiService } from 'src/app/shared/services/rest-api.service';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProjectService {
   url = `${apiRoot}/projects`;
-  constructor(private apiService: RestApiService) {}
+  constructor(private apiService: RestApiService, private router: Router) {}
 
   getProject(id: string): Observable<Response<Project>> {
     return this.apiService.get<Response<Project>>(this.url, id, {});
