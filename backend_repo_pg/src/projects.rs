@@ -42,6 +42,10 @@ impl ProjectRepo {
         use crate::schema::technologies::dsl::{
             name as technology_name, technologies as technologies_dsl,
         };
+        let query =
+            diesel::delete(projects_technologies::table).filter(project_id.eq(inserted_project_id));
+        let conn = self.pool.get()?;
+        let _ = tokio::task::block_in_place(move || query.execute(&conn))?;
         let new_technologies: Vec<NewTechnology> = technologies_list
             .clone()
             .into_iter()

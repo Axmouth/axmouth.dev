@@ -36,6 +36,24 @@ jobs:
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
       - name: Create empty .env file
         run: touch .env
+      - name: Use docker-compose to remotely stop containers
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: DOCKER_HOST="ssh://$SERVER_USERNAME@$SERVER_IP:$SSH_PORT" docker-compose stop
+      - name: Use docker-compose to remotely remove containers
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: DOCKER_HOST="ssh://$SERVER_USERNAME@$SERVER_IP:$SSH_PORT" docker-compose rm -f
+      - name: Use docker-compose to remotely pull new containers
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: DOCKER_HOST="ssh://$SERVER_USERNAME@$SERVER_IP:$SSH_PORT" docker-compose pull
       - name: Use docker-compose to deploy remotely
         env:
           BIND_ADDRESS: 0.0.0.0:39051

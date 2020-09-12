@@ -37,6 +37,10 @@ impl BlogPostRepo {
             blog_post_id, blog_posts_categories as blog_posts_categories_dsl, category_id,
         };
         use crate::schema::categories::dsl::{categories as categories_dsl, name as category_name};
+        let query =
+            diesel::delete(blog_posts_categories::table).filter(blog_post_id.eq(inserted_post_id));
+        let conn = self.pool.get()?;
+        let _ = tokio::task::block_in_place(move || query.execute(&conn))?;
         let new_categories: Vec<NewCategory> = categories_list
             .clone()
             .into_iter()
