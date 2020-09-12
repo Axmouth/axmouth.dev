@@ -50,7 +50,6 @@ impl EmailSender {
         &self,
         email: SendableEmail,
     ) -> Result<lettre::smtp::response::Response, EmailError> {
-        println!("{:?} {:?}", self.username, self.password);
         let mut tls_builder = TlsConnector::builder();
         tls_builder.min_protocol_version(Some(Protocol::Tlsv10));
         let tls_parameters = ClientTlsParameters::new(self.host.clone(), tls_builder.build()?);
@@ -76,10 +75,6 @@ impl EmailSender {
         subject: String,
         body: String,
     ) -> Result<(), EmailError> {
-        println!("{}", self.contact_address);
-        println!("{}", from_email);
-        println!("{}", subject);
-        println!("{}", body);
         let email = Email::builder()
             // Addresses can be specified by the tuple (email, alias)
             .to(self.contact_address.clone())
