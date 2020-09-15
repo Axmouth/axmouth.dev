@@ -1,7 +1,5 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, Input, Output, EventEmitter } from '@angular/core';
 import { AdminModelField } from 'src/app/models/definitions/admin-model-field';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { AuthService } from 'src/auth';
 import { of, BehaviorSubject } from 'rxjs';
 import EditorJS, { API, OutputData } from '@editorjs/editorjs';
 import * as Header from '@editorjs/header';
@@ -26,6 +24,8 @@ import { ModelValuesService } from '../../services/model-values.service';
 import { apiRoot } from 'src/environments/environment';
 import { UploadService } from '../../services/upload.service';
 
+const defaultData = '{"time":1597135214246,"blocks":[],"version":"2.18.0"}';
+
 @Component({
   selector: 'app-editorjs-field',
   templateUrl: './editorjs-field.component.html',
@@ -42,12 +42,7 @@ export class EditorjsFieldComponent implements OnInit, AfterViewInit {
   editor: EditorJS;
   subject: BehaviorSubject<string>;
 
-  constructor(
-    private http: HttpClient,
-    private authService: AuthService,
-    private modelValuesService: ModelValuesService,
-    private uploadService: UploadService,
-  ) {}
+  constructor(private modelValuesService: ModelValuesService, private uploadService: UploadService) {}
 
   ngOnInit(): void {
     this.subject = this.modelValuesService.addField(this.fieldOptions.identifier, null);
@@ -59,15 +54,13 @@ export class EditorjsFieldComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     const uploadService = this.uploadService;
-    const authService = this.authService;
     const editor = new EditorJS({
       onChange: async (api: API) => {
         const data: OutputData = await this.editor.save();
-        console.log(data);
         this.subject.next(JSON.stringify(data));
       },
-      onReady: () => {
-        editor.render(JSON.parse(this.content));
+      onReady: async () => {
+        editor.render(JSON.parse(this.content ?? defaultData));
       },
       holder: this.el.nativeElement,
       tools: {

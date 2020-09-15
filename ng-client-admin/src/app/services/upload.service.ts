@@ -15,7 +15,7 @@ export class UploadService {
     const headers = new HttpHeaders();
     headers.append('Content-Type', 'multipart/form-data');
     headers.append('Accept', 'application/json');
-    myFormData.append('image', file);
+    myFormData.append(name, file);
     return this.authService.isAuthenticatedOrRefresh().pipe(
       concatMap(() => {
         return this.http.post<T>(url, myFormData, {

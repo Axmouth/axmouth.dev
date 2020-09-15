@@ -16,6 +16,8 @@
       <p>{{ project?.description }}</p>
       <br />
       <br />
+      <app-editor-js-renderer [content]="projectBodyData"></app-editor-js-renderer>
+      <br />
       Technologies used:&nbsp;
       <a
         href="/projects/technology/{{ technologyName }}"
@@ -25,7 +27,6 @@
         {{ technologyName }} </a
       >&nbsp;
       <br />
-      <app-editor-js-renderer [content]="projectBodyData"></app-editor-js-renderer>
     </div>
   </div>
 </ng-template>

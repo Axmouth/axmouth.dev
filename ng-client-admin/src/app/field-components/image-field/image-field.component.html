@@ -2,3 +2,15 @@
   <mat-label>Enter Title Here</mat-label>
   <input matInput (change)="onChange($event.target.value)" [value]="content" />
 </mat-form-field>
+
+<input #FileSelectInputDialog type="file" hidden="true" (change)="onFileAdded()" />
+<button mat-raised-button color="primary" (click)="onOpenImageClick()">Open File..</button>
+
+<br />
+<br />
+
+<mat-spinner *ngIf="imageLoading; else uploadedImage"></mat-spinner>
+<ng-template #uploadedImage> <img class="thumbnail" [src]="content" /></ng-template>
+
+<br />
+<br />
