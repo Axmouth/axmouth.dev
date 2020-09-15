@@ -9,7 +9,7 @@
 <br />
 <br />
 
-<mat-spinner *ngIf="imageLoading; else uploadedImage"></mat-spinner>
+<mat-spinner *ngIf="imageUploading; else uploadedImage"></mat-spinner>
 <ng-template #uploadedImage> <img class="thumbnail" [src]="content" /></ng-template>
 
 <br />
