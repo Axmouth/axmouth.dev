@@ -1,5 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import { AdminModelField } from 'src/app/models/definitions/admin-model-field';
+import { ModelValuesService } from 'src/app/services/model-values.service';
 
 @Component({
   selector: 'app-text-field',
@@ -7,6 +9,7 @@ import { AdminModelField } from 'src/app/models/definitions/admin-model-field';
   styleUrls: ['./text-field.component.scss'],
 })
 export class TextFieldComponent implements OnInit {
+  subject: BehaviorSubject<string>;
   @Input()
   content: any;
   @Input()
@@ -14,9 +17,17 @@ export class TextFieldComponent implements OnInit {
   @Output()
   contentChange: EventEmitter<any>;
 
-  constructor() {
+  constructor(private modelValuesService: ModelValuesService) {
     this.contentChange = new EventEmitter();
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.subject = this.modelValuesService.addField(this.fieldOptions.identifier, null);
+    if (this.content === undefined) {
+      this.content = null;
+    }
+    if (this.content) {
+      this.subject.next(this.content);
+    }
+  }
 }
