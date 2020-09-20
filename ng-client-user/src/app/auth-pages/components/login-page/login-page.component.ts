@@ -1,16 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { AuthService } from 'src/auth/services/auth.service';
 import { RouteStateService } from 'src/app/shared/services/route-state.service';
 import { Router } from '@angular/router';
-import { Title } from '@angular/platform-browser';
+import { Meta, Title } from '@angular/platform-browser';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login-page',
   templateUrl: './login-page.component.html',
   styleUrls: ['./login-page.component.scss'],
 })
-export class LoginPageComponent implements OnInit {
+export class LoginPageComponent implements OnInit, OnDestroy {
+  ngUnsubscribe = new Subject<void>();
   loginForm = new FormGroup({
     email: new FormControl(''),
     password: new FormControl(''),
@@ -24,10 +27,16 @@ export class LoginPageComponent implements OnInit {
     private router: Router,
     private routeStateService: RouteStateService,
     private title: Title,
+    private meta: Meta,
   ) {}
 
   ngOnInit(): void {
-    this.title.setTitle('axmouth.dev - Login');
+    this.title.setTitle(`Login - Axmouth's Website`);
+    this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
+    this.meta.updateTag({ property: `og:url`, content: window.location.href });
+    this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
+    this.meta.updateTag({ property: `twitter:url`, content: window.location.href });
+    this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
   }
 
   onSubmit() {
@@ -37,6 +46,7 @@ export class LoginPageComponent implements OnInit {
         email: this.loginForm.get('email').value,
         password: this.loginForm.get('password').value,
       })
+      .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(
         async (result) => {
           if (result.isSuccess()) {
@@ -51,5 +61,10 @@ export class LoginPageComponent implements OnInit {
           console.log(err);
         },
       );
+  }
+
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 }

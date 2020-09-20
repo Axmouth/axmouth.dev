@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Title } from '@angular/platform-browser';
+import { Meta, Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-not-found-page',
@@ -7,9 +7,14 @@ import { Title } from '@angular/platform-browser';
   styleUrls: ['./not-found-page.component.scss'],
 })
 export class NotFoundPageComponent implements OnInit {
-  constructor(private title: Title) {}
+  constructor(private title: Title, private meta: Meta) {}
 
   ngOnInit(): void {
-    this.title.setTitle('axmouth.dev - Page Not Found');
+    this.title.setTitle(`Page Not Found - Axmouth's Website`);
+    this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
+    this.meta.updateTag({ property: `og:url`, content: window.location.href });
+    this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
+    this.meta.updateTag({ property: `twitter:url`, content: window.location.href });
+    this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
   }
 }

@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { retry, switchMap, concatMap, map } from 'rxjs/operators';
+import { retry, switchMap, concatMap, map, takeUntil } from 'rxjs/operators';
 import { AuthService } from 'src/auth';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
@@ -31,8 +31,9 @@ function paramsToQuery(params: any) {
 @Injectable({
   providedIn: 'root',
 })
-export class RestApiService {
+export class RestApiService implements OnDestroy {
   static getReqCache = new Map<string, any>();
+  ngUnsubscribe = new Subject<void>();
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
@@ -119,7 +120,13 @@ export class RestApiService {
           RestApiService.getReqCache.set(newUrl, response);
           return response;
         }),
-      );
+      )
+      .pipe(takeUntil(this.ngUnsubscribe));
+  }
+
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 
   // TODO Delete Many - Update Many - Create Many

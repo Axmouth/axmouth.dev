@@ -1,18 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HCAPTCHA_SITE_KEY } from 'src/environments/environment';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ContactService } from '../../services/contact.service';
 import { Router } from '@angular/router';
-import { catchError } from 'rxjs/operators';
+import { catchError, takeUntil } from 'rxjs/operators';
 import { Response } from '../../../models/api/response';
-import { Title } from '@angular/platform-browser';
+import { Meta, Title } from '@angular/platform-browser';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-contact-page',
   templateUrl: './contact-page.component.html',
   styleUrls: ['./contact-page.component.scss'],
 })
-export class ContactPageComponent implements OnInit {
+export class ContactPageComponent implements OnInit, OnDestroy {
+  ngUnsubscribe = new Subject<void>();
   contactForm = new FormGroup({
     hcaptcha: new FormControl(''),
     message: new FormControl(''),
@@ -28,10 +30,20 @@ export class ContactPageComponent implements OnInit {
   captchaToken: string;
   errors: string[];
 
-  constructor(private contactService: ContactService, private router: Router, private title: Title) {}
+  constructor(
+    private contactService: ContactService,
+    private router: Router,
+    private title: Title,
+    private meta: Meta,
+  ) {}
 
   ngOnInit(): void {
-    this.title.setTitle('axmouth.dev - Contact Me');
+    this.title.setTitle(`Contact Me - Axmouth's Website`);
+    this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
+    this.meta.updateTag({ property: `og:url`, content: window.location.href });
+    this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
+    this.meta.updateTag({ property: `twitter:url`, content: window.location.href });
+    this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
   }
 
   onCaptchaResponse(token: string) {
@@ -53,6 +65,7 @@ export class ContactPageComponent implements OnInit {
         this.contactForm.get('message').value,
         this.contactForm.get('hcaptcha').value,
       )
+      .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(
         (result) => {
           if (result.success === true) {
@@ -65,5 +78,10 @@ export class ContactPageComponent implements OnInit {
           console.log(err);
         },
       );
+  }
+
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 }

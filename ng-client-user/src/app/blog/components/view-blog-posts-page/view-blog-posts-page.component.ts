@@ -1,25 +1,33 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { BlogPostService } from '../../services/blog-post.service';
 import { BlogPost } from 'src/app/models/api/blog-post';
 import { ActivatedRoute } from '@angular/router';
-import { Title } from '@angular/platform-browser';
+import { Meta, Title } from '@angular/platform-browser';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-view-blog-posts-page',
   templateUrl: './view-blog-posts-page.component.html',
   styleUrls: ['./view-blog-posts-page.component.scss'],
 })
-export class ViewBlogPostsPageComponent implements OnInit {
+export class ViewBlogPostsPageComponent implements OnInit, OnDestroy {
+  ngUnsubscribe = new Subject<void>();
   resultNumber = 0;
   blogPostsList: BlogPost[] = [];
   page: number;
   pageSize: number;
   loading = true;
 
-  constructor(private blogPostService: BlogPostService, private route: ActivatedRoute, private title: Title) {}
+  constructor(
+    private blogPostService: BlogPostService,
+    private route: ActivatedRoute,
+    private title: Title,
+    private meta: Meta,
+  ) {}
 
   ngOnInit(): void {
-    this.route.params.subscribe((params) => {
+    this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe((params) => {
       if (isNaN(+params.page) === false) {
         this.page = +params.page;
       }
@@ -31,13 +39,26 @@ export class ViewBlogPostsPageComponent implements OnInit {
   }
 
   initialiseState() {
-    this.title.setTitle(`axmouth.dev - Loading Blog Posts`);
+    this.title.setTitle(`Loading Blog Posts - Axmouth's Website`);
     this.loading = true;
-    this.blogPostService.getAllPosts(this.page, this.pageSize).subscribe((result) => {
-      this.blogPostsList = result.data;
-      this.resultNumber = result?.pagination?.totalResults;
-      this.loading = false;
-      this.title.setTitle(`axmouth.dev - Blog Posts Index`);
-    });
+    this.blogPostService
+      .getAllPosts(this.page, this.pageSize)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((result) => {
+        this.blogPostsList = result.data;
+        this.resultNumber = result?.pagination?.totalResults;
+        this.loading = false;
+        this.title.setTitle(`Blog Posts Index - Axmouth's Website`);
+        this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
+        this.meta.updateTag({ property: `og:url`, content: window.location.href });
+        this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
+        this.meta.updateTag({ property: `twitter:url`, content: window.location.href });
+        this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 }

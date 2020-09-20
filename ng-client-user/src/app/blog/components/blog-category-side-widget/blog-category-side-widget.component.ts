@@ -1,13 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { BlogPostCategoryService } from '../../services/blog-post-category.service';
 import { ActivatedRoute } from '@angular/router';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-blog-category-side-widget',
   templateUrl: './blog-category-side-widget.component.html',
   styleUrls: ['./blog-category-side-widget.component.scss'],
 })
-export class BlogCategorySideWidgetComponent implements OnInit {
+export class BlogCategorySideWidgetComponent implements OnInit, OnDestroy {
+  ngUnsubscribe = new Subject<void>();
   blogCategoriesList: any[] = [];
   resultNumber = 0;
   page: number;
@@ -16,7 +19,7 @@ export class BlogCategorySideWidgetComponent implements OnInit {
   constructor(private categoryService: BlogPostCategoryService, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
-    this.route.params.subscribe((params) => {
+    this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe((params) => {
       if (isNaN(+params.page) === false) {
         this.page = +params.categoryPage;
       }
@@ -28,9 +31,17 @@ export class BlogCategorySideWidgetComponent implements OnInit {
   }
 
   initialiseState() {
-    this.categoryService.getAllCategories(this.page, this.pageSize).subscribe((result) => {
-      this.blogCategoriesList = result.data;
-      this.resultNumber = result?.pagination?.totalResults;
-    });
+    this.categoryService
+      .getAllCategories(this.page, this.pageSize)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((result) => {
+        this.blogCategoriesList = result.data;
+        this.resultNumber = result?.pagination?.totalResults;
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 }

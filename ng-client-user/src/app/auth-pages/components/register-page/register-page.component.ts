@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, Validators, AbstractControl, ValidatorFn } from '@angular/forms';
 import { AuthService } from 'src/auth';
 import { Router } from '@angular/router';
 import { RouteStateService } from 'src/app/shared/services/route-state.service';
 import { CustomValidators } from 'src/app/shared/helpers/custom-validators';
-import { Title } from '@angular/platform-browser';
+import { Meta, Title } from '@angular/platform-browser';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 export class MismatchValidator {
   static mismatch(otherInputControl: AbstractControl): ValidatorFn {
@@ -27,7 +29,8 @@ export class MismatchValidator {
   templateUrl: './register-page.component.html',
   styleUrls: ['./register-page.component.scss'],
 })
-export class RegisterPageComponent implements OnInit {
+export class RegisterPageComponent implements OnInit, OnDestroy {
+  ngUnsubscribe = new Subject<void>();
   registerForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
     displayName: new FormControl('', [
@@ -55,10 +58,16 @@ export class RegisterPageComponent implements OnInit {
     private router: Router,
     private routeStateService: RouteStateService,
     private title: Title,
+    private meta: Meta,
   ) {}
 
   ngOnInit(): void {
-    this.title.setTitle('axmouth.dev - Register');
+    this.title.setTitle(`Register - Axmouth's Website`);
+    this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
+    this.meta.updateTag({ property: `og:url`, content: window.location.href });
+    this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
+    this.meta.updateTag({ property: `twitter:url`, content: window.location.href });
+    this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
     this.setValidators();
   }
 
@@ -95,6 +104,7 @@ export class RegisterPageComponent implements OnInit {
         password: this.registerForm.get('password').value,
         displayName: this.registerForm.get('displayName').value,
       })
+      .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(
         async (result) => {
           if (result.isSuccess()) {
@@ -109,5 +119,10 @@ export class RegisterPageComponent implements OnInit {
           console.log(err);
         },
       );
+  }
+
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 }

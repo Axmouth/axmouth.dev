@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { ProjectTechnology } from '../../../models/api/project-technology';
 import { TechnologyService } from '../../services/technology.service';
 
@@ -8,7 +10,8 @@ import { TechnologyService } from '../../services/technology.service';
   templateUrl: './projects-technologies-side-widget.component.html',
   styleUrls: ['./projects-technologies-side-widget.component.scss'],
 })
-export class ProjectsTechnologiesSideWidgetComponent implements OnInit {
+export class ProjectsTechnologiesSideWidgetComponent implements OnInit, OnDestroy {
+  ngUnsubscribe = new Subject<void>();
   projectTechnologiesList: ProjectTechnology[] = [];
   resultNumber = 0;
   page: number;
@@ -17,7 +20,7 @@ export class ProjectsTechnologiesSideWidgetComponent implements OnInit {
   constructor(private technologyService: TechnologyService, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
-    this.route.params.subscribe((params) => {
+    this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe((params) => {
       if (isNaN(+params.page) === false) {
         this.page = +params.categoryPage;
       }
@@ -29,9 +32,17 @@ export class ProjectsTechnologiesSideWidgetComponent implements OnInit {
   }
 
   initialiseState() {
-    this.technologyService.getAllTechnologies(this.page, this.pageSize).subscribe((result) => {
-      this.projectTechnologiesList = result.data;
-      this.resultNumber = result?.pagination?.totalResults;
-    });
+    this.technologyService
+      .getAllTechnologies(this.page, this.pageSize)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((result) => {
+        this.projectTechnologiesList = result.data;
+        this.resultNumber = result?.pagination?.totalResults;
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 }

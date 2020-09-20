@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Title } from '@angular/platform-browser';
+import { Meta, Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-contact-success-page',
@@ -7,9 +7,14 @@ import { Title } from '@angular/platform-browser';
   styleUrls: ['./contact-success-page.component.scss'],
 })
 export class ContactSuccessPageComponent implements OnInit {
-  constructor(private title: Title) {}
+  constructor(private title: Title, private meta: Meta) {}
 
   ngOnInit(): void {
-    this.title.setTitle('axmouth.dev - Seccessfully Sent Email');
+    this.title.setTitle(`Seccessfully Sent Email - Axmouth's Website`);
+    this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
+    this.meta.updateTag({ property: `og:url`, content: window.location.href });
+    this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
+    this.meta.updateTag({ property: `twitter:url`, content: window.location.href });
+    this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
   }
 }
