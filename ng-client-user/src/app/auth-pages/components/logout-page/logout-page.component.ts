@@ -25,9 +25,9 @@ export class LogoutPageComponent implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     this.title.setTitle(`Logging Out - Axmouth's Websitte`);
     this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
-    this.meta.updateTag({ property: `og:url`, content: window.location.href });
+    this.meta.updateTag({ property: `og:url`, content: location.href });
     this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
-    this.meta.updateTag({ property: `twitter:url`, content: window.location.href });
+    this.meta.updateTag({ property: `twitter:url`, content: location.href });
     this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
     this.authService
       .logout()

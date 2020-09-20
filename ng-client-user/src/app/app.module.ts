@@ -16,7 +16,7 @@ import { jwtWhitelist } from 'src/environments/environment';
 @NgModule({
   declarations: [AppComponent],
   imports: [
-    BrowserModule,
+    BrowserModule.withServerTransition({ appId: 'serverApp' }),
     HttpClientModule,
     RoutingModule,
     SharedModule,

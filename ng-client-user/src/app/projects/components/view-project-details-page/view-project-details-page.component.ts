@@ -48,10 +48,10 @@ export class ViewProjectDetailsPageComponent implements OnInit, OnDestroy {
             name: `keywords`,
             content: `axmouth,developer,webdev,programmer,portfolio,${this.projectTechnologiesList.join(',')}`,
           });
-          this.meta.updateTag({ property: `og:url`, content: window.location.href });
+          this.meta.updateTag({ property: `og:url`, content: location.href });
           this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
           this.meta.updateTag({ property: `og:description`, content: this?.project?.description });
-          this.meta.updateTag({ property: `twitter:url`, content: window.location.href });
+          this.meta.updateTag({ property: `twitter:url`, content: location.href });
           this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
           this.meta.updateTag({ property: `twitter:description`, content: this?.project?.description });
         },

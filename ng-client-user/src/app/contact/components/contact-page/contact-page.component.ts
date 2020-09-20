@@ -40,9 +40,9 @@ export class ContactPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.title.setTitle(`Contact Me - Axmouth's Website`);
     this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
-    this.meta.updateTag({ property: `og:url`, content: window.location.href });
+    this.meta.updateTag({ property: `og:url`, content: location.href });
     this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
-    this.meta.updateTag({ property: `twitter:url`, content: window.location.href });
+    this.meta.updateTag({ property: `twitter:url`, content: location.href });
     this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
   }
 
