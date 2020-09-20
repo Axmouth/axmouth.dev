@@ -44,7 +44,7 @@ export class ViewProjectsTechnologyPageComponent implements OnInit, OnDestroy {
     this.title.setTitle(`Loading Projects - Axmouth's Website`);
     this.loading = true;
     this.projectService
-      .getAllProjects(this.page, this.pageSize)
+      .getAllProjectsByTechnology(this.technologyName, this.page, this.pageSize)
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe((result) => {
         this.projectsList = result.data;

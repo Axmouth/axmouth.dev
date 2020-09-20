@@ -26,9 +26,13 @@ export class ProjectService implements OnDestroy {
       .pipe(takeUntil(this.ngUnsubscribe));
   }
 
-  getAllProjectsByTechnology(category: string, page?: number, pageSize?: number): Observable<Response<Project[]>> {
+  getAllProjectsByTechnology(
+    technologyName: string,
+    page?: number,
+    pageSize?: number,
+  ): Observable<Response<Project[]>> {
     return this.apiService
-      .getAll<Response<Project[]>>(this.url, { page, pageSize, category })
+      .getAll<Response<Project[]>>(this.url, { page, pageSize, technologyName })
       .pipe(takeUntil(this.ngUnsubscribe));
   }
 
