@@ -1,21 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AdminModel } from 'src/app/models/definitions/admin-model';
 import { AdminModelService } from 'src/app/services/admin-model.service';
 import { ActivatedRoute } from '@angular/router';
 import { RestApiService } from 'src/app/services/rest-api.service';
 import { ModelValuesService } from '../../services/model-values.service';
+import { Title } from '@angular/platform-browser';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-view-entity',
   templateUrl: './view-entity.component.html',
   styleUrls: ['./view-entity.component.scss'],
 })
-export class ViewEntityComponent implements OnInit {
+export class ViewEntityComponent implements OnInit, OnDestroy {
+  ngUnsubscribe = new Subject<void>();
   model: AdminModel;
   modelName: string;
   categoryName: string;
   id: string;
-  entitiesList: object[];
+  entity: object;
   idField: string;
   displayField: string;
   editing = true;
@@ -25,6 +29,7 @@ export class ViewEntityComponent implements OnInit {
     private route: ActivatedRoute,
     private apiService: RestApiService,
     private modelValueService: ModelValuesService,
+    private title: Title,
   ) {}
 
   ngOnInit(): void {
@@ -37,20 +42,35 @@ export class ViewEntityComponent implements OnInit {
     this.displayField = this.model.displayField || 'id';
     this.idField = this.model.idField || 'id';
 
-    this.apiService.getAll<{ data: object[] }>(this.model.endpoint, {}).subscribe((result) => {
-      this.entitiesList = result.data;
-    });
+    this.apiService
+      .getAll<{ data: object }>(this.model.endpoint, {})
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((result) => {
+        this.entity = result.data;
+        this.title.setTitle(`${this.modelName} Entity: ${this.id} - Axmouth's Website Admin Site`);
+      });
   }
 
   onSaveClick() {
     console.log(this.model.endpoint);
     console.log(this.id);
-    this.modelValueService.sendUpdateRequest(this.model.endpoint, this.id).subscribe((response) => {});
+    this.modelValueService
+      .sendUpdateRequest(this.model.endpoint, this.id)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((response) => {});
   }
 
   onRemoveClick() {
     console.log(this.model.endpoint);
     console.log(this.id);
-    this.apiService.delete(this.model.endpoint, this.id, {}).subscribe((response) => {});
+    this.apiService
+      .delete(this.model.endpoint, this.id, {})
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((response) => {});
+  }
+
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 }

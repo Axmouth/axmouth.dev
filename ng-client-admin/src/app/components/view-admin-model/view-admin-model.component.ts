@@ -1,15 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AdminModel } from '../../models/definitions/admin-model';
 import { AdminModelService } from '../../services/admin-model.service';
 import { ActivatedRoute } from '@angular/router';
 import { RestApiService } from '../../services/rest-api.service';
+import { Title } from '@angular/platform-browser';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-view-admin-model',
   templateUrl: './view-admin-model.component.html',
   styleUrls: ['./view-admin-model.component.scss'],
 })
-export class ViewAdminModelComponent implements OnInit {
+export class ViewAdminModelComponent implements OnInit, OnDestroy {
+  ngUnsubscribe = new Subject<void>();
   model: AdminModel;
   modelName: string;
   categoryName: string;
@@ -22,6 +26,7 @@ export class ViewAdminModelComponent implements OnInit {
     private modelService: AdminModelService,
     private route: ActivatedRoute,
     private apiService: RestApiService,
+    private title: Title,
   ) {}
 
   ngOnInit(): void {
@@ -32,9 +37,18 @@ export class ViewAdminModelComponent implements OnInit {
 
     this.displayField = this.model.displayField || 'id';
     this.idField = this.model.idField || 'id';
+    this.title.setTitle(`Model: ${this.modelName} - Axmouth's Website Admin Site`);
 
-    this.apiService.getAll<{ data: object[] }>(this.model.endpoint, {}).subscribe((result) => {
-      this.entitiesList = result.data;
-    });
+    this.apiService
+      .getAll<{ data: object[] }>(this.model.endpoint, {})
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((result) => {
+        this.entitiesList = result.data;
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 }

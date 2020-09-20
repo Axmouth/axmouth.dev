@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
@@ -6,14 +8,23 @@ import { AuthService } from '../../../auth/services/auth.service';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
+  ngUnsubscribe = new Subject<void>();
   loggedIn = false;
 
   constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
-    this.authService.onAuthenticationChange().subscribe((result) => {
-      this.loggedIn = result;
-    });
+    this.authService
+      .onAuthenticationChange()
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((result) => {
+        this.loggedIn = result;
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 }
