@@ -1,10 +1,11 @@
-ng-client-user/
-ng-client-admin/
 target/
 Dockerfile
-Dockerfile.final
-Dockerfile.builder
+Dockerfile.api.final
+Dockerfile.api.builder
+Dockerfile.user.client.final
+Dockerfile.user.client.builder
 docker-compose.yml
+*/node_modules
 .gitignore
 .prettierrc
 backend_api/.env*
