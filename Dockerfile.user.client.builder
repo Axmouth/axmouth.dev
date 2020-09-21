@@ -1,6 +1,6 @@
 FROM node:14 as builder
 
-COPY ng-client-user/package*.json ./
+COPY ./ng-client-user/package*.json ./
 
 RUN npm set progress=false && npm config set depth 0 && npm cache clean --force
 
