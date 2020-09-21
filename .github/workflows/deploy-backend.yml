@@ -29,11 +29,6 @@ jobs:
         run: docker push ghcr.io/axmouth/axmouth.dev-backend-builder || true
       - name: Push final image to GHCR
         run: docker push ghcr.io/axmouth/axmouth.dev-backend || true
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.SSH_KEY }}
-          known_hosts: ${{ secrets.KNOWN_HOSTS }}
       - name: Create empty .env file
         run: touch .env
       - name: Pull the previous version of Docker image for the build stage from Github Container Registry
