@@ -7,6 +7,8 @@ import { catchError, takeUntil } from 'rxjs/operators';
 import { Response } from '../../../models/api/response';
 import { Meta, Title } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
+import { DOCUMENT } from '@angular/common';
+import { Inject } from '@angular/core';
 
 @Component({
   selector: 'app-contact-page',
@@ -35,14 +37,15 @@ export class ContactPageComponent implements OnInit, OnDestroy {
     private router: Router,
     private title: Title,
     private meta: Meta,
+    @Inject(DOCUMENT) private doc: Document,
   ) {}
 
   ngOnInit(): void {
     this.title.setTitle(`Contact Me - Axmouth's Website`);
     this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
-    this.meta.updateTag({ property: `og:url`, content: location.href });
+    this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
     this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
-    this.meta.updateTag({ property: `twitter:url`, content: location.href });
+    this.meta.updateTag({ property: `twitter:url`, content: this.doc.location.href });
     this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
   }
 

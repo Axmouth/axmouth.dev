@@ -20,6 +20,13 @@ services:
     ports:
       - 1587:587
 
+  axmouth.dev-user-client:
+    restart: unless-stopped
+    image: ghcr.io/axmouth/axmouth.dev-user-client:latest
+    ports:
+      - "39052:4000"
+    container_name: axmouth.dev-user-client
+
   axmouth.dev-backend:
     working_dir: /var/lib/axmouth/axmouth.dev/backend
     restart: unless-stopped

@@ -1,0 +1,10 @@
+FROM node:14
+
+## Install http-server
+# RUN npm install http-server -g
+COPY --from=ghcr.io/axmouth/axmouth.dev-user-client-builder /ng-app/dist /dist
+
+# CMD ["nginx", "-g", "daemon off;"]
+
+WORKDIR /dist/browser
+CMD ["node /dist/ng-user-client/server/main.js"]

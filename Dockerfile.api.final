@@ -1,5 +1,3 @@
-
-
 FROM ghcr.io/axmouth/axmouth.dev-backend-builder
 ARG APP=/usr/src/app
 

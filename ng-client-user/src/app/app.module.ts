@@ -1,7 +1,8 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { RoutingModule } from './app-routing.module';
-import { FlexLayoutModule } from '@angular/flex-layout';
+import { FlexLayoutModule } from '@angular/flex-layout/';
+import { TransferHttpCacheModule } from '@nguniversal/common';
 
 import { AppComponent } from './app.component';
 import { AuthModule } from 'src/auth/auth.module';
@@ -21,6 +22,7 @@ import { jwtWhitelist } from 'src/environments/environment';
     RoutingModule,
     SharedModule,
     FlexLayoutModule,
+    TransferHttpCacheModule,
     AuthModule.forRoot({
       config: {
         authEndpointPrefix: `${apiRoot}/auth/`,

@@ -7,6 +7,8 @@ import { CustomValidators } from 'src/app/shared/helpers/custom-validators';
 import { Meta, Title } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { DOCUMENT } from '@angular/common';
+import { Inject } from '@angular/core';
 
 export class MismatchValidator {
   static mismatch(otherInputControl: AbstractControl): ValidatorFn {
@@ -59,14 +61,15 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
     private routeStateService: RouteStateService,
     private title: Title,
     private meta: Meta,
+    @Inject(DOCUMENT) private doc: Document,
   ) {}
 
   ngOnInit(): void {
     this.title.setTitle(`Register - Axmouth's Website`);
     this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
-    this.meta.updateTag({ property: `og:url`, content: location.href });
+    this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
     this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
-    this.meta.updateTag({ property: `twitter:url`, content: location.href });
+    this.meta.updateTag({ property: `twitter:url`, content: this.doc.location.href });
     this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
     this.setValidators();
   }

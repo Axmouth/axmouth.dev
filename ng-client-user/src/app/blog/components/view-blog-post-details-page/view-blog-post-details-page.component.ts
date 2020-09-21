@@ -7,6 +7,8 @@ import { BlogPostComment } from 'src/app/models/api/blog-post-comment';
 import { Meta, Title } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { DOCUMENT } from '@angular/common';
+import { Inject } from '@angular/core';
 
 @Component({
   selector: 'app-view-blog-post-details-page',
@@ -31,6 +33,7 @@ export class ViewBlogPostDetailsPageComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private title: Title,
     private meta: Meta,
+    @Inject(DOCUMENT) private doc: Document,
   ) {}
 
   ngOnInit(): void {
@@ -59,10 +62,10 @@ export class ViewBlogPostDetailsPageComponent implements OnInit, OnDestroy {
         name: `keywords`,
         content: `axmouth,developer,webdev,programmer,portfolio,${this.post.categories.join(',')}`,
       });
-      this.meta.updateTag({ property: `og:url`, content: location.href });
+      this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
       this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
       this.meta.updateTag({ property: `og:description`, content: this?.post?.description });
-      this.meta.updateTag({ property: `twitter:url`, content: location.href });
+      this.meta.updateTag({ property: `twitter:url`, content: this.doc.location.href });
       this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
       this.meta.updateTag({ property: `twitter:description`, content: this?.post?.description });
     });

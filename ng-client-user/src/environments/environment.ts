@@ -6,7 +6,8 @@ export const environment = {
   production: false,
 };
 
-export const apiRoot = 'http://localhost:39051/api/v1';
+export const apiRoot = 'http://127.0.0.1:39051/api/v1';
+export const apiRootServer = 'http://127.0.0.1:39051/api/v1';
 export const jwtWhitelist = ['localhost', 'localhost:39051', '[::1]:39051', 'localhost:4200'];
 export const HCAPTCHA_SITE_KEY = '10000000-ffff-ffff-ffff-000000000001';
 /*

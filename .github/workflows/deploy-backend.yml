@@ -18,9 +18,9 @@ jobs:
       - name: Pull the previous version of the final Docker image from Github Container Registry
         run: docker pull ghcr.io/axmouth/axmouth.dev-backend || true
       - name: Build the new version of the builder image
-        run: docker build . --file Dockerfile.builder --tag ghcr.io/axmouth/axmouth.dev-backend-builder --cache-from=ghcr.io/axmouth/axmouth.dev-backend-builder
+        run: docker build . --file Dockerfile.api.builder --tag ghcr.io/axmouth/axmouth.dev-backend-builder --cache-from=ghcr.io/axmouth/axmouth.dev-backend-builder
       - name: Build the new version of the final image
-        run: docker build . --file Dockerfile.final --tag ghcr.io/axmouth/axmouth.dev-backend --cache-from=ghcr.io/axmouth/axmouth.dev-backend
+        run: docker build . --file Dockerfile.api.final --tag ghcr.io/axmouth/axmouth.dev-backend --cache-from=ghcr.io/axmouth/axmouth.dev-backend
       - name: Tag builder image
         run: docker tag ghcr.io/axmouth/axmouth.dev-backend-builder latest
       - name: Tag final image
@@ -29,6 +29,29 @@ jobs:
         run: docker push ghcr.io/axmouth/axmouth.dev-backend-builder || true
       - name: Push final image to GHCR
         run: docker push ghcr.io/axmouth/axmouth.dev-backend || true
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+      - name: Create empty .env file
+        run: touch .env
+      - name: Pull the previous version of Docker image for the build stage from Github Container Registry
+        run: docker pull ghcr.io/axmouth/axmouth.dev-user-client-builder || true
+      - name: Pull the previous version of the final Docker image from Github Container Registry
+        run: docker pull ghcr.io/axmouth/axmouth.dev-user-client || true
+      - name: Build the new version of the builder image
+        run: docker build . --file Dockerfile.user.client.builder --tag ghcr.io/axmouth/axmouth.dev-user-client-builder --cache-from=ghcr.io/axmouth/axmouth.dev-user-client-builder
+      - name: Build the new version of the final image
+        run: docker build . --file Dockerfile.user.client.final --tag ghcr.io/axmouth/axmouth.dev-user-client --cache-from=ghcr.io/axmouth/axmouth.dev-user-client
+      - name: Tag builder image
+        run: docker tag ghcr.io/axmouth/axmouth.dev-user-client-builder latest
+      - name: Tag final image
+        run: docker tag ghcr.io/axmouth/axmouth.dev-user-client latest
+      - name: Push builder image to GHCR
+        run: docker push ghcr.io/axmouth/axmouth.dev-user-client-builder || true
+      - name: Push final image to GHCR
+        run: docker push ghcr.io/axmouth/axmouth.dev-user-client || true
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:

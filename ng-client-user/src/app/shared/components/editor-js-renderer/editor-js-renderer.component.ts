@@ -1,4 +1,5 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { isPlatformServer } from '@angular/common';
+import { Component, OnInit, Input, Inject, PLATFORM_ID } from '@angular/core';
 
 @Component({
   selector: 'app-editor-js-renderer',
@@ -8,8 +9,13 @@ import { Component, OnInit, Input } from '@angular/core';
 export class EditorJsRendererComponent implements OnInit {
   @Input()
   content: any;
+  ssr = false;
 
-  constructor() {}
+  constructor(@Inject(PLATFORM_ID) private platform: object) {
+    if (isPlatformServer(this.platform)) {
+      this.ssr = true;
+    }
+  }
 
   ngOnInit(): void {}
 

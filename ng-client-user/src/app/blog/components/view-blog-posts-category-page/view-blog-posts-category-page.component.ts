@@ -5,6 +5,8 @@ import { ActivatedRoute } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { DOCUMENT, Location } from '@angular/common';
+import { Inject } from '@angular/core';
 
 @Component({
   selector: 'app-view-blog-posts-category-page',
@@ -25,6 +27,7 @@ export class ViewBlogPostsCategoryPageComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private title: Title,
     private meta: Meta,
+    @Inject(DOCUMENT) private doc: Document,
   ) {}
 
   ngOnInit(): void {
@@ -52,9 +55,9 @@ export class ViewBlogPostsCategoryPageComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.title.setTitle(`Blog Posts Index, Category: ${this.categoryName} - Axmouth's Website`);
         this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
-        this.meta.updateTag({ property: `og:url`, content: location.href });
+        this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
         this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
-        this.meta.updateTag({ property: `twitter:url`, content: location.href });
+        this.meta.updateTag({ property: `twitter:url`, content: this.doc.location.href });
         this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
       });
   }

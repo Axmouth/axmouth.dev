@@ -67,8 +67,14 @@ pub async fn start() {
             header::AUTHORIZATION,
             header::CONTENT_TYPE,
             header::ORIGIN,
+            header::ACCEPT_LANGUAGE,
+            header::ACCEPT_RANGES,
             header::ACCESS_CONTROL_ALLOW_ORIGIN,
             header::ACCESS_CONTROL_ALLOW_HEADERS,
+            header::ACCESS_CONTROL_REQUEST_METHOD,
+            header::ACCESS_CONTROL_ALLOW_CREDENTIALS,
+            header::ACCESS_CONTROL_EXPOSE_HEADERS,
+            header::ACCESS_CONTROL_REQUEST_HEADERS,
             header::ACCESS_CONTROL_REQUEST_METHOD,
         ])
         .allow_methods(&[
@@ -77,6 +83,8 @@ pub async fn start() {
             Method::PUT,
             Method::PATCH,
             Method::DELETE,
+            Method::PATCH,
+            Method::CONNECT,
         ]);
 
     let routes = routes::routes(app_state)

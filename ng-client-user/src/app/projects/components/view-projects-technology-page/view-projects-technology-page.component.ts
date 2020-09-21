@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 import { Project } from 'src/app/models/api/project';
 import { ProjectService } from '../../services/project.service';
 import { ActivatedRoute } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { DOCUMENT } from '@angular/common';
 
 @Component({
   selector: 'app-view-projects-technology-page',
@@ -25,6 +26,7 @@ export class ViewProjectsTechnologyPageComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private title: Title,
     private meta: Meta,
+    @Inject(DOCUMENT) private doc: Document,
   ) {}
 
   ngOnInit(): void {
@@ -52,9 +54,9 @@ export class ViewProjectsTechnologyPageComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.title.setTitle(`Projects, Category: ${this.technologyName} - Axmouth's Website`);
         this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
-        this.meta.updateTag({ property: `og:url`, content: location.href });
+        this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
         this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
-        this.meta.updateTag({ property: `twitter:url`, content: location.href });
+        this.meta.updateTag({ property: `twitter:url`, content: this.doc.location.href });
         this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
       });
   }

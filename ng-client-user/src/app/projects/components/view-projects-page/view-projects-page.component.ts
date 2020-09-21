@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 import { ProjectService } from '../../services/project.service';
 import { Project } from '../../../models/api/project';
 import { ActivatedRoute } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { DOCUMENT } from '@angular/common';
 
 @Component({
   selector: 'app-view-projects-page',
@@ -24,6 +25,7 @@ export class ViewProjectsPageComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private title: Title,
     private meta: Meta,
+    @Inject(DOCUMENT) private doc: Document,
   ) {}
 
   ngOnInit(): void {
@@ -50,9 +52,9 @@ export class ViewProjectsPageComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.title.setTitle(`Projects Index - Axmouth's Website`);
         this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
-        this.meta.updateTag({ property: `og:url`, content: location.href });
+        this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
         this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
-        this.meta.updateTag({ property: `twitter:url`, content: location.href });
+        this.meta.updateTag({ property: `twitter:url`, content: this.doc.location.href });
         this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
       });
   }

@@ -20,6 +20,7 @@ import { HCaptchaDirective } from './directives/h-captcha.directive';
   imports: [CommonModule, HighlightModule],
   exports: [NotFoundPageComponent, LinksSideWidgetComponent, EditorJsRendererComponent, HCaptchaDirective],
   providers: [
+    SafePipe,
     HCaptchaDirective,
     LinkService,
     RestApiService,

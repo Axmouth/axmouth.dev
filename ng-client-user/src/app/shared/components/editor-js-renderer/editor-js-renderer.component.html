@@ -100,7 +100,9 @@
           <div *ngSwitchCase="'code'">
             <div class="cdx-block ce-code">
               <span style="text-align: right; margin-bottom: 5px">{{ block?.data?.language }}</span>
-              <pre class="ce-code__textarea"><code [highlight]="block?.data?.code"></code></pre>
+              <pre
+                class="ce-code__textarea"
+              ><code [highlight]="block?.data?.code" *ngIf="ssr === false; else ssrCode"></code><ng-template #ssrCode><code>{{block?.data?.code}}</code></ng-template></pre>
             </div>
           </div>
 

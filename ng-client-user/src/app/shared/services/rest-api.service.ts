@@ -1,8 +1,10 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Inject, Injectable, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { retry, switchMap, concatMap, map, takeUntil } from 'rxjs/operators';
 import { AuthService } from 'src/auth';
 import { Observable, of, Subject } from 'rxjs';
+import { isPlatformServer } from '@angular/common';
+import { apiRoot, apiRootServer } from 'src/environments/environment';
 
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
@@ -35,7 +37,11 @@ export class RestApiService implements OnDestroy {
   static getReqCache = new Map<string, any>();
   ngUnsubscribe = new Subject<void>();
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService,
+    @Inject(PLATFORM_ID) private platform: object,
+  ) {}
 
   static getFromCache<T>(url: string, queryParams: any): T {
     const queryString = paramsToQuery(queryParams);
@@ -97,6 +103,9 @@ export class RestApiService implements OnDestroy {
   }
 
   private baseApiRequest<T>(url: string, queryParams: any, method: HttpMethod, body: any, cached = false) {
+    if (isPlatformServer(this.platform)) {
+      url = url.replace(apiRoot, apiRootServer);
+    }
     const headers = new HttpHeaders();
     headers.append('Content-Type', 'application/json');
     const queryString = paramsToQuery(queryParams);
