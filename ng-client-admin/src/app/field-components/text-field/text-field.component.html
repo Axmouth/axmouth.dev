@@ -1,4 +1,4 @@
 <mat-form-field appearance="fill">
   <mat-label>Textarea</mat-label>
-  <textarea matInput></textarea>
+  <textarea matInput (change)="onChange($event.target.value)" [value]="content"></textarea>
 </mat-form-field>

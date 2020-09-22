@@ -30,4 +30,9 @@ export class TextFieldComponent implements OnInit {
       this.subject.next(this.content);
     }
   }
+
+  onChange(text: string) {
+    console.log(text);
+    this.subject.next(text);
+  }
 }
