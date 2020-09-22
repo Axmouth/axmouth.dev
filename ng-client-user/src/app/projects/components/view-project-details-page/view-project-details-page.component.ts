@@ -53,9 +53,12 @@ export class ViewProjectDetailsPageComponent implements OnInit, OnDestroy {
           this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
           this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
           this.meta.updateTag({ property: `og:description`, content: this?.project?.description });
+          this.meta.updateTag({ property: `og:image`, content: this?.project?.coverImage });
+          this.meta.updateTag({ property: `twitter:card`, content: this?.project?.coverImage });
           this.meta.updateTag({ property: `twitter:url`, content: this.doc.location.href });
           this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
           this.meta.updateTag({ property: `twitter:description`, content: this?.project?.description });
+          this.meta.updateTag({ property: `twitter:image`, content: this?.project?.coverImage });
         },
         (error) => {
           console.log(error);
