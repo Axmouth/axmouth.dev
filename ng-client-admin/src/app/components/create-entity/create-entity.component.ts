@@ -25,7 +25,7 @@ export class CreateEntityComponent implements OnInit {
     const params = this.route.snapshot.paramMap;
     this.modelName = params.get('modelName');
     this.model = this.modelService.getByModelName(this.modelName);
-    this.title.setTitle(`Create a ${this.modelName} - Axmouth's Website Admin Site`);
+    this.title.setTitle(`Create a ${this.modelName} | Axmouth's Website Admin Site`);
   }
 
   onSaveClick() {

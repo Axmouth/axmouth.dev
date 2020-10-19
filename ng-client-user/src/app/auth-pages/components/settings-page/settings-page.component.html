@@ -1,0 +1,35 @@
+<div class="card my-4">
+  <h5 class="card-header bg-primary text-light">Settings</h5>
+  <div class="card-body">
+    <div class="row" *ngIf="profileData">
+      <div class="col-md-12">
+        <h4>Your Profile</h4>
+        <ul class="list-group">
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <b>Username:</b><span class="pull-right">{{ profileData?.displayName }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <b>Email:</b><span class="pull-right">{{ profileData?.email }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <br /><br />
+    <div class="col-8">
+      <button class="btn btn-primary" (click)="onResetYourPasswordClick()" [disabled]="requestPasswordResetInProgress">
+        <span class="spinner-border spinner-border-sm" *ngIf="requestPasswordResetInProgress"></span>
+        Reset Your Password
+      </button>
+      <br />
+      <hr />
+      <button
+        class="btn btn-primary"
+        (click)="onSendAccountVerificationEmailClick()"
+        [disabled]="sendAccountVerificationEmailClickInProgress"
+      >
+        <span class="spinner-border spinner-border-sm" *ngIf="sendAccountVerificationEmailClickInProgress"></span>Send
+        Account Verification Email
+      </button>
+    </div>
+  </div>
+</div>

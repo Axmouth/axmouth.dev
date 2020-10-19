@@ -16,7 +16,7 @@ export class LogoutPageComponent implements OnInit, OnDestroy {
   constructor(private authService: AuthService, private router: Router, private title: Title) {}
 
   async ngOnInit(): Promise<void> {
-    this.title.setTitle(`Logging Out - Axmouth's Website Admin Site`);
+    this.title.setTitle(`Logging Out | Axmouth's Website Admin Site`);
     this.authService
       .logout()
       .pipe(takeUntil(this.ngUnsubscribe))

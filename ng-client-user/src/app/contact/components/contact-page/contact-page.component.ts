@@ -41,7 +41,7 @@ export class ContactPageComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.title.setTitle(`Contact Me - Axmouth's Website`);
+    this.title.setTitle(`Contact Me | Axmouth's Website`);
     this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
     this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
     this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });

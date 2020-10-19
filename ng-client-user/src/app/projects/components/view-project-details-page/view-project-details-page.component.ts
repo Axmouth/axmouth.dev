@@ -31,7 +31,7 @@ export class ViewProjectDetailsPageComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.title.setTitle(`Loading Project - Axmouth's Website`);
+    this.title.setTitle(`Loading Project | Axmouth's Website`);
     const params = this.route.snapshot.paramMap;
     this.projectId = params.get('id');
     this.projectService
@@ -43,7 +43,7 @@ export class ViewProjectDetailsPageComponent implements OnInit, OnDestroy {
           this.projectBodyData = JSON.parse(result.data.body);
           this.projectTechnologiesList = result.data.technologies;
           this.loading = false;
-          this.title.setTitle(`${this.project.name} - Axmouth's Website`);
+          this.title.setTitle(`${this.project.name} | Axmouth's Website`);
           this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
           this.meta.updateTag({ name: `description`, content: this?.project?.description });
           this.meta.updateTag({
@@ -64,7 +64,7 @@ export class ViewProjectDetailsPageComponent implements OnInit, OnDestroy {
           console.log(error);
           if (error.status === 404) {
             this.notFound = true;
-            this.title.setTitle(`Project Not Found - Axmouth's Website`);
+            this.title.setTitle(`Project Not Found | Axmouth's Website`);
           }
           this.loading = false;
         },

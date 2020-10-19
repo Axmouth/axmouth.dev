@@ -306,6 +306,11 @@ pub fn routes(
         .and(warp::cookie("refresh_token"))
         .and(with_state(state.clone()))
         .and_then(handlers::auth::logout);
+    let get_profile = warp::path!("auth" / "profile")
+        .and(warp::get())
+        .and(auth_filter(state.jwt_secret.clone()))
+        .and(with_state(state.clone()))
+        .and_then(handlers::auth::get_profile);
     let request_verification_email = warp::path!("auth" / "request-verification-email")
         .and(warp::post())
         .and(auth_filter(state.jwt_secret.clone()))
@@ -322,7 +327,7 @@ pub fn routes(
         .and(validated_json())
         .and(with_state(state.clone()))
         .and_then(handlers::auth::request_reset_password_email);
-    let reset_password = warp::path!("auth" / "request-password")
+    let reset_password = warp::path!("auth" / "reset-password")
         .and(warp::post())
         .and(validated_json())
         .and(with_state(state.clone()))
@@ -393,6 +398,7 @@ pub fn routes(
         register,
         refresh,
         logout,
+        get_profile,
         request_verification_email,
         verify_email,
         request_reset_password_email,

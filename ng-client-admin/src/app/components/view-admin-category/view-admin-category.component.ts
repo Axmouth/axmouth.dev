@@ -20,6 +20,6 @@ export class ViewAdminCategoryComponent implements OnInit {
     const params = this.route.snapshot.paramMap;
     this.categoryName = params.get('categoryName');
     this.category = this.categoryService.get(this.categoryName);
-    this.title.setTitle(`Category: ${this.categoryName} - Axmouth's Website Admin Site`);
+    this.title.setTitle(`Category: ${this.categoryName} | Axmouth's Website Admin Site`);
   }
 }

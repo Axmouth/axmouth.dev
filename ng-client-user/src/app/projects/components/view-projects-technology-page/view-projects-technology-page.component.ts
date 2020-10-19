@@ -43,7 +43,7 @@ export class ViewProjectsTechnologyPageComponent implements OnInit, OnDestroy {
   }
 
   initialiseState() {
-    this.title.setTitle(`Loading Projects - Axmouth's Website`);
+    this.title.setTitle(`Loading Projects | Axmouth's Website`);
     this.loading = true;
     this.projectService
       .getAllProjectsByTechnology(this.technologyName, this.page, this.pageSize)
@@ -52,7 +52,7 @@ export class ViewProjectsTechnologyPageComponent implements OnInit, OnDestroy {
         this.projectsList = result.data;
         this.resultNumber = result?.pagination?.totalResults;
         this.loading = false;
-        this.title.setTitle(`Projects, Category: ${this.technologyName} - Axmouth's Website`);
+        this.title.setTitle(`Projects, Category: ${this.technologyName} | Axmouth's Website`);
         this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
         this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
         this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });

@@ -37,7 +37,7 @@ export class ViewAdminModelComponent implements OnInit, OnDestroy {
 
     this.displayField = this.model.displayField || 'id';
     this.idField = this.model.idField || 'id';
-    this.title.setTitle(`Model: ${this.modelName} - Axmouth's Website Admin Site`);
+    this.title.setTitle(`Model: ${this.modelName} | Axmouth's Website Admin Site`);
 
     this.apiService
       .getAll<{ data: object[] }>(this.model.endpoint, {})

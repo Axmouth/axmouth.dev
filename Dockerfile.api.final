@@ -17,6 +17,7 @@ RUN groupadd $APP_USER \
 RUN mkdir -p ${APP}
 COPY --from=ghcr.io/axmouth/axmouth.dev-backend-builder /code/target/release/backend_api ${APP}
 COPY --from=ghcr.io/axmouth/axmouth.dev-backend-builder /code/target/release/backend_cli ${APP}
+COPY ./backend_api/templates ${APP}/templates
 RUN touch ${APP}/.env
 
 RUN chown -R $APP_USER:$APP_USER ${APP}

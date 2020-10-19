@@ -47,7 +47,7 @@ export class ViewEntityComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe((result) => {
         this.entity = result.data;
-        this.title.setTitle(`${this.modelName} Entity: ${this.id} - Axmouth's Website Admin Site`);
+        this.title.setTitle(`${this.modelName} Entity: ${this.id} | Axmouth's Website Admin Site`);
       });
   }
 

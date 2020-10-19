@@ -65,7 +65,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.title.setTitle(`Register - Axmouth's Website`);
+    this.title.setTitle(`Register | Axmouth's Website`);
     this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
     this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
     this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });

@@ -1,5 +1,7 @@
 use lettre_email::Email;
+use tera::Context;
 
+use crate::app::TEMPLATES;
 use crate::errors::EmailError;
 use lettre::{
     smtp::authentication::{Credentials, Mechanism},
@@ -7,7 +9,7 @@ use lettre::{
     Transport,
 };
 use native_tls::{Protocol, TlsConnector};
-use std::env;
+use std::{env, error::Error};
 use tokio::task::block_in_place;
 use warp::{hyper::StatusCode, reject};
 
@@ -136,42 +138,114 @@ impl EmailSender {
     }
 
     fn get_verification_email_text(&self, username: String, token: String) -> String {
+        let mut context = Context::new();
+        context.insert("display_name", &username);
+        context.insert("token", &token);
+        context.insert("website_url", &self.website_url);
+        match TEMPLATES.render("emails/verify_email/verify_email_html.html", &context) {
+            Ok(s) => s,
+            Err(e) => {
+                println!("Error: {}", e);
+                let mut cause = e.source();
+                while let Some(e) = cause {
+                    println!("Reason: {}", e);
+                    cause = e.source();
+                }
+                String::from("Error rendering email")
+            }
+        }
+        /*
         format!(
             "Hello {},
         Please click the following link to certify your email:
         <a href=\"{}/verify-email?token={}\">Verify Email</a>",
             username, self.website_url, token
         )
+        */
     }
 
     fn get_verification_email_html(&self, username: String, token: String) -> String {
+        let mut context = Context::new();
+        context.insert("display_name", &username);
+        context.insert("token", &token);
+        context.insert("website_url", &self.website_url);
+        match TEMPLATES.render("emails/verify_email/verify_email_text.html", &context) {
+            Ok(s) => s,
+            Err(e) => {
+                println!("Error: {}", e);
+                let mut cause = e.source();
+                while let Some(e) = cause {
+                    println!("Reason: {}", e);
+                    cause = e.source();
+                }
+                String::from("Error rendering email")
+            }
+        }
+        /*
         format!(
             "Hello {},
         Please follow this link to certify your email:
         {}/verify-email?token={}",
             username, self.website_url, token
         )
+        */
     }
 
     fn get_reset_password_email_text(&self, username: String, token: String) -> String {
+        let mut context = Context::new();
+        context.insert("display_name", &username);
+        context.insert("token", &token);
+        context.insert("website_url", &self.website_url);
+        match TEMPLATES.render("emails/reset_password/reset_password_html.html", &context) {
+            Ok(s) => s,
+            Err(e) => {
+                println!("Error: {}", e);
+                let mut cause = e.source();
+                while let Some(e) = cause {
+                    println!("Reason: {}", e);
+                    cause = e.source();
+                }
+                String::from("Error rendering email")
+            }
+        }
+        /*
         format!(
             "Hello {},
         Please click the following link to reset your password:
         <a href=\"{}/reset-password?token={}\">Reset Password</a>
-        
+
         If you didn't request a password reset, you can ignore this email.",
             username, self.website_url, token
         )
+        */
     }
 
     fn get_reset_password_email_html(&self, username: String, token: String) -> String {
+        let mut context = Context::new();
+        context.insert("display_name", &username);
+        context.insert("token", &token);
+        context.insert("website_url", &self.website_url);
+        match TEMPLATES.render("emails/reset_password/reset_password_text.html", &context) {
+            Ok(s) => s,
+            Err(e) => {
+                println!("Error: {}", e);
+                let mut cause = e.source();
+                while let Some(e) = cause {
+                    println!("Reason: {}", e);
+                    cause = e.source();
+                }
+                String::from("Error rendering email")
+            }
+        }
+        /*
         format!(
             "Hello {},
         Please follow this link to cerify your email:
         {}/reset-password?token={}
-        
+
         If you didn't request a password reset, you can ignore this email.",
             username, self.website_url, token
         )
+        */
     }
 }

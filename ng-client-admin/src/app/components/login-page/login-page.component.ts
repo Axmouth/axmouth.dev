@@ -28,7 +28,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   ) {}
 
   async ngOnInit(): Promise<void> {
-    this.title.setTitle(`Login - Axmouth's Website Admin Site`);
+    this.title.setTitle(`Login | Axmouth's Website Admin Site`);
     this.returnUrl = this.route.snapshot.queryParams.returnUrl || '/game';
     this.form = this.fb.group({
       username: ['', Validators.email],

@@ -2,7 +2,8 @@ use std::iter::FromIterator;
 
 use crate::util::{
     auth_bad_request_response, auth_error_response, auth_ok_response, auth_unauthorized_response,
-    create_refresh_token, login_failed_response,
+    bad_request_response, create_refresh_token, login_failed_response, not_found_response,
+    server_error_response,
 };
 use crate::{app::AppState, auth_tokens::Claims};
 use crate::{auth_tokens, util::simple_error_response};
@@ -21,7 +22,7 @@ use backend_repo_pg::{
 };
 use backend_repo_pg::{models::db_models::VerifyEmailToken, passwords};
 use chrono::{Duration, NaiveDateTime, Utc};
-use rand::{thread_rng, Rng};
+use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use warp::hyper::header;
 use warp::{http::StatusCode, Reply};
 
@@ -333,7 +334,7 @@ pub async fn logout(
     let resp_with_status = warp::reply::with_status(resp_body, StatusCode::NO_CONTENT);
     let resp_with_header =
         warp::reply::with_header(resp_with_status, header::SET_COOKIE, "refresh_token=");
-    return Ok(resp_with_header);
+    return Ok(resp_with_header.into_response());
 }
 
 pub async fn request_verification_email(
@@ -361,19 +362,17 @@ pub async fn request_verification_email(
                 return Ok(simple_error_response(
                     String::from("This should never happen, but couldn't find email."),
                     StatusCode::INTERNAL_SERVER_ERROR,
-                )
-                .into_response());
+                ));
             }
         },
         Ok(None) => {
             return Ok(simple_error_response(
                 String::from("Invalid User Id in JWT."),
                 StatusCode::BAD_REQUEST,
-            )
-            .into_response());
+            ));
         }
         Err(err) => {
-            return Ok(auth_error_response(err).into_response());
+            return Ok(server_error_response(err));
         }
     };
     if let Some(new_email) = request.email {
@@ -393,7 +392,7 @@ pub async fn request_verification_email(
     {
         Ok(value) => value,
         Err(err) => {
-            return Ok(auth_error_response(err).into_response());
+            return Ok(server_error_response(err));
         }
     };
     state
@@ -401,7 +400,7 @@ pub async fn request_verification_email(
         .send_email_verification_email(email, display_name, token)
         .await?;
 
-    return Ok(simple_ok_response(()).into_response());
+    return Ok(simple_ok_response(()));
 }
 
 pub async fn verify_email(
@@ -416,12 +415,28 @@ pub async fn verify_email(
     {
         Ok(Some(value)) => value,
         Ok(None) => {
-            return Ok(auth_bad_request_response("Invalid Token").into_response());
+            return Ok(bad_request_response("Invalid Token"));
         }
         Err(err) => {
-            return Ok(auth_error_response(err).into_response());
+            return Ok(server_error_response(err));
         }
     };
+    if token_data.used == true {
+        return Ok(simple_error_response(
+            String::from("This token is already used"),
+            StatusCode::CONFLICT,
+        ));
+    } else if token_data.invalidated == true {
+        return Ok(simple_error_response(
+            String::from("This token is invalidated"),
+            StatusCode::CONFLICT,
+        ));
+    } else if token_data.expires_at <= Utc::now().naive_utc() {
+        return Ok(simple_error_response(
+            String::from("This token is expired"),
+            StatusCode::CONFLICT,
+        ));
+    }
     let user = match state
         .repository
         .user_repository
@@ -430,12 +445,12 @@ pub async fn verify_email(
     {
         Ok(Some(value)) => value,
         Ok(None) => {
-            return Ok(
-                auth_bad_request_response("Invalid Token Data, couldn't find User").into_response(),
-            );
+            return Ok(bad_request_response(
+                "Invalid Token Data, couldn't find User",
+            ));
         }
         Err(err) => {
-            return Ok(auth_error_response(err).into_response());
+            return Ok(server_error_response(err));
         }
     };
     let mut updated_user = UpdateUser {
@@ -456,7 +471,7 @@ pub async fn verify_email(
     {
         Ok(_) => {}
         Err(err) => {
-            return Ok(auth_error_response(err).into_response());
+            return Ok(server_error_response(err));
         }
     };
     let updated_token = UpdateVerifyEmailToken {
@@ -471,10 +486,10 @@ pub async fn verify_email(
     {
         Ok(_) => {}
         Err(err) => {
-            return Ok(auth_error_response(err).into_response());
+            return Ok(server_error_response(err));
         }
     }
-    return Ok(simple_ok_response(()).into_response());
+    return Ok(simple_ok_response(()));
 }
 
 pub async fn request_reset_password_email(
@@ -489,10 +504,10 @@ pub async fn request_reset_password_email(
     {
         Ok(Some(value)) => value,
         Ok(None) => {
-            return Ok(auth_bad_request_response("Couldn't find User").into_response());
+            return Ok(bad_request_response("Couldn't find User"));
         }
         Err(err) => {
-            return Ok(auth_error_response(err).into_response());
+            return Ok(server_error_response(err));
         }
     };
 
@@ -504,7 +519,7 @@ pub async fn request_reset_password_email(
     {
         Ok(value) => value,
         Err(err) => {
-            return Ok(auth_error_response(err).into_response());
+            return Ok(server_error_response(err));
         }
     };
     state
@@ -512,7 +527,7 @@ pub async fn request_reset_password_email(
         .send_reset_password_email(request.email, user.display_name, token)
         .await?;
 
-    return Ok(simple_ok_response(()).into_response());
+    return Ok(simple_ok_response(()));
 }
 
 pub async fn reset_password(
@@ -527,12 +542,28 @@ pub async fn reset_password(
     {
         Ok(Some(value)) => value,
         Ok(None) => {
-            return Ok(auth_bad_request_response("Invalid Token").into_response());
+            return Ok(bad_request_response("Invalid Token"));
         }
         Err(err) => {
-            return Ok(auth_error_response(err).into_response());
+            return Ok(server_error_response(err));
         }
     };
+    if token_data.used == true {
+        return Ok(simple_error_response(
+            String::from("This token is already used"),
+            StatusCode::CONFLICT,
+        ));
+    } else if token_data.invalidated == true {
+        return Ok(simple_error_response(
+            String::from("This token is invalidated"),
+            StatusCode::CONFLICT,
+        ));
+    } else if token_data.expires_at <= Utc::now().naive_utc() {
+        return Ok(simple_error_response(
+            String::from("This token is expired"),
+            StatusCode::CONFLICT,
+        ));
+    }
     let user = match state
         .repository
         .user_repository
@@ -541,12 +572,12 @@ pub async fn reset_password(
     {
         Ok(Some(value)) => value,
         Ok(None) => {
-            return Ok(
-                auth_bad_request_response("Invalid Token Data, couldn't find User").into_response(),
-            );
+            return Ok(bad_request_response(
+                "Invalid Token Data, couldn't find User",
+            ));
         }
         Err(err) => {
-            return Ok(auth_error_response(err).into_response());
+            return Ok(server_error_response(err));
         }
     };
     let new_password_hash = passwords::hash(request.new_password.as_bytes());
@@ -566,7 +597,7 @@ pub async fn reset_password(
     {
         Ok(_) => {}
         Err(err) => {
-            return Ok(auth_error_response(err).into_response());
+            return Ok(server_error_response(err));
         }
     };
     let updated_token = UpdateChangePasswordToken {
@@ -581,10 +612,31 @@ pub async fn reset_password(
     {
         Ok(_) => {}
         Err(err) => {
-            return Ok(auth_error_response(err).into_response());
+            return Ok(server_error_response(err));
         }
     }
-    return Ok(simple_ok_response(()).into_response());
+    return Ok(simple_ok_response(()));
+}
+
+pub async fn get_profile(
+    claims: Claims,
+    state: AppState,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let user = match state
+        .repository
+        .user_repository
+        .find_one(claims.user_id())
+        .await
+    {
+        Ok(Some(value)) => value,
+        Ok(None) => {
+            return Ok(not_found_response("User"));
+        }
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
+    };
+    return Ok(simple_ok_response(user));
 }
 
 async fn create_verify_email_token(
@@ -593,12 +645,14 @@ async fn create_verify_email_token(
     old_email: Option<String>,
     user_id: i32,
 ) -> Result<String, PgRepoError> {
-    let arr: [char; 25] = thread_rng().gen();
-    let token = String::from_iter(arr.iter());
+    let token = rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(75)
+        .collect::<String>();
 
     let new_verify_email_token = NewVerifyEmailToken {
         email,
-        expires_at: Utc::now().naive_utc() + Duration::days(30),
+        expires_at: (Utc::now() + Duration::days(30)).naive_utc(),
         old_email,
         token,
         user_id,
@@ -614,11 +668,13 @@ async fn create_reset_password_token(
     change_password_tokens_repository: backend_repo_pg::change_password_tokens::ChangePasswordTokenRepo,
     user_id: i32,
 ) -> Result<String, PgRepoError> {
-    let arr: [char; 25] = thread_rng().gen();
-    let token = String::from_iter(arr.iter());
+    let token = rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(75)
+        .collect::<String>();
 
     let new_change_password_token = NewChangePasswordToken {
-        expires_at: Utc::now().naive_utc() + Duration::days(30),
+        expires_at: (Utc::now() + Duration::days(30)).naive_utc(),
         token,
         user_id,
     };

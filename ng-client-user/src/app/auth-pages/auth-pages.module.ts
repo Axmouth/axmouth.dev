@@ -11,9 +11,21 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { VerifyEmailPageComponent } from './components/verify-email-page/verify-email-page.component';
 import { RequestPasswordChangePageComponent } from './components/request-password-change-page/request-password-change-page.component';
 import { PasswordChangePageComponent } from './components/password-change-page/password-change-page.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { SettingsPageComponent } from './components/settings-page/settings-page.component';
 
 @NgModule({
-  declarations: [LoginPageComponent, LogoutPageComponent, AuthMainComponent, RegisterPageComponent, VerifyEmailPageComponent, RequestPasswordChangePageComponent, PasswordChangePageComponent],
-  imports: [CommonModule, AuthPagesRoutingModule, SharedModule, ReactiveFormsModule, FormsModule],
+  declarations: [
+    LoginPageComponent,
+    LogoutPageComponent,
+    AuthMainComponent,
+    RegisterPageComponent,
+    VerifyEmailPageComponent,
+    RequestPasswordChangePageComponent,
+    PasswordChangePageComponent,
+    SettingsPageComponent,
+  ],
+  imports: [CommonModule, AuthPagesRoutingModule, SharedModule, ReactiveFormsModule, FormsModule, NgbModule],
+  providers: [],
 })
 export class AuthPagesModule {}

@@ -7,12 +7,13 @@ import { TransferHttpCacheModule } from '@nguniversal/common';
 import { AppComponent } from './app.component';
 import { AuthModule } from 'src/auth/auth.module';
 import { apiRoot } from 'src/environments/environment';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
 import { LinksSideWidgetComponent } from './shared/components/links-side-widget/links-side-widget.component';
 import { SharedModule } from './shared/shared.module';
 import { HCaptchaDirective } from './shared/directives/h-captcha.directive';
 import { NgbModule, NgbAlertModule } from '@ng-bootstrap/ng-bootstrap';
 import { jwtWhitelist } from 'src/environments/environment';
+import { JwtInterceptor } from 'src/auth';
 
 @NgModule({
   declarations: [AppComponent],
@@ -28,12 +29,39 @@ import { jwtWhitelist } from 'src/environments/environment';
         authEndpointPrefix: `${apiRoot}/auth/`,
         whitelistedDomains: jwtWhitelist,
         blacklistedRoutes: [],
-        // authScheme: ""
+        skipWhenExpired: false,
+        passwordResetEndpoint: 'reset-password',
+        requestPasswordResetEndpoint: 'request-password-reset',
+        verifyEmailEndpoint: 'verify-email',
+        requestVerificationEmailEndpoint: 'request-verification-email',
+        userNameJwtKey: 'display_name',
+        passwordResetConfig: {
+          tokenKey: 'token',
+          emailKey: 'email',
+          emailQueryKey: 'email',
+          tokenQueryKey: 'token',
+          userNameKey: 'username',
+          userNameQueryKey: 'username',
+        },
+        verifyEmailConfig: {
+          tokenKey: 'token',
+          emailKey: 'email',
+          emailQueryKey: 'email',
+          tokenQueryKey: 'token',
+          userNameKey: 'username',
+          userNameQueryKey: 'username',
+        },
       },
     }),
     NgbModule,
   ],
-  providers: [],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: JwtInterceptor,
+      multi: true,
+    },
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

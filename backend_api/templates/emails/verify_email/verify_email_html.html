@@ -1,0 +1,13 @@
+{% extends "emails/shared/email_base_html.html" %}
+
+{% block content %}
+    <p>
+        Hello {{display_name}},
+    </p>
+    <p>
+        Please click the following link to certify your email:
+    </p>
+    <p>
+        <a href="http://{{website_url}}/auth/verify-email?token={{token}}">Verify Email</a>
+    </p>
+{% endblock content %}

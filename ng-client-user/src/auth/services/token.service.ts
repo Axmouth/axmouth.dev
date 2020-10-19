@@ -1,21 +1,25 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { filter, share } from 'rxjs/operators';
+import { Injectable, Inject, PLATFORM_ID, OnDestroy } from '@angular/core';
+import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
+import { filter, share, takeUntil } from 'rxjs/operators';
 import { TokenPack } from '../internal/token-pack';
 import { AuthToken } from '../internal/auth-token';
 import { isPlatformBrowser } from '@angular/common';
 import { AuthCreateJWTToken } from '../internal/auth-jwt-token';
+import { AX_AUTH_OPTIONS } from '../auth-injection-token';
+import { AuthModuleOptionsConfig } from '../auth-module-options-config';
 
 @Injectable({
   providedIn: 'root',
 })
-export class TokenService {
+export class TokenService implements OnDestroy {
+  ngUnsubscribe = new Subject<void>();
   protected token$: BehaviorSubject<AuthToken> = new BehaviorSubject(null);
 
-  protected key = 'auth_app_token';
+  protected key: string;
 
-  constructor(@Inject(PLATFORM_ID) private platform: object) {
+  constructor(@Inject(PLATFORM_ID) private platform: object, @Inject(AX_AUTH_OPTIONS) config: AuthModuleOptionsConfig) {
     if (isPlatformBrowser(platform)) {
+      this.key = config.jwtTokenKey ?? 'auth_app_token';
       this.publishStoredToken();
     }
   }
@@ -26,11 +30,11 @@ export class TokenService {
   get(): Observable<AuthToken> {
     // const token = this.tokenStorage.get();
     if (!isPlatformBrowser(this.platform)) {
-      return of(this.unwrap(''));
+      return of(this.unwrap('')).pipe(takeUntil(this.ngUnsubscribe));
     }
     const raw = localStorage.getItem(this.key);
     const token = this.unwrap(raw);
-    return of(token);
+    return of(token).pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
@@ -39,12 +43,12 @@ export class TokenService {
    */
   set(token: AuthToken): Observable<null> {
     if (!isPlatformBrowser(this.platform)) {
-      return of(null);
+      return of(null).pipe(takeUntil(this.ngUnsubscribe));
     }
     const raw = this.wrap(token);
     localStorage.setItem(this.key, raw);
     this.publishStoredToken();
-    return of(null);
+    return of(null).pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
@@ -54,26 +58,28 @@ export class TokenService {
   clear(): Observable<null> {
     // this.tokenStorage.clear();
     if (!isPlatformBrowser(this.platform)) {
-      return of(null);
+      return of(null).pipe(takeUntil(this.ngUnsubscribe));
     }
     localStorage.removeItem(this.key);
     this.publishStoredToken();
-    return of(null);
+    return of(null).pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
    * Publishes token when it changes.
    */
   tokenChange(): Observable<AuthToken> {
-    return this.token$.pipe(
-      filter((value) => !!value),
-      share(),
-    );
+    return this.token$
+      .pipe(
+        filter((value) => !!value),
+        share(),
+      )
+      .pipe(takeUntil(this.ngUnsubscribe));
   }
 
-  protected publishStoredToken() {
+  protected publishStoredToken(): void {
     if (!isPlatformBrowser(this.platform)) {
-      return of(null);
+      return;
     }
     const raw = localStorage.getItem(this.key);
     const token = this.unwrap(raw);
@@ -102,7 +108,7 @@ export class TokenService {
       tokenCreatedAt = new Date(Number(tokenPack.createdAt));
     }
 
-    return AuthCreateJWTToken(tokenValue, tokenOwnerStrategyName, tokenCreatedAt);
+    return AuthCreateJWTToken(tokenValue, tokenCreatedAt);
   }
 
   protected parseTokenPack(value: string): TokenPack {
@@ -110,5 +116,10 @@ export class TokenService {
       return JSON.parse(value);
     } catch (e) {}
     return null;
+  }
+
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 }

@@ -1,28 +1,29 @@
-import { Injectable, Inject } from '@angular/core';
+import { Injectable, Inject, OnDestroy } from '@angular/core';
 import { TokenService } from './token.service';
-import { map, switchMap, catchError, mergeMap, concatMap, retry, take } from 'rxjs/operators';
-import { Observable, of, observable, Subject } from 'rxjs';
-import { HttpClient, HttpResponse, HttpHeaders } from '@angular/common/http';
+import { map, switchMap, catchError, retry, take, takeUntil } from 'rxjs/operators';
+import { Observable, of, Subject } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
-import { AuthSuccess } from 'src/app/models/api/auth-success-response';
 import { AuthResult } from '../internal/auth-result';
 import { AuthToken } from '../internal/auth-token';
 import { AuthJWTToken, AuthCreateJWTToken } from '../internal/auth-jwt-token';
 import { AuthIllegalTokenError } from '../internal/auth-illegal-token-error';
-import { isPlatformBrowser } from '@angular/common';
 import { AX_AUTH_OPTIONS } from '../auth-injection-token';
 import { AuthModuleOptionsConfig } from '../auth-module-options-config';
-import { User } from 'src/app/models/api/user';
 import { IsBrowserService } from 'src/auth/helpers/services/is-browser.service';
-import { Response } from 'src/app/models/api/response';
+
+const tokenGetterDefault = (authRes: any) => {
+  return authRes.data?.token;
+};
 
 @Injectable({
   providedIn: 'root',
 })
-export class AuthService {
+export class AuthService implements OnDestroy {
+  ngUnsubscribe = new Subject<void>();
   authenticating = false;
-  authenticatingNotifier = new Subject<AuthResult>();
-
+  authenticatingNotifier = new Subject<boolean>();
+  config: AuthModuleOptionsConfig;
   authEndpointPrefix: string;
 
   constructor(
@@ -33,6 +34,7 @@ export class AuthService {
     @Inject(AX_AUTH_OPTIONS) config: AuthModuleOptionsConfig,
   ) {
     this.authEndpointPrefix = config.authEndpointPrefix;
+    this.config = config;
   }
 
   /**
@@ -41,18 +43,22 @@ export class AuthService {
    *
    */
   getUsername(): Observable<string> {
-    return this.tokenService.get().pipe(
-      map((token) => {
-        if (!this.isBrowserService.isInBrowser()) {
+    return this.tokenService
+      .get()
+      .pipe(
+        map((token) => {
+          if (!this.isBrowserService.isInBrowser()) {
+            return null;
+          }
+          const payload = token.getPayload();
+          if (payload) {
+            const userNameKey = this.config.userNameJwtKey ?? 'sub';
+            return payload[userNameKey];
+          }
           return null;
-        }
-        const payload = token.getPayload();
-        if (payload) {
-          return payload.display_name;
-        }
-        return null;
-      }),
-    );
+        }),
+      )
+      .pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
@@ -61,18 +67,22 @@ export class AuthService {
    *
    */
   getEmail(): Observable<string> {
-    return this.tokenService.get().pipe(
-      map((token) => {
-        if (!this.isBrowserService.isInBrowser()) {
+    return this.tokenService
+      .get()
+      .pipe(
+        map((token) => {
+          if (!this.isBrowserService.isInBrowser()) {
+            return null;
+          }
+          const payload = token.getPayload();
+          if (payload) {
+            const emailKey = this.config.emailJwtKey ?? 'sub';
+            return payload[emailKey];
+          }
           return null;
-        }
-        const payload = token.getPayload();
-        if (payload) {
-          return payload.email;
-        }
-        return null;
-      }),
-    );
+        }),
+      )
+      .pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
@@ -80,13 +90,15 @@ export class AuthService {
    * It is assumed it stored under email inside the token
    *
    */
-  getProfile(): Observable<HttpResponse<Response<User>>> {
-    const url = `${this.authEndpointPrefix}profile`;
-    const result = baseApiRequest<Response<User>>(this.http, url, {}, 'get', undefined).pipe(
-      map((res) => {
-        return res;
-      }),
-    );
+  getProfile<T>(): Observable<T> {
+    const url = `${this.authEndpointPrefix}${this.config.profileEndpoint ?? 'profile'}`;
+    const result = baseApiRequest<T>(this.http, url, {}, this.config.profileMethod ?? 'get', undefined)
+      .pipe(
+        map((res) => {
+          return res;
+        }),
+      )
+      .pipe(takeUntil(this.ngUnsubscribe));
     return result;
   }
 
@@ -101,28 +113,31 @@ export class AuthService {
    *
    */
   authenticate(data?: any): Observable<AuthResult> {
-    const url = `${this.authEndpointPrefix}login`;
+    const url = `${this.authEndpointPrefix}${this.config.loginEndpoint ?? 'login'}`;
 
-    const result = baseApiRequest<Response<AuthSuccess>>(this.http, url, {}, 'post', data).pipe(
+    const result = baseApiRequest(this.http, url, {}, this.config.loginMethod ?? 'post', data).pipe(
       map((res) => {
+        const tokenGetter = this.config?.loginTokengetter ?? tokenGetterDefault;
         return new AuthResult(
           true,
-          res.body,
+          res,
           true,
           [], // ['Login/Email combination is not correct, please try again.'],
           ['You have been successfully logged in.'],
-          this.createToken(res.body?.data?.token, true),
+          this.createToken(tokenGetter(res), true),
         );
       }),
       catchError((res) => {
         return this.handleResponseError(res);
       }),
     );
-    return result.pipe(
-      switchMap((authResult: AuthResult) => {
-        return this.processResultToken(authResult);
-      }),
-    );
+    return result
+      .pipe(
+        switchMap((authResult: AuthResult) => {
+          return this.processResultToken(authResult);
+        }),
+      )
+      .pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
@@ -134,13 +149,13 @@ export class AuthService {
    *
    */
   logout(): Observable<AuthResult> {
-    const url = `${this.authEndpointPrefix}logout`;
+    const url = `${this.authEndpointPrefix}${this.config.logoutEndpoint ?? 'logout'}`;
     const result = of({}).pipe(
       switchMap((res: any) => {
         if (!url) {
           return of(res);
         }
-        return baseApiRequest<Response<null>>(this.http, url, {}, 'delete', undefined);
+        return baseApiRequest(this.http, url, {}, this.config.logoutMethod ?? 'delete', undefined);
       }),
       map((res) => {
         return new AuthResult(
@@ -155,17 +170,18 @@ export class AuthService {
         return this.handleResponseError(res);
       }),
     );
-    return result.pipe(
-      switchMap((authResult: AuthResult) => {
-        if (authResult.isSuccess()) {
-        }
-        console.log(authResult.getResponse().status);
-        if (authResult.getResponse().status === 404 || authResult.getResponse().status === '404') {
-          return of(authResult);
-        }
-        return this.tokenService.clear().pipe(map(() => authResult));
-      }),
-    );
+    return result
+      .pipe(
+        switchMap((authResult: AuthResult) => {
+          if (authResult?.isSuccess()) {
+          }
+          if (authResult?.getResponse()?.status === 404 || authResult?.getResponse()?.status === '404') {
+            return of(authResult);
+          }
+          return this.tokenService.clear().pipe(map(() => authResult));
+        }),
+      )
+      .pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
@@ -177,27 +193,30 @@ export class AuthService {
    *
    */
   register(data?: any): Observable<AuthResult> {
-    const url = `${this.authEndpointPrefix}register`;
-    const result = baseApiRequest<Response<AuthSuccess>>(this.http, url, {}, 'post', data).pipe(
+    const url = `${this.authEndpointPrefix}${this.config.registerEndpoint ?? 'register'}`;
+    const result = baseApiRequest(this.http, url, {}, this.config.registerMethod ?? 'post', data).pipe(
       map((res) => {
+        const tokenGetter = this.config?.registerTokengetter ?? tokenGetterDefault;
         return new AuthResult(
           true,
           res,
           true,
           [], // ['Something went wrong, please try again.'],
           ['You have been successfully registered.'],
-          this.createToken(res.body?.data?.token, true),
+          this.createToken(tokenGetter(res), true),
         );
       }),
       catchError((res) => {
-        return this.handleResponseError(res);
+        return this.handleResponseError(res).pipe(takeUntil(this.ngUnsubscribe));
       }),
     );
-    return result.pipe(
-      switchMap((authResult: AuthResult) => {
-        return this.processResultToken(authResult);
-      }),
-    );
+    return result
+      .pipe(
+        switchMap((authResult: AuthResult) => {
+          return this.processResultToken(authResult).pipe(takeUntil(this.ngUnsubscribe));
+        }),
+      )
+      .pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
@@ -207,7 +226,9 @@ export class AuthService {
     if (!this.isBrowserService.isInBrowser()) {
       return of(false);
     }
-    return this.getToken().pipe(map((token: AuthToken) => token.isValid()));
+    return this.getToken()
+      .pipe(map((token: AuthToken) => token.isValid()))
+      .pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
@@ -220,39 +241,57 @@ export class AuthService {
     }
     if (this.authenticating) {
       // check if auth request is in progress and do nothing then
-      return this.authenticatingNotifier.pipe(take(1)).pipe(map((authResult) => authResult.isSuccess()));
+      console.log('waiting while authenticating');
+      // return of(false);
+      return this.authenticatingNotifier
+        .pipe(take(1))
+        .pipe(takeUntil(this.ngUnsubscribe))
+        .pipe(
+          map((t) => {
+            console.log('waiting over ' + this.authenticating);
+            return t;
+          }),
+        );
     }
-    return this.getToken().pipe(
-      switchMap((token) => {
-        if (token.getValue() && !token.isValid()) {
-          return this.refreshToken(token, callback$).pipe(
-            switchMap((res) => {
-              if (res === null) {
-                // For the case where there is an auth request in progress. Keep the status quo
-                return of(true);
-              }
-              if (res.isSuccess()) {
-                return this.isAuthenticated();
-              } else {
-                console.log(res.getResponse());
-                if (res.getResponse().status !== 400 && res.getResponse().status !== '400') {
-                  return this.isAuthenticated();
+    this.authenticating = true;
+    return this.getToken()
+      .pipe(
+        switchMap((token) => {
+          if (token.getValue() && !token.isValid()) {
+            return this.refreshToken(token, callback$).pipe(
+              switchMap((res) => {
+                if (res === null) {
+                  // For the case where there is an auth request in progress. Keep the status quo
+                  return of(true);
                 }
-                /*
+                if (res.isSuccess()) {
+                  return this.isAuthenticated();
+                } else {
+                  if (res.getResponse().status !== 400 && res.getResponse().status !== '400') {
+                    return this.isAuthenticated();
+                  }
+                  /*
                 return this.logout().pipe(
                   map((result) => {
                     return !result.isSuccess();
                   }),
                 );*/
-                return of(false);
-              }
-            }),
-          );
-        } else {
-          return of(token.isValid());
-        }
-      }),
-    );
+                  return of(false);
+                }
+              }),
+            );
+          } else {
+            return of(token.isValid());
+          }
+        }),
+      )
+      .pipe(
+        map((t) => {
+          this.authenticating = false;
+          this.authenticatingNotifier.next(t);
+          return t;
+        }),
+      );
   }
 
   /**
@@ -260,9 +299,11 @@ export class AuthService {
    */
   onAuthenticationChange(): Observable<boolean> {
     if (!this.isBrowserService.isInBrowser()) {
-      return of(false);
+      return of(false).pipe(takeUntil(this.ngUnsubscribe));
     }
-    return this.onTokenChange().pipe(map((token: AuthToken) => token.isValid()));
+    return this.onTokenChange()
+      .pipe(map((token: AuthToken) => token.isValid()))
+      .pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
@@ -274,23 +315,12 @@ export class AuthService {
    *
    */
   refreshToken(data?: any, callback$?: Observable<any>): Observable<AuthResult> {
-    if (this.authenticating) {
-      // check if auth request is in progress and do nothing then
-      return this.authenticatingNotifier.pipe(take(1)).pipe(
-        switchMap((value, index) => {
-          return this.refreshToken(data, callback$);
-        }),
-      );
-    }
-    // set the flag that there is an auth request in progress
-    this.authenticating = true;
-
-    const url = `${this.authEndpointPrefix}refresh`;
-    const refresh$ = baseApiRequest<Response<AuthSuccess>>(this.http, url, {}, 'post', data)
+    const url = `${this.authEndpointPrefix}${this.config.refreshEndpoint ?? 'refresh'}`;
+    const refresh$ = baseApiRequest(this.http, url, {}, this.config.refreshMethod ?? 'post', data)
       .pipe(
         map((res) => {
-          const token = AuthCreateJWTToken(res.body?.data?.token, 'refreshToken');
-          this.authenticating = false;
+          const tokenGetter = this.config?.refreshTokengetter ?? tokenGetterDefault;
+          const token = AuthCreateJWTToken(tokenGetter(res));
           const authResult = new AuthResult(
             true,
             res,
@@ -299,33 +329,32 @@ export class AuthService {
             ['Your token has been successfully refreshed.'],
             token,
           );
-          this.authenticatingNotifier.next(authResult);
           return authResult;
         }),
         catchError((res) => {
-          this.authenticating = false;
-          this.handleResponseError(res).subscribe((authResult) => {
-            this.authenticatingNotifier.next(authResult);
-          });
+          // this.handleResponseError(res)
+          //  .pipe(takeUntil(this.ngUnsubscribe))
+          //  .subscribe((authResult) => {
+          //    // this.authenticatingNotifier.next(authResult);
+          //  });
           return this.handleResponseError(res);
         }),
       )
       .pipe(
         switchMap((result: AuthResult) => {
-          this.authenticating = false;
-          this.authenticatingNotifier.next(result);
           return this.processResultToken(result);
         }),
       );
     if (callback$ === undefined) {
-      console.log('refreshToken$ - null');
       callback$ = of(null);
     }
-    return callback$.pipe(
-      switchMap((obj) => {
-        return refresh$;
-      }),
-    );
+    return callback$
+      .pipe(
+        switchMap((_) => {
+          return refresh$;
+        }),
+      )
+      .pipe(takeUntil(this.ngUnsubscribe));
   }
 
   protected handleResponseError(res: any): Observable<AuthResult> {
@@ -336,14 +365,14 @@ export class AuthService {
    * Retrieves current authenticated token stored
    */
   getToken(): Observable<any> {
-    return this.tokenService.get();
+    return this.tokenService.get().pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
    * Returns tokens stream
    */
   onTokenChange(): Observable<AuthToken> {
-    return this.tokenService.tokenChange();
+    return this.tokenService.tokenChange().pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
@@ -355,21 +384,23 @@ export class AuthService {
    *
    */
   requestPasswordReset(data?: any): Observable<AuthResult> {
-    const url = `${this.authEndpointPrefix}password-reset-email`;
-    return baseApiRequest(this.http, url, {}, 'post', data).pipe(
-      map((res) => {
-        return new AuthResult(
-          true,
-          res,
-          true,
-          [], // ['Something went wrong, please try again.'],
-          ['Reset password instructions have been sent to your email!'],
-        );
-      }),
-      catchError((res) => {
-        return this.handleResponseError(res);
-      }),
-    );
+    const url = `${this.authEndpointPrefix}${this.config.requestPasswordResetEndpoint ?? 'request-password-reset'}`;
+    return baseApiRequest(this.http, url, {}, this.config.requestPasswordResetMethod ?? 'post', data)
+      .pipe(
+        map((res) => {
+          return new AuthResult(
+            true,
+            res,
+            true,
+            [], // ['Something went wrong, please try again.'],
+            ['Reset password instructions have been sent to your email!'],
+          );
+        }),
+        catchError((res) => {
+          return this.handleResponseError(res);
+        }),
+      )
+      .pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
@@ -380,13 +411,13 @@ export class AuthService {
    *
    */
   passwordReset(data?: any): Observable<AuthResult> {
-    const url = `${this.authEndpointPrefix}password-reset`;
-    const tokenQueryKey = 'reset_password_token';
-    const userNameQueryKey = 'user_name';
-    const emailQueryKey = 'email';
-    const tokenKey = 'token';
-    const userNameKey = 'userName';
-    const emailKey = 'email';
+    const url = `${this.authEndpointPrefix}${this.config.passwordResetEndpoint ?? 'password-reset'}`;
+    const tokenQueryKey = this.config?.passwordResetConfig?.tokenQueryKey ?? 'reset_password_token';
+    const userNameQueryKey = this.config?.passwordResetConfig?.userNameQueryKey ?? 'user_name';
+    const emailQueryKey = this.config?.passwordResetConfig?.emailQueryKey ?? 'email';
+    const tokenKey = this.config?.passwordResetConfig?.tokenKey ?? 'token';
+    const userNameKey = this.config?.passwordResetConfig?.userNameKey ?? 'userName';
+    const emailKey = this.config?.passwordResetConfig?.emailKey ?? 'email';
     data[tokenKey] = this.route.snapshot.queryParams[tokenQueryKey];
     if (this.route.snapshot.queryParams[userNameQueryKey]) {
       data[userNameKey] = this.route.snapshot.queryParams[userNameQueryKey];
@@ -394,20 +425,22 @@ export class AuthService {
     if (this.route.snapshot.queryParams[emailQueryKey]) {
       data[emailKey] = this.route.snapshot.queryParams[emailQueryKey];
     }
-    return baseApiRequest(this.http, url, {}, 'post', data).pipe(
-      map((res) => {
-        return new AuthResult(
-          true,
-          res,
-          true,
-          [], // ['Something went wrong, please try again.'],
-          ['Your password has been successfully changed!'],
-        );
-      }),
-      catchError((res) => {
-        return this.handleResponseError(res);
-      }),
-    );
+    return baseApiRequest(this.http, url, {}, this.config.passwordResetMethod ?? 'post', data)
+      .pipe(
+        map((res) => {
+          return new AuthResult(
+            true,
+            res,
+            true,
+            [], // ['Something went wrong, please try again.'],
+            ['Your password has been successfully changed!'],
+          );
+        }),
+        catchError((res) => {
+          return this.handleResponseError(res);
+        }),
+      )
+      .pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
@@ -419,13 +452,13 @@ export class AuthService {
    */
   verifyEmail(): Observable<AuthResult> {
     const data = {};
-    const url = `${this.authEndpointPrefix}email-confirm`;
-    const tokenQueryKey = 'email_confirm_token';
-    const userNameQueryKey = 'user_name';
-    const emailQueryKey = 'email';
-    const tokenKey = 'token';
-    const userNameKey = 'userName';
-    const emailKey = 'email';
+    const url = `${this.authEndpointPrefix}${this.config.verifyEmailEndpoint ?? 'verify-email'}`;
+    const tokenQueryKey = this.config?.verifyEmailConfig?.tokenQueryKey ?? 'email_confirm_token';
+    const userNameQueryKey = this.config?.verifyEmailConfig?.userNameQueryKey ?? 'user_name';
+    const emailQueryKey = this.config?.verifyEmailConfig?.emailQueryKey ?? 'email';
+    const tokenKey = this.config?.verifyEmailConfig?.tokenKey ?? 'token';
+    const userNameKey = this.config?.verifyEmailConfig?.userNameKey ?? 'userName';
+    const emailKey = this.config?.verifyEmailConfig?.emailKey ?? 'email';
     data[tokenKey] = this.route.snapshot.queryParams[tokenQueryKey];
     if (this.route.snapshot.queryParams[userNameQueryKey]) {
       data[userNameKey] = this.route.snapshot.queryParams[userNameQueryKey];
@@ -433,20 +466,22 @@ export class AuthService {
     if (this.route.snapshot.queryParams[emailQueryKey]) {
       data[emailKey] = this.route.snapshot.queryParams[emailQueryKey];
     }
-    return baseApiRequest(this.http, url, {}, 'post', data).pipe(
-      map((res) => {
-        return new AuthResult(
-          true,
-          res,
-          true,
-          [], // ['Something went wrong, please try again.'],
-          ['Your Email has been successfully verified!'],
-        );
-      }),
-      catchError((res) => {
-        return this.handleResponseError(res);
-      }),
-    );
+    return baseApiRequest(this.http, url, {}, this.config.verifyEmailMethod ?? 'post', data)
+      .pipe(
+        map((res) => {
+          return new AuthResult(
+            true,
+            res,
+            true,
+            [], // ['Something went wrong, please try again.'],
+            ['Your Email has been successfully verified!'],
+          );
+        }),
+        catchError((res) => {
+          return this.handleResponseError(res);
+        }),
+      )
+      .pipe(takeUntil(this.ngUnsubscribe));
   }
 
   /**
@@ -457,37 +492,44 @@ export class AuthService {
    *
    */
   requestVerificationEmail(data?: any): Observable<AuthResult> {
-    const url = `${this.authEndpointPrefix}email-confirm-email`;
-    return baseApiRequest(this.http, url, {}, 'post', data).pipe(
-      map((res) => {
-        return new AuthResult(
-          true,
-          res,
-          true,
-          [], // ['Something went wrong, please try again.'],
-          ['Your verification Email has been successfully sent!'],
-        );
-      }),
-      catchError((res) => {
-        return this.handleResponseError(res);
-      }),
-    );
+    const url = `${this.authEndpointPrefix}${
+      this.config.requestVerificationEmailEndpoint ?? 'request-verification-email'
+    }`;
+    return baseApiRequest(this.http, url, {}, this.config.requestVerificationEmailMethod ?? 'post', data)
+      .pipe(
+        map((res) => {
+          return new AuthResult(
+            true,
+            res,
+            true,
+            [], // ['Something went wrong, please try again.'],
+            ['Your verification Email has been successfully sent!'],
+          );
+        }),
+        catchError((res) => {
+          return this.handleResponseError(res);
+        }),
+      )
+      .pipe(takeUntil(this.ngUnsubscribe));
   }
 
-  private processResultToken(result: AuthResult) {
+  private processResultToken(result: AuthResult): Observable<AuthResult> {
     if (result.isSuccess() && result.getToken()) {
-      return this.tokenService.set(result.getToken()).pipe(
-        map((token: AuthToken) => {
-          return result;
-        }),
-      );
+      return this.tokenService
+        .set(result.getToken())
+        .pipe(
+          map((token: AuthToken) => {
+            return result;
+          }),
+        )
+        .pipe(takeUntil(this.ngUnsubscribe));
     }
 
-    return of(result);
+    return of(result).pipe(takeUntil(this.ngUnsubscribe));
   }
 
   createToken(value: any, failWhenInvalidToken?: boolean): AuthJWTToken {
-    const token = AuthCreateJWTToken(value, 'refreshToken');
+    const token = AuthCreateJWTToken(value);
     // At this point, AuthCreateToken failed with AuthIllegalTokenError which MUST be intercepted
     // Or token is created. It MAY be created even if backend did not return any token, in this case it is !Valid
     if (failWhenInvalidToken && !token.isValid()) {
@@ -497,9 +539,14 @@ export class AuthService {
     }
     return token;
   }
+
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
+  }
 }
 
-function paramsToQuery(params: any) {
+function paramsToQuery(params: any): string {
   return Object.keys(params)
     .map((key) => {
       if (Array.isArray(params[key])) {
@@ -523,7 +570,13 @@ function paramsToQuery(params: any) {
 
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
-function baseApiRequest<T>(http: HttpClient, url: string, queryParams: any, method: HttpMethod, body: any) {
+function baseApiRequest<T>(
+  http: HttpClient,
+  url: string,
+  queryParams: any,
+  method: HttpMethod,
+  body: any,
+): Observable<T> {
   const headers = new HttpHeaders();
   headers.append('Content-Type', 'application/json');
   const queryString = paramsToQuery(queryParams);
@@ -533,5 +586,6 @@ function baseApiRequest<T>(http: HttpClient, url: string, queryParams: any, meth
   }
   return http
     .request<T>(method, newUrl, { body, headers, withCredentials: true, observe: 'response' })
-    .pipe(retry(2));
+    .pipe(retry(2))
+    .pipe(map((result) => result.body));
 }

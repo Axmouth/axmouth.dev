@@ -1,1 +1,11 @@
-<p>verify-email-page works!</p>
+<p *ngFor="let error of errors">
+  <ngb-alert type="danger" [dismissible]="false">
+    {{ error }}
+  </ngb-alert>
+</p>
+
+<p *ngFor="let message of successMessages">
+  <ngb-alert type="success" [dismissible]="false">
+    {{ message }}
+  </ngb-alert>
+</p>

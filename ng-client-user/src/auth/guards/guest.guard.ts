@@ -28,7 +28,7 @@ export class GuestGuard implements CanActivate, OnDestroy {
       .pipe(takeUntil(this.ngUnsubscribe));
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
   }

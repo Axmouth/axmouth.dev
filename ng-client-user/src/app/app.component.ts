@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { Subject } from 'rxjs';

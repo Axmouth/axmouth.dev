@@ -1,6 +1,11 @@
 <div class="card my-4">
   <h5 class="card-header bg-primary text-light">Register</h5>
   <div class="card-body">
+    <p *ngFor="let error of errors">
+      <ngb-alert type="danger" [dismissible]="false">
+        {{ error }}
+      </ngb-alert>
+    </p>
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
       <div class="form-group row">
         <label for="email" class="col-md-4 col-form-label text-md-right">E-Mail Address</label>
@@ -141,13 +146,23 @@
       </div>
 
       <div class="col-md-6 offset-md-4">
-        <button type="submit" class="btn btn-primary" [disabled]="!registerForm.valid || registerInProgress">
+        <button
+          type="submit"
+          class="btn btn-primary col-md-6 offset-md-3"
+          [disabled]="!registerForm.valid || registerInProgress"
+        >
           <span class="spinner-border spinner-border-sm" *ngIf="registerInProgress"></span>
           Register
         </button>
-        <a href="#" class="btn btn-link" *ngIf="false"> Forgot Your Password? </a>
       </div>
-      <br /><br />
+      <br />
+      <br />
+      <div class="col-md-8 offset-md-4">
+        <a href="/auth/request-password-reset" routerLink="/auth/request-password-reset" class="btn btn-link">
+          Forgot Your Password?
+        </a>
+      </div>
+      <br />
       <div class="col-md-8 offset-md-4">
         <a href="/auth/login" routerLink="/auth/login" class="btn btn-link"> Already have an account? Login here </a>
       </div>

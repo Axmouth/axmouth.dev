@@ -44,7 +44,7 @@ export class ViewBlogPostsCategoryPageComponent implements OnInit, OnDestroy {
   }
 
   initialiseState() {
-    this.title.setTitle(`Loading Blog Posts, Category: ${this.categoryName} - Axmouth's Website`);
+    this.title.setTitle(`Loading Blog Posts, Category: ${this.categoryName} | Axmouth's Website`);
     this.loading = true;
     this.blogPostService
       .getAllPostsByCategory(this.categoryName, this.page, this.pageSize)
@@ -53,7 +53,7 @@ export class ViewBlogPostsCategoryPageComponent implements OnInit, OnDestroy {
         this.blogPostsList = result.data;
         this.resultNumber = result?.pagination?.totalResults;
         this.loading = false;
-        this.title.setTitle(`Blog Posts Index, Category: ${this.categoryName} - Axmouth's Website`);
+        this.title.setTitle(`Blog Posts Index, Category: ${this.categoryName} | Axmouth's Website`);
         this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
         this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
         this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });

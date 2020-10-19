@@ -13,7 +13,7 @@ export class HomeComponent implements OnInit {
   constructor(private categoryService: AdminCategoryService, private title: Title) {}
 
   ngOnInit(): void {
-    this.title.setTitle(`Index - Axmouth's Website Admin Site`);
+    this.title.setTitle(`Index | Axmouth's Website Admin Site`);
     this.categories = this.categoryService.getAll();
   }
 }

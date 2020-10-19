@@ -8,7 +8,14 @@ export const environment = {
 
 export const apiRoot = 'http://127.0.0.1:39051/api/v1';
 export const apiRootServer = 'http://127.0.0.1:39051/api/v1';
-export const jwtWhitelist = ['localhost', 'localhost:39051', '[::1]:39051', 'localhost:4200'];
+export const jwtWhitelist = [
+  'localhost',
+  'localhost:39051',
+  '[::1]:39051',
+  'localhost:4200',
+  '127.0.0.1:39051',
+  '127.0.0.1',
+];
 export const HCAPTCHA_SITE_KEY = '10000000-ffff-ffff-ffff-000000000001';
 /*
  * For easier debugging in development mode, you can import the following file

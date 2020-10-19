@@ -13,7 +13,7 @@ use chrono::Utc;
 use futures::{Stream, TryFutureExt, TryStreamExt};
 use std::{ffi::OsStr, path::Path};
 use tokio::{fs::File, io::AsyncWriteExt, prelude::AsyncWrite};
-use warp::{hyper::StatusCode, Buf};
+use warp::{hyper::StatusCode, Buf, Reply};
 use warp::{multipart, reject, Filter};
 
 pub async fn editor_js_upload(
@@ -97,7 +97,7 @@ pub async fn image_upload(
         errors: None,
     });
     let resp_with_status = warp::reply::with_status(resp_body, StatusCode::CREATED);
-    return Ok(resp_with_status);
+    return Ok(resp_with_status.into_response());
 }
 
 pub async fn process_multipart(

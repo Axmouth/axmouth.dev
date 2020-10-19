@@ -37,7 +37,7 @@ export class ViewBlogPostDetailsPageComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.title.setTitle(`Loading Blog Post - Axmouth's Website`);
+    this.title.setTitle(`Loading Blog Post | Axmouth's Website`);
     this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe((params) => {
       this.postId = params.id;
       if (isNaN(+params.page) === false) {
@@ -55,7 +55,7 @@ export class ViewBlogPostDetailsPageComponent implements OnInit, OnDestroy {
       this.post = result.data;
       this.postBodyData = JSON.parse(result.data.body);
       this.loading = false;
-      this.title.setTitle(`${this.post.title} - Axmouth's Website`);
+      this.title.setTitle(`${this.post.title} | Axmouth's Website`);
       this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
       this.meta.updateTag({ name: `description`, content: this?.post?.description });
       this.meta.updateTag({

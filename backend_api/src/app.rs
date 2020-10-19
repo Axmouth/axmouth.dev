@@ -11,7 +11,23 @@ use crate::cookies::CookieBuilder;
 use crate::db::Repo;
 use crate::{emails::EmailSender, routes};
 
+use tera::Tera;
+
 const APPLICATION_NAME: &str = env!("CARGO_PKG_NAME");
+
+lazy_static! {
+    pub static ref TEMPLATES: Tera = {
+        let mut tera = match Tera::new("templates/**") {
+            Ok(t) => t,
+            Err(e) => {
+                println!("Parsing error(s): {}", e);
+                ::std::process::exit(1);
+            }
+        };
+        tera.autoescape_on(vec!["html", ".sql"]);
+        tera
+    };
+}
 
 #[derive(Clone)]
 pub struct AppState {

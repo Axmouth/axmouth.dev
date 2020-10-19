@@ -7,6 +7,10 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { NotFoundPageComponent } from '../shared/components/not-found-page/not-found-page.component';
 import { AuthMainComponent } from './components/auth-main/auth-main.component';
 import { RegisterPageComponent } from './components/register-page/register-page.component';
+import { PasswordChangePageComponent } from './components/password-change-page/password-change-page.component';
+import { VerifyEmailPageComponent } from './components/verify-email-page/verify-email-page.component';
+import { SettingsPageComponent } from './components/settings-page/settings-page.component';
+import { RequestPasswordChangePageComponent } from './components/request-password-change-page/request-password-change-page.component';
 
 const routes: Routes = [
   {
@@ -17,6 +21,10 @@ const routes: Routes = [
       { path: 'login', component: LoginPageComponent, canActivate: [GuestGuard] },
       { path: 'register', component: RegisterPageComponent, canActivate: [GuestGuard] },
       { path: 'logout', component: LogoutPageComponent, canActivate: [AuthGuard] },
+      { path: 'settings', component: SettingsPageComponent, canActivate: [AuthGuard] },
+      { path: 'verify-email', component: VerifyEmailPageComponent },
+      { path: 'reset-password', component: PasswordChangePageComponent },
+      { path: 'request-password-reset', component: RequestPasswordChangePageComponent },
       { path: '**', component: NotFoundPageComponent, pathMatch: 'full' },
     ],
   },
