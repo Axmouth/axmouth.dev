@@ -186,6 +186,17 @@ pub struct CategorySort {
     pub order: Option<SortOrder>,
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub enum ChangePasswordTokenSortType {
+    CreatedAt,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct ChangePasswordTokenSort {
+    pub sort_type: Option<ChangePasswordTokenSortType>,
+    pub order: Option<SortOrder>,
+}
+
 pub struct PaginationOptions {
     pub page: Option<i64>,
     pub page_size: Option<i64>,

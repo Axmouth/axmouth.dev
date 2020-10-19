@@ -1,6 +1,6 @@
 use lettre_email::Email;
 
-use crate::{errors::EmailError, util::simple_error_response};
+use crate::errors::EmailError;
 use lettre::{
     smtp::authentication::{Credentials, Mechanism},
     ClientSecurity, ClientTlsParameters, EmailAddress, Envelope, SendableEmail, SmtpClient,
@@ -110,11 +110,36 @@ impl EmailSender {
         Ok(())
     }
 
+    pub async fn send_reset_password_email(
+        &self,
+        user_email: String,
+        username: String,
+        token: String,
+    ) -> Result<(), EmailError> {
+        let email = Email::builder()
+            // Addresses can be specified by the tuple (email, alias)
+            .to((user_email.clone(), username.clone()))
+            // ... or by an address only
+            .from(self.from_address.clone())
+            .subject(format!(
+                "Hi {}, a password reset was request on your behalf",
+                username
+            ))
+            .alternative(
+                self.get_reset_password_email_text(username.clone(), token.clone()),
+                self.get_reset_password_email_html(username.clone(), token.clone()),
+            )
+            .build()?;
+
+        let _ = self.send_email(email.into()).await?;
+        Ok(())
+    }
+
     fn get_verification_email_text(&self, username: String, token: String) -> String {
         format!(
             "Hello {},
-        Please click the following link to cerify your email:
-        <a href=\"{}/verify-email/{}\">Verify Email</a>",
+        Please click the following link to certify your email:
+        <a href=\"{}/verify-email?token={}\">Verify Email</a>",
             username, self.website_url, token
         )
     }
@@ -122,8 +147,30 @@ impl EmailSender {
     fn get_verification_email_html(&self, username: String, token: String) -> String {
         format!(
             "Hello {},
-        Please click the following link to cerify your email:
-        {}/verify-email/{}",
+        Please follow this link to certify your email:
+        {}/verify-email?token={}",
+            username, self.website_url, token
+        )
+    }
+
+    fn get_reset_password_email_text(&self, username: String, token: String) -> String {
+        format!(
+            "Hello {},
+        Please click the following link to reset your password:
+        <a href=\"{}/reset-password?token={}\">Reset Password</a>
+        
+        If you didn't request a password reset, you can ignore this email.",
+            username, self.website_url, token
+        )
+    }
+
+    fn get_reset_password_email_html(&self, username: String, token: String) -> String {
+        format!(
+            "Hello {},
+        Please follow this link to cerify your email:
+        {}/reset-password?token={}
+        
+        If you didn't request a password reset, you can ignore this email.",
             username, self.website_url, token
         )
     }

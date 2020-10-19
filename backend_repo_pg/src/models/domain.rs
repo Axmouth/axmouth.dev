@@ -17,8 +17,10 @@ pub struct BlogPostComment {
 
 impl BlogPostComment {
     pub fn from(comment: db_models::BlogPostComment, author: db_models::User) -> Self {
+        let mut author = User::from(author);
+        author.email = None;
         Self {
-            author: User::from(author),
+            author,
             body: comment.body,
             created_at: comment.created_at,
             id: comment.id,
@@ -48,8 +50,10 @@ impl BlogPost {
         author: db_models::User,
         categories_list: Vec<String>,
     ) -> Self {
+        let mut author = User::from(author);
+        author.email = None;
         Self {
-            author: User::from(author),
+            author,
             title: post.title,
             body: post.body,
             created_at: post.created_at,
@@ -99,6 +103,7 @@ pub struct User {
     pub display_name: String,
     pub role: UserRole,
     pub created_at: NaiveDateTime,
+    pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<NaiveDateTime>,
 }
@@ -110,6 +115,7 @@ impl User {
             display_name: user.display_name,
             id: user.id,
             role: user.role,
+            email: Some(user.email),
             updated_at: user.updated_at,
         }
     }
@@ -396,6 +402,31 @@ impl AdminLog {
             model: log.model,
             action_flag: log.action_flag,
             action_time: log.action_time,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct ChangePasswordToken {
+    pub id: i32,
+    pub token: String,
+    pub user_id: i32,
+    pub invalidated: bool,
+    pub used: bool,
+    pub created_at: NaiveDateTime,
+    pub expires_at: NaiveDateTime,
+}
+
+impl ChangePasswordToken {
+    pub fn from(change_pass_token: db_models::ChangePasswordToken) -> Self {
+        Self {
+            id: change_pass_token.id,
+            token: change_pass_token.token,
+            user_id: change_pass_token.user_id,
+            invalidated: change_pass_token.invalidated,
+            used: change_pass_token.used,
+            created_at: change_pass_token.created_at,
+            expires_at: change_pass_token.expires_at,
         }
     }
 }

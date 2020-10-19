@@ -120,3 +120,10 @@ pub struct GetAllCategoriesQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct GetAllChangePasswordTokensQuery {
+    pub page: Option<i64>,
+    pub page_size: Option<i64>,
+}

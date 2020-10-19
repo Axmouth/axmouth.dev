@@ -9,11 +9,12 @@
       aria-controls="navbarSupportedContent"
       aria-expanded="false"
       aria-label="Toggle navigation"
+      (click)="isMenuCollapsed = !isMenuCollapsed"
     >
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <div [ngbCollapse]="isMenuCollapsed" class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
         <li class="nav-item" routerLink="/home" routerLinkActive="active">
           <a class="nav-link" href="/home" routerLink="/home">Home</a>

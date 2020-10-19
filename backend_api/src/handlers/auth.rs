@@ -1,19 +1,29 @@
-use crate::app::AppState;
-use crate::auth_tokens;
-use crate::auth_tokens::decode_token;
+use std::iter::FromIterator;
+
 use crate::util::{
     auth_bad_request_response, auth_error_response, auth_ok_response, auth_unauthorized_response,
     create_refresh_token, login_failed_response,
 };
-use backend_repo_pg::models::responses::BaseResponse;
-use backend_repo_pg::passwords;
+use crate::{app::AppState, auth_tokens::Claims};
+use crate::{auth_tokens, util::simple_error_response};
+use crate::{auth_tokens::decode_token, util::simple_ok_response};
+use backend_repo_pg::{
+    change_sets::UpdateChangePasswordToken, change_sets::UpdateUser,
+    change_sets::UpdateVerifyEmailToken, errors::PgRepoError, insertables::NewChangePasswordToken,
+    insertables::NewVerifyEmailToken, models::requests::RequestResetPasswordEmailRequest,
+    models::requests::RequestVerificationEmailRequest, models::requests::ResetPasswordRequest,
+    models::requests::VerifyEmailRequest, models::responses::BaseResponse,
+};
 use backend_repo_pg::{
     extra::UserRole,
     insertables::NewUser,
     models::requests::{LoginRequest, RefreshRequest, RegisterRequest},
 };
-use warp::http::StatusCode;
+use backend_repo_pg::{models::db_models::VerifyEmailToken, passwords};
+use chrono::{Duration, NaiveDateTime, Utc};
+use rand::{thread_rng, Rng};
 use warp::hyper::header;
+use warp::{http::StatusCode, Reply};
 
 pub async fn login(
     request: LoginRequest,
@@ -137,7 +147,7 @@ pub async fn register(
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let new_user = NewUser {
-        email: request.email,
+        email: request.email.clone(),
         display_name: request.display_name.clone(),
         password: passwords::hash(request.password.as_bytes()),
         role: UserRole::Ghost,
@@ -157,7 +167,7 @@ pub async fn register(
         user_result.id,
         UserRole::Ghost,
         jti.clone(),
-        request.display_name,
+        request.display_name.clone(),
         state.jwt_duration,
     );
     let refresh_token = match create_refresh_token(
@@ -172,6 +182,23 @@ pub async fn register(
             return Ok(auth_error_response(err));
         }
     };
+    let token = match create_verify_email_token(
+        state.repository.verify_email_tokens_repository,
+        request.email.clone(),
+        None,
+        user_result.id,
+    )
+    .await
+    {
+        Ok(value) => value,
+        Err(err) => {
+            return Ok(auth_error_response(err));
+        }
+    };
+    state
+        .email_sender
+        .send_email_verification_email(request.email, request.display_name, token)
+        .await?;
     Ok(auth_ok_response(
         jwt_token,
         refresh_token,
@@ -307,4 +334,297 @@ pub async fn logout(
     let resp_with_header =
         warp::reply::with_header(resp_with_status, header::SET_COOKIE, "refresh_token=");
     return Ok(resp_with_header);
+}
+
+pub async fn request_verification_email(
+    claims: Claims,
+    request: RequestVerificationEmailRequest,
+    state: AppState,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let user_id: i32;
+    let old_email: Option<String>;
+    let display_name: String;
+
+    let mut email: String = match state
+        .repository
+        .user_repository
+        .find_one(claims.user_id())
+        .await
+    {
+        Ok(Some(user)) => match user.email {
+            Some(value) => {
+                user_id = user.id;
+                display_name = user.display_name;
+                value
+            }
+            None => {
+                return Ok(simple_error_response(
+                    String::from("This should never happen, but couldn't find email."),
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                )
+                .into_response());
+            }
+        },
+        Ok(None) => {
+            return Ok(simple_error_response(
+                String::from("Invalid User Id in JWT."),
+                StatusCode::BAD_REQUEST,
+            )
+            .into_response());
+        }
+        Err(err) => {
+            return Ok(auth_error_response(err).into_response());
+        }
+    };
+    if let Some(new_email) = request.email {
+        old_email = Some(email);
+        email = new_email;
+    } else {
+        old_email = None;
+    }
+
+    let token: String = match create_verify_email_token(
+        state.repository.verify_email_tokens_repository,
+        email.clone(),
+        old_email,
+        user_id,
+    )
+    .await
+    {
+        Ok(value) => value,
+        Err(err) => {
+            return Ok(auth_error_response(err).into_response());
+        }
+    };
+    state
+        .email_sender
+        .send_email_verification_email(email, display_name, token)
+        .await?;
+
+    return Ok(simple_ok_response(()).into_response());
+}
+
+pub async fn verify_email(
+    request: VerifyEmailRequest,
+    state: AppState,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let token_data = match state
+        .repository
+        .verify_email_tokens_repository
+        .find_one_by_token(request.token)
+        .await
+    {
+        Ok(Some(value)) => value,
+        Ok(None) => {
+            return Ok(auth_bad_request_response("Invalid Token").into_response());
+        }
+        Err(err) => {
+            return Ok(auth_error_response(err).into_response());
+        }
+    };
+    let user = match state
+        .repository
+        .user_repository
+        .find_one(token_data.user_id)
+        .await
+    {
+        Ok(Some(value)) => value,
+        Ok(None) => {
+            return Ok(
+                auth_bad_request_response("Invalid Token Data, couldn't find User").into_response(),
+            );
+        }
+        Err(err) => {
+            return Ok(auth_error_response(err).into_response());
+        }
+    };
+    let mut updated_user = UpdateUser {
+        display_name: None,
+        email: None,
+        password: None,
+        role: None,
+        updated_at: Some(Some(Utc::now().naive_utc())),
+    };
+    if user.role == UserRole::Ghost {
+        updated_user.role = Some(UserRole::User);
+    }
+    match state
+        .repository
+        .user_repository
+        .update_one(user.id, updated_user)
+        .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(auth_error_response(err).into_response());
+        }
+    };
+    let updated_token = UpdateVerifyEmailToken {
+        invalidated: None,
+        used: Some(true),
+    };
+    match state
+        .repository
+        .verify_email_tokens_repository
+        .update_one(token_data.id, updated_token)
+        .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(auth_error_response(err).into_response());
+        }
+    }
+    return Ok(simple_ok_response(()).into_response());
+}
+
+pub async fn request_reset_password_email(
+    request: RequestResetPasswordEmailRequest,
+    state: AppState,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let user = match state
+        .repository
+        .user_repository
+        .find_one_by_email(request.email.clone())
+        .await
+    {
+        Ok(Some(value)) => value,
+        Ok(None) => {
+            return Ok(auth_bad_request_response("Couldn't find User").into_response());
+        }
+        Err(err) => {
+            return Ok(auth_error_response(err).into_response());
+        }
+    };
+
+    let token: String = match create_reset_password_token(
+        state.repository.change_password_tokens_repository,
+        user.id,
+    )
+    .await
+    {
+        Ok(value) => value,
+        Err(err) => {
+            return Ok(auth_error_response(err).into_response());
+        }
+    };
+    state
+        .email_sender
+        .send_reset_password_email(request.email, user.display_name, token)
+        .await?;
+
+    return Ok(simple_ok_response(()).into_response());
+}
+
+pub async fn reset_password(
+    request: ResetPasswordRequest,
+    state: AppState,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let token_data = match state
+        .repository
+        .change_password_tokens_repository
+        .find_one_by_token(request.token)
+        .await
+    {
+        Ok(Some(value)) => value,
+        Ok(None) => {
+            return Ok(auth_bad_request_response("Invalid Token").into_response());
+        }
+        Err(err) => {
+            return Ok(auth_error_response(err).into_response());
+        }
+    };
+    let user = match state
+        .repository
+        .user_repository
+        .find_one(token_data.user_id)
+        .await
+    {
+        Ok(Some(value)) => value,
+        Ok(None) => {
+            return Ok(
+                auth_bad_request_response("Invalid Token Data, couldn't find User").into_response(),
+            );
+        }
+        Err(err) => {
+            return Ok(auth_error_response(err).into_response());
+        }
+    };
+    let new_password_hash = passwords::hash(request.new_password.as_bytes());
+    let updated_user = UpdateUser {
+        display_name: None,
+        email: None,
+        password: Some(new_password_hash),
+        role: None,
+        updated_at: Some(Some(Utc::now().naive_utc())),
+    };
+
+    match state
+        .repository
+        .user_repository
+        .update_one(user.id, updated_user)
+        .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(auth_error_response(err).into_response());
+        }
+    };
+    let updated_token = UpdateChangePasswordToken {
+        invalidated: None,
+        used: Some(true),
+    };
+    match state
+        .repository
+        .change_password_tokens_repository
+        .update_one(token_data.id, updated_token)
+        .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(auth_error_response(err).into_response());
+        }
+    }
+    return Ok(simple_ok_response(()).into_response());
+}
+
+async fn create_verify_email_token(
+    verify_email_tokens_repository: backend_repo_pg::verify_email_tokens::VerifyEmailTokenRepo,
+    email: String,
+    old_email: Option<String>,
+    user_id: i32,
+) -> Result<String, PgRepoError> {
+    let arr: [char; 25] = thread_rng().gen();
+    let token = String::from_iter(arr.iter());
+
+    let new_verify_email_token = NewVerifyEmailToken {
+        email,
+        expires_at: Utc::now().naive_utc() + Duration::days(30),
+        old_email,
+        token,
+        user_id,
+    };
+    let inserted_token = verify_email_tokens_repository
+        .insert_one(new_verify_email_token)
+        .await?;
+
+    return Ok(inserted_token.token);
+}
+
+async fn create_reset_password_token(
+    change_password_tokens_repository: backend_repo_pg::change_password_tokens::ChangePasswordTokenRepo,
+    user_id: i32,
+) -> Result<String, PgRepoError> {
+    let arr: [char; 25] = thread_rng().gen();
+    let token = String::from_iter(arr.iter());
+
+    let new_change_password_token = NewChangePasswordToken {
+        expires_at: Utc::now().naive_utc() + Duration::days(30),
+        token,
+        user_id,
+    };
+    let inserted_token = change_password_tokens_repository
+        .insert_one(new_change_password_token)
+        .await?;
+
+    return Ok(inserted_token.token);
 }

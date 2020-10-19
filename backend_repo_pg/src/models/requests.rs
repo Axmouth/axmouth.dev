@@ -198,3 +198,35 @@ pub struct SendContactEmailRequest {
     #[validate(length(min = 1, max = 5000))]
     pub captcha_token: String,
 }
+
+#[derive(Serialize, Deserialize, Validate, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct RequestVerificationEmailRequest {
+    #[validate(email)]
+    pub email: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Validate, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct VerifyEmailRequest {
+    #[validate(email)]
+    pub email: Option<String>,
+    #[validate(length(min = 1, max = 5000))]
+    pub token: String,
+}
+
+#[derive(Serialize, Deserialize, Validate, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct RequestResetPasswordEmailRequest {
+    #[validate(email)]
+    pub email: String,
+}
+
+#[derive(Serialize, Deserialize, Validate, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ResetPasswordRequest {
+    #[validate(length(min = 1, max = 5000))]
+    pub token: String,
+    #[validate(length(min = 1, max = 5000))]
+    pub new_password: String,
+}

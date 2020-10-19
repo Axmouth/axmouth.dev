@@ -306,6 +306,27 @@ pub fn routes(
         .and(warp::cookie("refresh_token"))
         .and(with_state(state.clone()))
         .and_then(handlers::auth::logout);
+    let request_verification_email = warp::path!("auth" / "request-verification-email")
+        .and(warp::post())
+        .and(auth_filter(state.jwt_secret.clone()))
+        .and(validated_json())
+        .and(with_state(state.clone()))
+        .and_then(handlers::auth::request_verification_email);
+    let verify_email = warp::path!("auth" / "verify-email")
+        .and(warp::post())
+        .and(validated_json())
+        .and(with_state(state.clone()))
+        .and_then(handlers::auth::verify_email);
+    let request_reset_password_email = warp::path!("auth" / "request-password-reset")
+        .and(warp::post())
+        .and(validated_json())
+        .and(with_state(state.clone()))
+        .and_then(handlers::auth::request_reset_password_email);
+    let reset_password = warp::path!("auth" / "request-password")
+        .and(warp::post())
+        .and(validated_json())
+        .and(with_state(state.clone()))
+        .and_then(handlers::auth::reset_password);
     let contact_email = warp::path!("contact" / "contact-email")
         .and(warp::post())
         .and(validated_json())
@@ -372,6 +393,10 @@ pub fn routes(
         register,
         refresh,
         logout,
+        request_verification_email,
+        verify_email,
+        request_reset_password_email,
+        reset_password,
         contact_email,
         image_upload_editorjs,
         image_upload,

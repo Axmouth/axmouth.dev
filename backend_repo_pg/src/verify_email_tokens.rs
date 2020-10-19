@@ -66,6 +66,24 @@ impl VerifyEmailTokenRepo {
         Ok(Some(domain::VerifyEmailToken::from(verify_email_token)))
     }
 
+    pub async fn find_one_by_token(
+        &self,
+        token_value: String,
+    ) -> Result<Option<domain::VerifyEmailToken>, PgRepoError> {
+        use crate::schema::verify_email_tokens::dsl::{token, verify_email_tokens};
+
+        let conn = self.pool.get()?;
+        let query = verify_email_tokens
+            .filter(token.eq(token_value))
+            .select(verify_email_tokens::all_columns());
+        let verify_email_token: db_models::VerifyEmailToken =
+            match tokio::task::block_in_place(move || query.first(&conn).optional())? {
+                Some(value) => value,
+                None => return Ok(None),
+            };
+        Ok(Some(domain::VerifyEmailToken::from(verify_email_token)))
+    }
+
     pub async fn find(
         &self,
         filter: GetAllVerifyEmailTokensFilter,

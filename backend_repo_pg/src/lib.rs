@@ -12,6 +12,7 @@ pub mod blog_post_comment_flags;
 pub mod blog_post_comment_ratings;
 pub mod blog_posts;
 pub mod categories;
+pub mod change_password_tokens;
 pub mod change_sets;
 pub mod errors;
 pub mod extra;

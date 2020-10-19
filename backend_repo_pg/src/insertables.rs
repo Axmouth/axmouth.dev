@@ -159,3 +159,11 @@ pub struct NewAdminLog {
     pub model: String,
     pub action_flag: i32,
 }
+
+#[derive(Insertable)]
+#[table_name = "change_password_tokens"]
+pub struct NewChangePasswordToken {
+    pub token: String,
+    pub user_id: i32,
+    pub expires_at: NaiveDateTime,
+}

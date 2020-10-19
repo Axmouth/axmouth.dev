@@ -1,9 +1,9 @@
 use crate::extra::UserRole;
 use crate::schema::{
     admin_logs, blog_post_comment_flags, blog_post_comment_ratings, blog_post_comments, blog_posts,
-    blog_posts_categories, categories, home_page_links, identification_cookies, page_views,
-    projects, projects_technologies, refresh_tokens, technologies, text_bodies, uploaded_images,
-    users, verify_email_tokens,
+    blog_posts_categories, categories, change_password_tokens, home_page_links,
+    identification_cookies, page_views, projects, projects_technologies, refresh_tokens,
+    technologies, text_bodies, uploaded_images, users, verify_email_tokens,
 };
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
@@ -215,6 +215,19 @@ pub struct AdminLog {
     pub model: String,
     pub action_flag: i32,
     pub action_time: NaiveDateTime,
+}
+
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[table_name = "change_password_tokens"]
+#[belongs_to(parent = "User", foreign_key = "user_id")]
+pub struct ChangePasswordToken {
+    pub id: i32,
+    pub token: String,
+    pub user_id: i32,
+    pub invalidated: bool,
+    pub used: bool,
+    pub created_at: NaiveDateTime,
+    pub expires_at: NaiveDateTime,
 }
 
 //TODO Implement Domain/Insertable/Changeset models bellow

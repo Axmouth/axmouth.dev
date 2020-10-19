@@ -1,9 +1,10 @@
 use crate::models::queries::{
     GetAllAdminLogsQuery, GetAllBlogPostCommentFlagsQuery, GetAllBlogPostCommentRatingsQuery,
     GetAllBlogPostCommentsQuery, GetAllBlogPostsQuery, GetAllCategoriesQuery,
-    GetAllHomePageLinksQuery, GetAllIdentificationCookiesQuery, GetAllPageViewsQuery,
-    GetAllProjectsQuery, GetAllRefreshTokensQuery, GetAllTechnologiesQuery, GetAllTextBodiesQuery,
-    GetAllUploadedImagesQuery, GetAllUsersQuery, GetAllVerifyEmailTokensQuery,
+    GetAllChangePasswordTokensQuery, GetAllHomePageLinksQuery, GetAllIdentificationCookiesQuery,
+    GetAllPageViewsQuery, GetAllProjectsQuery, GetAllRefreshTokensQuery, GetAllTechnologiesQuery,
+    GetAllTextBodiesQuery, GetAllUploadedImagesQuery, GetAllUsersQuery,
+    GetAllVerifyEmailTokensQuery,
 };
 use serde::{Deserialize, Serialize};
 
@@ -178,6 +179,15 @@ pub struct GetAllCategoriesFilter {}
 
 impl GetAllCategoriesFilter {
     pub fn from_query(query: GetAllCategoriesQuery) -> Self {
+        Self {}
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct GetAllChangePasswordTokensFilter {}
+
+impl GetAllChangePasswordTokensFilter {
+    pub fn from_query(query: GetAllChangePasswordTokensQuery) -> Self {
         Self {}
     }
 }

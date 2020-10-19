@@ -95,6 +95,21 @@ table! {
     use diesel::sql_types::*;
     use crate::exports::*;
 
+    change_password_tokens (id) {
+        id -> Int4,
+        token -> Varchar,
+        user_id -> Int4,
+        invalidated -> Bool,
+        used -> Bool,
+        created_at -> Timestamp,
+        expires_at -> Timestamp,
+    }
+}
+
+table! {
+    use diesel::sql_types::*;
+    use crate::exports::*;
+
     home_page_links (id) {
         id -> Int4,
         name -> Varchar,
@@ -256,6 +271,7 @@ joinable!(blog_post_comments -> users (author_id));
 joinable!(blog_posts -> users (author_id));
 joinable!(blog_posts_categories -> blog_posts (blog_post_id));
 joinable!(blog_posts_categories -> categories (category_id));
+joinable!(change_password_tokens -> users (user_id));
 joinable!(projects_technologies -> projects (project_id));
 joinable!(projects_technologies -> technologies (technology_id));
 joinable!(refresh_tokens -> users (user_id));
@@ -270,6 +286,7 @@ allow_tables_to_appear_in_same_query!(
     blog_posts,
     blog_posts_categories,
     categories,
+    change_password_tokens,
     home_page_links,
     identification_cookies,
     page_views,

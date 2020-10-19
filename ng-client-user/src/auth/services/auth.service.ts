@@ -1,17 +1,6 @@
 import { Injectable, Inject } from '@angular/core';
 import { TokenService } from './token.service';
-import {
-  map,
-  switchMap,
-  catchError,
-  mergeMap,
-  concatMap,
-  concatMapTo,
-  switchMapTo,
-  flatMap,
-  retry,
-  take,
-} from 'rxjs/operators';
+import { map, switchMap, catchError, mergeMap, concatMap, retry, take } from 'rxjs/operators';
 import { Observable, of, observable, Subject } from 'rxjs';
 import { HttpClient, HttpResponse, HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';

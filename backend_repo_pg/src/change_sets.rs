@@ -1,7 +1,7 @@
 use crate::extra::UserRole;
 use crate::schema::*;
 use chrono::NaiveDateTime;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 #[derive(AsChangeset, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[table_name = "blog_post_comments"]
@@ -96,4 +96,11 @@ pub struct UpdateVerifyEmailToken {
 pub struct UpdateBlogPostCommentRating {
     pub is_like: Option<bool>,
     pub created_at: Option<NaiveDateTime>,
+}
+
+#[derive(AsChangeset, Deserialize, Debug, Clone, Eq, PartialEq)]
+#[table_name = "change_password_tokens"]
+pub struct UpdateChangePasswordToken {
+    pub invalidated: Option<bool>,
+    pub used: Option<bool>,
 }
