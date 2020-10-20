@@ -19,6 +19,8 @@ services:
       #- POSTFIX_smtpd_use_tls=no
     ports:
       - 1587:587
+    volumes:
+      - /host/keys:/etc/opendkim/keys
 
   axmouth.dev-user-client:
     restart: unless-stopped
