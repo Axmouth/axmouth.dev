@@ -79,11 +79,12 @@ impl EmailSender {
         subject: String,
         body: String,
     ) -> Result<(), EmailError> {
+        let body = format!("Email sent from: {}\n\n\n{}", from_email, body);
         let email = Email::builder()
             // Addresses can be specified by the tuple (email, alias)
             .to(self.contact_address.clone())
             // ... or by an address only
-            .from(from_email)
+            .from(self.contact_address.clone())
             .subject(subject)
             .alternative(body.clone(), body)
             .build()?;

@@ -17,8 +17,8 @@ services:
       #- POSTFIX_mynetworks= 192.168.1.0/24 127.0.0.0/8
       #- RELAYHOST_TLS_LEVEL=secure
       #- POSTFIX_smtpd_use_tls=no
-    ports:
-      - 1587:587
+    #ports:
+    #  - 1587:587
     volumes:
       - /host/keys:/etc/opendkim/keys
 
