@@ -3,12 +3,10 @@ import { AX_AUTH_OPTIONS } from '../auth-injection-token';
 import { TokenService } from '../services/token.service';
 import { HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
 import { AuthJWTToken } from '../internal/auth-jwt-token';
-import { AuthService } from '../services/auth.service';
 import { Subject, Observable } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { parse } from 'url';
 import { isPlatformBrowser } from '@angular/common';
-import { AuthModuleOptions } from '../auth-module-options';
 import { AuthModuleOptionsConfig } from '../auth-module-options-config';
 
 @Injectable()
@@ -28,7 +26,6 @@ export class JwtInterceptor implements OnDestroy {
   constructor(
     private tokenService: TokenService,
     @Inject(AX_AUTH_OPTIONS) config: AuthModuleOptionsConfig,
-    private authService: AuthService,
     @Inject(PLATFORM_ID) private platform: object,
   ) {
     tokenService
@@ -36,13 +33,13 @@ export class JwtInterceptor implements OnDestroy {
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe((token) => {
         if (token && token.getValue()) {
-          this.token = new AuthJWTToken(token.getValue(), 'refreshToken', token.getCreatedAt());
+          this.token = new AuthJWTToken(token.getValue(), token.getCreatedAt());
         } else {
           this.token = null;
         }
       });
-    this.headerName = config.headerName || 'Authorization';
-    this.authScheme = config.authScheme || config.authScheme === '' ? config.authScheme : 'Bearer ';
+    this.headerName = config.headerName ?? 'Authorization';
+    this.authScheme = config.authScheme ?? config.authScheme === '' ? config.authScheme : 'Bearer ';
     this.whitelistedDomains = config.whitelistedDomains || [];
     this.blacklistedRoutes = config.blacklistedRoutes || [];
     this.throwNoTokenError = config.throwNoTokenError || false;
@@ -83,7 +80,11 @@ export class JwtInterceptor implements OnDestroy {
     );
   }
 
-  handleInterception(token: AuthJWTToken | null, request: HttpRequest<any>, next: HttpHandler) {
+  handleInterception(
+    token: AuthJWTToken | null,
+    request: HttpRequest<any>,
+    next: HttpHandler,
+  ): Observable<HttpEvent<any>> {
     let tokenIsExpired = false;
 
     if (!isPlatformBrowser(this.platform)) {
@@ -112,7 +113,7 @@ export class JwtInterceptor implements OnDestroy {
     return this.handleInterception(this.token, request, next);
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
   }

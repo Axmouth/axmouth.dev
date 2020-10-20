@@ -7,11 +7,11 @@ import { isPlatformBrowser } from '@angular/common';
 export class IsBrowserService {
   inBrowser: boolean;
 
-  constructor(@Inject(PLATFORM_ID) private platform: Object) {
+  constructor(@Inject(PLATFORM_ID) private platform: object) {
     this.inBrowser = isPlatformBrowser(platform);
   }
 
-  isInBrowser() {
+  isInBrowser(): boolean {
     return this.inBrowser;
   }
 }

@@ -96,11 +96,6 @@ export class HtmlFieldComponent implements OnInit, AfterViewInit {
                 }).toPromise();
               },
             },
-            /*
-            endpoints: {
-              byFile: 'http://[::1]:39051/api/v1/files/upload', // Your backend file uploader endpoint
-              byUrl: 'http://localhost:8008/fetchUrl', // Your endpoint that provides uploading by Url
-            },*/
           },
         },
         inlineCode: InlineCode,
@@ -143,7 +138,7 @@ export class HtmlFieldComponent implements OnInit, AfterViewInit {
         personality: {
           class: Personality,
           config: {
-            endpoint: 'http://[::1]:39051/api/v1/files/upload', // Your backend file uploader endpoint
+            endpoint: 'http://localhost:39051/api/v1/files/upload', // Your backend file uploader endpoint
           },
         },
         marker: Marker,

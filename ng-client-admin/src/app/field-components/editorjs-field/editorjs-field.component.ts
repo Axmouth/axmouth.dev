@@ -33,6 +33,7 @@ const defaultData = '{"time":1597135214246,"blocks":[],"version":"2.18.0"}';
 })
 export class EditorjsFieldComponent implements OnInit, AfterViewInit {
   @ViewChild('editorJs') el: ElementRef;
+  @ViewChild('editorJs2') el2: ElementRef;
   @Input()
   content: any;
   @Input()
@@ -63,6 +64,7 @@ export class EditorjsFieldComponent implements OnInit, AfterViewInit {
         editor.render(JSON.parse(this.content ?? defaultData));
       },
       holder: this.el.nativeElement,
+      readOnly: false,
       tools: {
         header: Header,
         list: {
@@ -90,11 +92,6 @@ export class EditorjsFieldComponent implements OnInit, AfterViewInit {
                 }).toPromise();
               },
             },
-            /*
-            endpoints: {
-              byFile: 'http://[::1]:39051/api/v1/files/upload', // Your backend file uploader endpoint
-              byUrl: 'http://localhost:8008/fetchUrl', // Your endpoint that provides uploading by Url
-            },*/
           },
         },
         inlineCode: InlineCode,
@@ -139,12 +136,21 @@ export class EditorjsFieldComponent implements OnInit, AfterViewInit {
             cols: 3,
           },
         },
+        /*
         personality: {
           class: Personality,
           config: {
-            endpoint: 'http://[::1]:39051/api/v1/files/upload', // Your backend file uploader endpoint
+            uploader: {
+              async uploadByFile(file: File): Promise<{ success: number; file: { url: string } }> {
+                const url = `${apiRoot}/files/upload/editorjs`;
+                return uploadService
+                  .uploadFile<{ success: number; file: { url: string } }>(url, 'image', file)
+                  .toPromise();
+              },
+            },
           },
         },
+        */
         marker: Marker,
         code: Code,
       },

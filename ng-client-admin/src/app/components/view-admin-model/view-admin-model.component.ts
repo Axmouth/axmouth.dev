@@ -17,7 +17,6 @@ export class ViewAdminModelComponent implements OnInit, OnDestroy {
   model: AdminModel;
   modelName: string;
   categoryName: string;
-  typesOfShoes: string[] = ['Boots', 'Clogs', 'Loafers', 'Moccasins', 'Sneakers'];
   entitiesList: object[];
   idField: string;
   displayField: string;

@@ -1,9 +1,19 @@
-<mat-selection-list #entities [multiple]="false">
-  <mat-list-option *ngFor="let entity of entitiesList" [value]="entity[displayField]">
-    <a
-      href="/categories/{{ categoryName }}/models/{{ modelName }}/{{ entity[idField] }}"
-      routerLink="/categories/{{ categoryName }}/models/{{ modelName }}/{{ entity[idField] }}"
-      >{{ entity[displayField] }}</a
-    >
-  </mat-list-option>
-</mat-selection-list>
+<h1 align="center">{{ modelName }} List</h1>
+<div flex fxLayout="row">
+  <mat-selection-list
+    #entities
+    [multiple]="false"
+    fxFlex.gt-sm="75"
+    fxFlexOffset.gt-sm="12.5"
+    fxFlex.lt-md="100"
+    fxFlexOffset.lt-md="0"
+  >
+    <mat-list-option *ngFor="let entity of entitiesList" [value]="entity[displayField]">
+      <a
+        href="/categories/{{ categoryName }}/models/{{ modelName }}/{{ entity[idField] }}"
+        routerLink="/categories/{{ categoryName }}/models/{{ modelName }}/{{ entity[idField] }}"
+        >{{ entity[displayField] }}</a
+      >
+    </mat-list-option>
+  </mat-selection-list>
+</div>

@@ -5,9 +5,7 @@ import { AuthToken } from './auth-token';
  * Wrapper for simple (text) token
  */
 export class AuthSimpleToken extends AuthToken {
-  static NAME = 'axmouth.dev:auth:simple:token';
-
-  constructor(protected readonly token: any, protected readonly ownerStrategyName: string, protected createdAt?: Date) {
+  constructor(protected readonly token: any, protected createdAt?: Date) {
     super();
     try {
       this.parsePayload();
@@ -24,7 +22,7 @@ export class AuthSimpleToken extends AuthToken {
     this.payload = null;
   }
 
-  protected prepareCreatedAt(date: Date) {
+  protected prepareCreatedAt(date: Date): Date {
     return date ? date : new Date();
   }
 
@@ -41,10 +39,6 @@ export class AuthSimpleToken extends AuthToken {
    */
   getValue(): string {
     return this.token;
-  }
-
-  getOwnerStrategyName(): string {
-    return this.ownerStrategyName;
   }
 
   /**

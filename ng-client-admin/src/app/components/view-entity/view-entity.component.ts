@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AdminModel } from 'src/app/models/definitions/admin-model';
 import { AdminModelService } from 'src/app/services/admin-model.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { RestApiService } from 'src/app/services/rest-api.service';
 import { ModelValuesService } from '../../services/model-values.service';
 import { Title } from '@angular/platform-browser';
@@ -27,6 +27,7 @@ export class ViewEntityComponent implements OnInit, OnDestroy {
   constructor(
     private modelService: AdminModelService,
     private route: ActivatedRoute,
+    private router: Router,
     private apiService: RestApiService,
     private modelValueService: ModelValuesService,
     private title: Title,
@@ -66,7 +67,9 @@ export class ViewEntityComponent implements OnInit, OnDestroy {
     this.apiService
       .delete(this.model.endpoint, this.id, {})
       .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe((response) => {});
+      .subscribe((response) => {
+        this.router.navigate(['categories', this.categoryName, 'models', this.modelName]);
+      });
   }
 
   ngOnDestroy(): void {

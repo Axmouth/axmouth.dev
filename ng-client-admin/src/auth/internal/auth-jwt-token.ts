@@ -7,12 +7,10 @@ import { AuthEmptyTokenError } from './auth-empty-token-error';
  * Wrapper for JWT token with additional methods.
  */
 export class AuthJWTToken extends AuthSimpleToken {
-  static NAME = 'axmouth.dev:auth:jwt:token';
-
   /**
    * for JWT token, the iat (issued at) field of the token payload contains the creation Date
    */
-  protected prepareCreatedAt(date: Date) {
+  protected prepareCreatedAt(date: Date): Date {
     const decoded = this.getPayload();
     return decoded && decoded.iat ? new Date(Number(decoded.iat) * 1000) : super.prepareCreatedAt(date);
   }
@@ -50,8 +48,8 @@ export class AuthJWTToken extends AuthSimpleToken {
   }
 }
 
-export function AuthCreateJWTToken(token: any, ownerStrategyName: string, createdAt?: Date) {
-  return new AuthJWTToken(token, ownerStrategyName, createdAt);
+export function AuthCreateJWTToken(token: any, createdAt?: Date): AuthJWTToken {
+  return new AuthJWTToken(token, createdAt);
 }
 
 export function decodeJwtPayload(payload: string): any {
@@ -136,7 +134,7 @@ export function b64decode(str: string): string {
 }
 
 // https://developer.mozilla.org/en/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem
-export function b64DecodeUnicode(str: any) {
+export function b64DecodeUnicode(str: any): string {
   return decodeURIComponent(
     Array.prototype.map
       .call(b64decode(str), (c: any) => {
