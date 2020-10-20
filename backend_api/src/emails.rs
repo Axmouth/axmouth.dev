@@ -79,14 +79,18 @@ impl EmailSender {
         subject: String,
         body: String,
     ) -> Result<(), EmailError> {
-        let body = format!("Email sent from: {}\n\n\n{}", from_email, body);
+        let body_html = format!(
+            "<p>Email to reply to: {}</p><br /><br /><br />{}",
+            from_email, body
+        );
+        let body_text = format!("Email to reply to: {}\n\n\n{}", from_email, body);
         let email = Email::builder()
             // Addresses can be specified by the tuple (email, alias)
             .to(self.contact_address.clone())
             // ... or by an address only
-            .from(self.contact_address.clone())
+            .from(self.from_address.clone())
             .subject(subject)
-            .alternative(body.clone(), body)
+            .alternative(body_html, body_text)
             .build()?;
 
         let _ = self.send_email(email.into()).await?;
