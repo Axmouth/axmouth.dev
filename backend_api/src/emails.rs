@@ -60,11 +60,13 @@ impl EmailSender {
             ClientSecurity::Opportunistic(tls_parameters),
         )?;
         if let (Some(username), Some(password)) = (self.username.clone(), self.password.clone()) {
-            let credentials: Credentials =
-                Credentials::new(username.trim().to_string(), password.trim().to_string());
-            mailer = mailer
-                .credentials(credentials)
-                .authentication_mechanism(Mechanism::Plain);
+            if username.trim().len() > 0 && password.trim().len() > 0 {
+                let credentials: Credentials =
+                    Credentials::new(username.trim().to_string(), password.trim().to_string());
+                mailer = mailer
+                    .credentials(credentials)
+                    .authentication_mechanism(Mechanism::Plain);
+            }
         }
         let mut mailer = mailer.transport();
         // Send the email
@@ -154,14 +156,6 @@ impl EmailSender {
                 String::from("Error rendering email")
             }
         }
-        /*
-        format!(
-            "Hello {},
-        Please click the following link to certify your email:
-        <a href=\"{}/verify-email?token={}\">Verify Email</a>",
-            username, self.website_url, token
-        )
-        */
     }
 
     fn get_verification_email_html(&self, username: String, token: String) -> String {
@@ -181,14 +175,6 @@ impl EmailSender {
                 String::from("Error rendering email")
             }
         }
-        /*
-        format!(
-            "Hello {},
-        Please follow this link to certify your email:
-        {}/verify-email?token={}",
-            username, self.website_url, token
-        )
-        */
     }
 
     fn get_reset_password_email_text(&self, username: String, token: String) -> String {
@@ -208,16 +194,6 @@ impl EmailSender {
                 String::from("Error rendering email")
             }
         }
-        /*
-        format!(
-            "Hello {},
-        Please click the following link to reset your password:
-        <a href=\"{}/reset-password?token={}\">Reset Password</a>
-
-        If you didn't request a password reset, you can ignore this email.",
-            username, self.website_url, token
-        )
-        */
     }
 
     fn get_reset_password_email_html(&self, username: String, token: String) -> String {
@@ -237,15 +213,5 @@ impl EmailSender {
                 String::from("Error rendering email")
             }
         }
-        /*
-        format!(
-            "Hello {},
-        Please follow this link to cerify your email:
-        {}/reset-password?token={}
-
-        If you didn't request a password reset, you can ignore this email.",
-            username, self.website_url, token
-        )
-        */
     }
 }
