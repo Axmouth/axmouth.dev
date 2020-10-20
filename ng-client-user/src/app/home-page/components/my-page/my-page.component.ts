@@ -1,6 +1,7 @@
 import { DOCUMENT, Location } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
+import { websiteUrl } from 'src/environments/environment';
 
 @Component({
   selector: 'app-my-page',
@@ -14,9 +15,15 @@ export class MyPageComponent implements OnInit {
     console.log(location.href);
     this.title.setTitle(`Homepage | Axmouth's Website`);
     this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
-    this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
+    this.meta.updateTag({
+      property: `og:url`,
+      content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
+    });
     this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
-    this.meta.updateTag({ property: `twitter:url`, content: this.doc.location.href });
+    this.meta.updateTag({
+      property: `twitter:url`,
+      content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
+    });
     this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
   }
 }

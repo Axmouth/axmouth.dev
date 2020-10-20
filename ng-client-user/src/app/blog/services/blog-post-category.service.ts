@@ -16,12 +16,12 @@ export class BlogPostCategoryService implements OnDestroy {
   constructor(private apiService: RestApiService) {}
 
   getCategory(id: string): Observable<Response<BlogPostCategory>> {
-    return this.apiService.get<Response<BlogPostCategory>>(this.url, id, {}).pipe(takeUntil(this.ngUnsubscribe));
+    return this.apiService.get<Response<BlogPostCategory>>(this.url, id, {}, true).pipe(takeUntil(this.ngUnsubscribe));
   }
 
   getAllCategories(page?: number, pageSize?: number): Observable<Response<BlogPostCategory[]>> {
     return this.apiService
-      .getAll<Response<BlogPostCategory[]>>(this.url, { page, pageSize })
+      .getAll<Response<BlogPostCategory[]>>(this.url, { page, pageSize }, true)
       .pipe(takeUntil(this.ngUnsubscribe));
   }
 

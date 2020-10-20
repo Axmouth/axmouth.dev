@@ -7,6 +7,7 @@ import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { DOCUMENT, Location } from '@angular/common';
 import { Inject } from '@angular/core';
+import { websiteUrl } from 'src/environments/environment';
 
 @Component({
   selector: 'app-view-blog-posts-category-page',
@@ -55,9 +56,15 @@ export class ViewBlogPostsCategoryPageComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.title.setTitle(`Blog Posts Index, Category: ${this.categoryName} | Axmouth's Website`);
         this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
-        this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
+        this.meta.updateTag({
+          property: `og:url`,
+          content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
+        });
         this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
-        this.meta.updateTag({ property: `twitter:url`, content: this.doc.location.href });
+        this.meta.updateTag({
+          property: `twitter:url`,
+          content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
+        });
         this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
       });
   }

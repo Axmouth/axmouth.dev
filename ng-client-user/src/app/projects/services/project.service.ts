@@ -17,12 +17,12 @@ export class ProjectService implements OnDestroy {
   constructor(private apiService: RestApiService, private router: Router) {}
 
   getProject(id: string): Observable<Response<Project>> {
-    return this.apiService.get<Response<Project>>(this.url, id, {}).pipe(takeUntil(this.ngUnsubscribe));
+    return this.apiService.get<Response<Project>>(this.url, id, {}, true).pipe(takeUntil(this.ngUnsubscribe));
   }
 
   getAllProjects(page?: number, pageSize?: number): Observable<Response<Project[]>> {
     return this.apiService
-      .getAll<Response<Project[]>>(this.url, { page, pageSize })
+      .getAll<Response<Project[]>>(this.url, { page, pageSize }, true)
       .pipe(takeUntil(this.ngUnsubscribe));
   }
 
@@ -32,7 +32,7 @@ export class ProjectService implements OnDestroy {
     pageSize?: number,
   ): Observable<Response<Project[]>> {
     return this.apiService
-      .getAll<Response<Project[]>>(this.url, { page, pageSize, technologyName })
+      .getAll<Response<Project[]>>(this.url, { page, pageSize, technologyName }, true)
       .pipe(takeUntil(this.ngUnsubscribe));
   }
 

@@ -1,9 +1,11 @@
-import { HttpClient } from '@angular/common/http';
+import { DOCUMENT } from '@angular/common';
+import { Inject } from '@angular/core';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AuthService } from 'src/auth/services/auth.service';
+import { websiteUrl } from 'src/environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -16,7 +18,12 @@ export class AppComponent implements OnInit, OnDestroy {
   displayName: string;
   isMenuCollapsed = true;
 
-  constructor(private authService: AuthService, private title: Title, private meta: Meta) {}
+  constructor(
+    private authService: AuthService,
+    private title: Title,
+    private meta: Meta,
+    @Inject(DOCUMENT) private doc: Document,
+  ) {}
 
   ngOnInit() {
     this.authService

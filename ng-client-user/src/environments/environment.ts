@@ -8,6 +8,7 @@ export const environment = {
 
 export const apiRoot = 'http://127.0.0.1:39051/api/v1';
 export const apiRootServer = 'http://127.0.0.1:39051/api/v1';
+export const websiteUrl = 'https://axmouth.dev';
 export const jwtWhitelist = [
   'localhost',
   'localhost:39051',

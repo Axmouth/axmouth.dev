@@ -16,7 +16,8 @@ export class GuestGuard implements CanActivate, OnDestroy {
     state: RouterStateSnapshot,
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
     return this.authService
-      .isAuthenticatedOrRefresh()
+      .isAuthenticated()
+      .pipe(takeUntil(this.ngUnsubscribe))
       .pipe(
         map((auth) => {
           if (auth) {
@@ -24,8 +25,7 @@ export class GuestGuard implements CanActivate, OnDestroy {
           }
           return !auth;
         }),
-      )
-      .pipe(takeUntil(this.ngUnsubscribe));
+      );
   }
 
   ngOnDestroy(): void {

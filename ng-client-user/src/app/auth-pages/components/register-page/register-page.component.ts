@@ -9,6 +9,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DOCUMENT } from '@angular/common';
 import { Inject } from '@angular/core';
+import { websiteUrl } from 'src/environments/environment';
 
 export class MismatchValidator {
   static mismatch(otherInputControl: AbstractControl): ValidatorFn {
@@ -67,9 +68,15 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.title.setTitle(`Register | Axmouth's Website`);
     this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
-    this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
+    this.meta.updateTag({
+      property: `og:url`,
+      content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
+    });
     this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
-    this.meta.updateTag({ property: `twitter:url`, content: this.doc.location.href });
+    this.meta.updateTag({
+      property: `twitter:url`,
+      content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
+    });
     this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
     this.setValidators();
   }

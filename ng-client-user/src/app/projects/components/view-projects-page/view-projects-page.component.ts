@@ -6,6 +6,7 @@ import { Meta, Title } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DOCUMENT } from '@angular/common';
+import { websiteUrl } from 'src/environments/environment';
 
 @Component({
   selector: 'app-view-projects-page',
@@ -52,9 +53,15 @@ export class ViewProjectsPageComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.title.setTitle(`Projects Index | Axmouth's Website`);
         this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
-        this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
+        this.meta.updateTag({
+          property: `og:url`,
+          content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
+        });
         this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
-        this.meta.updateTag({ property: `twitter:url`, content: this.doc.location.href });
+        this.meta.updateTag({
+          property: `twitter:url`,
+          content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
+        });
         this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
       });
   }

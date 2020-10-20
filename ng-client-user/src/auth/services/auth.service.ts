@@ -1,6 +1,6 @@
 import { Injectable, Inject, OnDestroy } from '@angular/core';
 import { TokenService } from './token.service';
-import { map, switchMap, catchError, retry, take, takeUntil } from 'rxjs/operators';
+import { map, switchMap, catchError, retry, take, takeUntil, timeout } from 'rxjs/operators';
 import { Observable, of, Subject } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
@@ -25,6 +25,7 @@ export class AuthService implements OnDestroy {
   authenticatingNotifier = new Subject<boolean>();
   config: AuthModuleOptionsConfig;
   authEndpointPrefix: string;
+  waitingCount = 0;
 
   constructor(
     private tokenService: TokenService,
@@ -76,7 +77,7 @@ export class AuthService implements OnDestroy {
           }
           const payload = token.getPayload();
           if (payload) {
-            const emailKey = this.config.emailJwtKey ?? 'sub';
+            const emailKey = this.config.emailJwtKey ?? 'email';
             return payload[emailKey];
           }
           return null;
@@ -92,7 +93,7 @@ export class AuthService implements OnDestroy {
    */
   getProfile<T>(): Observable<T> {
     const url = `${this.authEndpointPrefix}${this.config.profileEndpoint ?? 'profile'}`;
-    const result = baseApiRequest<T>(this.http, url, {}, this.config.profileMethod ?? 'get', undefined)
+    const result = this.baseApiRequestWithAuth<T>(this.http, url, {}, this.config.profileMethod ?? 'get', undefined)
       .pipe(
         map((res) => {
           return res;
@@ -115,7 +116,7 @@ export class AuthService implements OnDestroy {
   authenticate(data?: any): Observable<AuthResult> {
     const url = `${this.authEndpointPrefix}${this.config.loginEndpoint ?? 'login'}`;
 
-    const result = baseApiRequest(this.http, url, {}, this.config.loginMethod ?? 'post', data).pipe(
+    const result = this.baseApiRequest(this.http, url, {}, this.config.loginMethod ?? 'post', data).pipe(
       map((res) => {
         const tokenGetter = this.config?.loginTokengetter ?? tokenGetterDefault;
         return new AuthResult(
@@ -155,7 +156,7 @@ export class AuthService implements OnDestroy {
         if (!url) {
           return of(res);
         }
-        return baseApiRequest(this.http, url, {}, this.config.logoutMethod ?? 'delete', undefined);
+        return this.baseApiRequest(this.http, url, {}, this.config.logoutMethod ?? 'delete', undefined);
       }),
       map((res) => {
         return new AuthResult(
@@ -194,7 +195,7 @@ export class AuthService implements OnDestroy {
    */
   register(data?: any): Observable<AuthResult> {
     const url = `${this.authEndpointPrefix}${this.config.registerEndpoint ?? 'register'}`;
-    const result = baseApiRequest(this.http, url, {}, this.config.registerMethod ?? 'post', data).pipe(
+    const result = this.baseApiRequest(this.http, url, {}, this.config.registerMethod ?? 'post', data).pipe(
       map((res) => {
         const tokenGetter = this.config?.registerTokengetter ?? tokenGetterDefault;
         return new AuthResult(
@@ -241,15 +242,15 @@ export class AuthService implements OnDestroy {
     }
     if (this.authenticating) {
       // check if auth request is in progress and do nothing then
-      console.log('waiting while authenticating');
-      // return of(false);
       return this.authenticatingNotifier
         .pipe(take(1))
         .pipe(takeUntil(this.ngUnsubscribe))
+        .pipe(timeout(1000))
         .pipe(
-          map((t) => {
-            console.log('waiting over ' + this.authenticating);
-            return t;
+          catchError((err, caught) => {
+            this.authenticating = false;
+            this.authenticatingNotifier.next(false);
+            return of(false);
           }),
         );
     }
@@ -267,15 +268,14 @@ export class AuthService implements OnDestroy {
                 if (res.isSuccess()) {
                   return this.isAuthenticated();
                 } else {
-                  if (res.getResponse().status !== 400 && res.getResponse().status !== '400') {
+                  if (
+                    res.getResponse().status === 404 ||
+                    res.getResponse().status === '404' ||
+                    res.getResponse().status >= 500 ||
+                    res.getResponse().status >= '500'
+                  ) {
                     return this.isAuthenticated();
                   }
-                  /*
-                return this.logout().pipe(
-                  map((result) => {
-                    return !result.isSuccess();
-                  }),
-                );*/
                   return of(false);
                 }
               }),
@@ -316,7 +316,7 @@ export class AuthService implements OnDestroy {
    */
   refreshToken(data?: any, callback$?: Observable<any>): Observable<AuthResult> {
     const url = `${this.authEndpointPrefix}${this.config.refreshEndpoint ?? 'refresh'}`;
-    const refresh$ = baseApiRequest(this.http, url, {}, this.config.refreshMethod ?? 'post', data)
+    const refresh$ = this.baseApiRequest(this.http, url, {}, this.config.refreshMethod ?? 'post', data)
       .pipe(
         map((res) => {
           const tokenGetter = this.config?.refreshTokengetter ?? tokenGetterDefault;
@@ -325,18 +325,13 @@ export class AuthService implements OnDestroy {
             true,
             res,
             true,
-            [], // ['Something went wrong re-Authenticating'],
+            [],
             ['Your token has been successfully refreshed.'],
             token,
           );
           return authResult;
         }),
         catchError((res) => {
-          // this.handleResponseError(res)
-          //  .pipe(takeUntil(this.ngUnsubscribe))
-          //  .subscribe((authResult) => {
-          //    // this.authenticatingNotifier.next(authResult);
-          //  });
           return this.handleResponseError(res);
         }),
       )
@@ -385,16 +380,10 @@ export class AuthService implements OnDestroy {
    */
   requestPasswordReset(data?: any): Observable<AuthResult> {
     const url = `${this.authEndpointPrefix}${this.config.requestPasswordResetEndpoint ?? 'request-password-reset'}`;
-    return baseApiRequest(this.http, url, {}, this.config.requestPasswordResetMethod ?? 'post', data)
+    return this.baseApiRequestWithAuth(this.http, url, {}, this.config.requestPasswordResetMethod ?? 'post', data)
       .pipe(
         map((res) => {
-          return new AuthResult(
-            true,
-            res,
-            true,
-            [], // ['Something went wrong, please try again.'],
-            ['Reset password instructions have been sent to your email!'],
-          );
+          return new AuthResult(true, res, true, [], ['Reset password instructions have been sent to your email!']);
         }),
         catchError((res) => {
           return this.handleResponseError(res);
@@ -425,7 +414,7 @@ export class AuthService implements OnDestroy {
     if (this.route.snapshot.queryParams[emailQueryKey]) {
       data[emailKey] = this.route.snapshot.queryParams[emailQueryKey];
     }
-    return baseApiRequest(this.http, url, {}, this.config.passwordResetMethod ?? 'post', data)
+    return this.baseApiRequestWithAuth(this.http, url, {}, this.config.passwordResetMethod ?? 'post', data)
       .pipe(
         map((res) => {
           return new AuthResult(
@@ -466,7 +455,7 @@ export class AuthService implements OnDestroy {
     if (this.route.snapshot.queryParams[emailQueryKey]) {
       data[emailKey] = this.route.snapshot.queryParams[emailQueryKey];
     }
-    return baseApiRequest(this.http, url, {}, this.config.verifyEmailMethod ?? 'post', data)
+    return this.baseApiRequestWithAuth(this.http, url, {}, this.config.verifyEmailMethod ?? 'post', data)
       .pipe(
         map((res) => {
           return new AuthResult(
@@ -495,16 +484,10 @@ export class AuthService implements OnDestroy {
     const url = `${this.authEndpointPrefix}${
       this.config.requestVerificationEmailEndpoint ?? 'request-verification-email'
     }`;
-    return baseApiRequest(this.http, url, {}, this.config.requestVerificationEmailMethod ?? 'post', data)
+    return this.baseApiRequestWithAuth(this.http, url, {}, this.config.requestVerificationEmailMethod ?? 'post', data)
       .pipe(
         map((res) => {
-          return new AuthResult(
-            true,
-            res,
-            true,
-            [], // ['Something went wrong, please try again.'],
-            ['Your verification Email has been successfully sent!'],
-          );
+          return new AuthResult(true, res, true, [], ['Your verification Email has been successfully sent!']);
         }),
         catchError((res) => {
           return this.handleResponseError(res);
@@ -540,52 +523,66 @@ export class AuthService implements OnDestroy {
     return token;
   }
 
+  private paramsToQuery(params: any): string {
+    return Object.keys(params)
+      .map((key) => {
+        if (Array.isArray(params[key])) {
+          return params[key]
+            .map((value: string | number | boolean) => {
+              if (value === undefined || value === null) {
+                return '';
+              }
+              return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+            })
+            .join('&');
+        }
+        if (params[key] === undefined || params[key] === null) {
+          return '';
+        }
+        return `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
+      })
+      .filter((s) => s !== '')
+      .join('&');
+  }
+
+  private baseApiRequest<T>(
+    http: HttpClient,
+    url: string,
+    queryParams: any,
+    method: HttpMethod,
+    body: any,
+  ): Observable<T> {
+    const headers = new HttpHeaders();
+    headers.append('Content-Type', 'application/json');
+    const queryString = this.paramsToQuery(queryParams);
+    let newUrl = url;
+    if (queryString && queryString.length > 0) {
+      newUrl = `${newUrl}?${queryString}`;
+    }
+    return http
+      .request<T>(method, newUrl, { body, headers, withCredentials: true, observe: 'response' })
+      .pipe(retry(2))
+      .pipe(map((result) => result.body));
+  }
+
+  private baseApiRequestWithAuth<T>(
+    http: HttpClient,
+    url: string,
+    queryParams: any,
+    method: HttpMethod,
+    body: any,
+  ): Observable<T> {
+    return this.isAuthenticatedOrRefresh().pipe(
+      switchMap(() => {
+        return this.baseApiRequest<T>(http, url, queryParams, method, body);
+      }),
+    );
+  }
+
   ngOnDestroy(): void {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
   }
 }
 
-function paramsToQuery(params: any): string {
-  return Object.keys(params)
-    .map((key) => {
-      if (Array.isArray(params[key])) {
-        return params[key]
-          .map((value: string | number | boolean) => {
-            if (value === undefined || value === null) {
-              return '';
-            }
-            return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
-          })
-          .join('&');
-      }
-      if (params[key] === undefined || params[key] === null) {
-        return '';
-      }
-      return `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
-    })
-    .filter((s) => s !== '')
-    .join('&');
-}
-
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
-
-function baseApiRequest<T>(
-  http: HttpClient,
-  url: string,
-  queryParams: any,
-  method: HttpMethod,
-  body: any,
-): Observable<T> {
-  const headers = new HttpHeaders();
-  headers.append('Content-Type', 'application/json');
-  const queryString = paramsToQuery(queryParams);
-  let newUrl = url;
-  if (queryString && queryString.length > 0) {
-    newUrl = `${newUrl}?${queryString}`;
-  }
-  return http
-    .request<T>(method, newUrl, { body, headers, withCredentials: true, observe: 'response' })
-    .pipe(retry(2))
-    .pipe(map((result) => result.body));
-}

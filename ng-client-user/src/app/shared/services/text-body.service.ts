@@ -21,7 +21,7 @@ export class TextBodyService implements OnDestroy {
 
   getAllTextBodies(page?: number, pageSize?: number): Observable<Response<TextBody[]>> {
     return this.apiService
-      .getAll<Response<TextBody[]>>(this.url, { page, pageSize })
+      .getAll<Response<TextBody[]>>(this.url, { page, pageSize }, true)
       .pipe(takeUntil(this.ngUnsubscribe));
   }
 

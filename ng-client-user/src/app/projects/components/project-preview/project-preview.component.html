@@ -8,17 +8,20 @@
     </div>
     <p class="card-text">{{ project?.description }}</p>
     <a href="/projects/{{ project?.id }}" routerLink="/projects/{{ project?.id }}" class="btn btn-primary">
-      Read More </a
-    >&nbsp;
+      Read More
+    </a>
     <br />
     <br />
-    Technologies used:&nbsp;
-    <a
-      href="/projects/technology/{{ technologyName }}"
-      routerLink="/projects/technology/{{ technologyName }}"
-      *ngFor="let technologyName of projectTechnologiesList"
+    <span>Technologies used:&nbsp;</span>
+    <span *ngFor="let technologyName of projectTechnologiesList"
+      >&nbsp;
+      <a
+        href="/projects/technology/{{ technologyName }}"
+        routerLink="/projects/technology/{{ technologyName }}"
+        class="text-primary"
+      >
+        {{ technologyName }}
+      </a></span
     >
-      {{ technologyName }} </a
-    >&nbsp;
   </div>
 </div>

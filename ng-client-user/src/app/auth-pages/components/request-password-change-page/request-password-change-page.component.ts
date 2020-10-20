@@ -8,6 +8,7 @@ import { takeUntil } from 'rxjs/operators';
 import { AuthService } from 'src/auth';
 import { IsBrowserService } from 'src/auth/helpers/services/is-browser.service';
 import { AuthResult } from 'src/auth/internal/auth-result';
+import { websiteUrl } from 'src/environments/environment';
 
 @Component({
   selector: 'app-request-password-change-page',
@@ -35,9 +36,15 @@ export class RequestPasswordChangePageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.title.setTitle(`Request Password Reset | Axmouth's Website`);
     this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
-    this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
+    this.meta.updateTag({
+      property: `og:url`,
+      content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
+    });
     this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
-    this.meta.updateTag({ property: `twitter:url`, content: this.doc.location.href });
+    this.meta.updateTag({
+      property: `twitter:url`,
+      content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
+    });
     this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
     if (!this.isBrowserService.isInBrowser()) {
       return;
@@ -65,6 +72,7 @@ export class RequestPasswordChangePageComponent implements OnInit, OnDestroy {
         },
         (err) => {
           console.log(err);
+          this.loading = false;
         },
       );
   }

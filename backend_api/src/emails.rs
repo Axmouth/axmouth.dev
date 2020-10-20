@@ -80,7 +80,7 @@ impl EmailSender {
         body: String,
     ) -> Result<(), EmailError> {
         let body_html = format!(
-            "<p>Email to reply to: {}</p><br /><br /><br />{}",
+            "<p>Email to reply to: {}</p><br /><br /><br /><pre>{}</pre>",
             from_email, body
         );
         let body_text = format!("Email to reply to: {}\n\n\n{}", from_email, body);

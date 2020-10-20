@@ -198,37 +198,37 @@ export interface PasswordResetConfig {
    * Defaults to 'reset_password_token'.
    *
    */
-  tokenQueryKey?: string;
+  tokenQueryKey: string;
   /**
    * Query key for username.
    * Defaults to 'userName'.
    *
    */
-  userNameQueryKey?: string;
+  userNameQueryKey: string;
   /**
    * Query key for email.
    * Defaults to 'email'.
    *
    */
-  emailQueryKey?: string;
+  emailQueryKey: string;
   /**
    * JSON response key for password reset token.
    * Defaults to 'token'.
    *
    */
-  tokenKey?: string;
+  tokenKey: string;
   /**
    * JSON response key for username.
    * Defaults to 'userName'.
    *
    */
-  userNameKey?: string;
+  userNameKey: string;
   /**
    * JSON response key for email.
    * Defaults to 'email'.
    *
    */
-  emailKey?: string;
+  emailKey: string;
 }
 
 /**
@@ -241,37 +241,37 @@ export interface VerifyEmailConfig {
    * Defaults to 'email_confirm_token'.
    *
    */
-  tokenQueryKey?: string;
+  tokenQueryKey: string;
   /**
    * Query key for username.
    * Defaults to 'userName'.
    *
    */
-  userNameQueryKey?: string;
+  userNameQueryKey: string;
   /**
    * Query key for email.
    * Defaults to 'email'.
    *
    */
-  emailQueryKey?: string;
+  emailQueryKey: string;
   /**
    * JSON response key for email verification token.
    * Defaults to 'token'.
    *
    */
-  tokenKey?: string;
+  tokenKey: string;
   /**
    * JSON response key for username.
    * Defaults to 'userName'.
    *
    */
-  userNameKey?: string;
+  userNameKey: string;
   /**
    * JSON response key for email.
    * Defaults to 'email'.
    *
    */
-  emailKey?: string;
+  emailKey: string;
 }
 
 /**

@@ -6,6 +6,7 @@ import { Meta, Title } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DOCUMENT } from '@angular/common';
+import { websiteUrl } from 'src/environments/environment';
 
 @Component({
   selector: 'app-view-project-details-page',
@@ -50,12 +51,18 @@ export class ViewProjectDetailsPageComponent implements OnInit, OnDestroy {
             name: `keywords`,
             content: `axmouth,developer,webdev,programmer,portfolio,${this.projectTechnologiesList.join(',')}`,
           });
-          this.meta.updateTag({ property: `og:url`, content: this.doc.location.href });
+          this.meta.updateTag({
+            property: `og:url`,
+            content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
+          });
           this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
           this.meta.updateTag({ property: `og:description`, content: this?.project?.description });
           this.meta.updateTag({ property: `og:image`, content: this?.project?.coverImage });
           this.meta.updateTag({ property: `twitter:card`, content: this?.project?.coverImage });
-          this.meta.updateTag({ property: `twitter:url`, content: this.doc.location.href });
+          this.meta.updateTag({
+            property: `twitter:url`,
+            content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
+          });
           this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
           this.meta.updateTag({ property: `twitter:description`, content: this?.project?.description });
           this.meta.updateTag({ property: `twitter:image`, content: this?.project?.coverImage });

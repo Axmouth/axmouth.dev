@@ -16,18 +16,18 @@ export class BlogPostService implements OnDestroy {
   constructor(private apiService: RestApiService) {}
 
   getPost(id: string): Observable<Response<BlogPost>> {
-    return this.apiService.get<Response<BlogPost>>(this.url, id, {}).pipe(takeUntil(this.ngUnsubscribe));
+    return this.apiService.get<Response<BlogPost>>(this.url, id, {}, true).pipe(takeUntil(this.ngUnsubscribe));
   }
 
   getAllPosts(page?: number, pageSize?: number): Observable<Response<BlogPost[]>> {
     return this.apiService
-      .getAll<Response<BlogPost[]>>(this.url, { page, pageSize })
+      .getAll<Response<BlogPost[]>>(this.url, { page, pageSize }, true)
       .pipe(takeUntil(this.ngUnsubscribe));
   }
 
   getAllPostsByCategory(categoryName: string, page?: number, pageSize?: number): Observable<Response<BlogPost[]>> {
     return this.apiService
-      .getAll<Response<BlogPost[]>>(this.url, { page, pageSize, categoryName })
+      .getAll<Response<BlogPost[]>>(this.url, { page, pageSize, categoryName }, true)
       .pipe(takeUntil(this.ngUnsubscribe));
   }
 
