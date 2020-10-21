@@ -1,7 +1,7 @@
 use crate::errors::PgRepoError;
 use crate::filters::GetAllHomePageLinksFilter;
 use crate::models::{db_models, domain};
-use crate::options::{HomePageLinkSort, PaginationOptions};
+use crate::options::{HomePageLinkSortType, PaginationOptions};
 use crate::schema::home_page_links;
 use crate::{change_sets::UpdateHomePageLink, insertables::NewHomePageLink};
 use diesel::prelude::*;
@@ -64,10 +64,10 @@ impl HomePageLinkRepo {
     pub async fn find(
         &self,
         filter: GetAllHomePageLinksFilter,
-        sort: HomePageLinkSort,
+        sort: Option<HomePageLinkSortType>,
         pagination: PaginationOptions,
     ) -> Result<(Vec<domain::HomePageLink>, i64), PgRepoError> {
-        use crate::schema::home_page_links::dsl::{home_page_links, id as link_id};
+        use crate::schema::home_page_links::dsl::home_page_links;
         let q = home_page_links
             .select((
                 home_page_links::all_columns(),

@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::options::{PaginationOptions, ProjectSort, ProjectSortType, SortOrder};
+use backend_repo_pg::options::PaginationOptions;
 use backend_repo_pg::{
     change_sets::UpdateProject,
     filters::GetAllProjectsFilter,
@@ -61,10 +61,7 @@ pub async fn get_all(
         .project_repository
         .find(
             filter,
-            ProjectSort {
-                order: None,
-                sort_type: None,
-            },
+            query.sort_type,
             PaginationOptions {
                 page: query.page,
                 page_size: query.page_size,

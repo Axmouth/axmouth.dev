@@ -2,7 +2,7 @@ use crate::errors::PgRepoError;
 use crate::filters::GetAllBlogPostCommentFlagsFilter;
 use crate::insertables::NewBlogPostCommentFlag;
 use crate::models::{db_models, domain};
-use crate::options::{BlogPostCommentFlagSort, PaginationOptions};
+use crate::options::{BlogPostCommentFlagSortType, PaginationOptions};
 use crate::schema::blog_post_comment_flags;
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
@@ -59,10 +59,10 @@ impl BlogPostCommentFlagRepo {
     pub async fn find(
         &self,
         filter: GetAllBlogPostCommentFlagsFilter,
-        sort: BlogPostCommentFlagSort,
+        sort: Option<BlogPostCommentFlagSortType>,
         pagination: PaginationOptions,
     ) -> Result<Vec<domain::BlogPostCommentFlag>, PgRepoError> {
-        use crate::schema::blog_post_comment_flags::dsl::{blog_post_comment_flags, id};
+        use crate::schema::blog_post_comment_flags::dsl::blog_post_comment_flags;
         let q = blog_post_comment_flags
             .select(blog_post_comment_flags::all_columns())
             .into_boxed();

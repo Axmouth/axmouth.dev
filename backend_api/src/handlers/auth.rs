@@ -1,5 +1,3 @@
-use std::iter::FromIterator;
-
 use crate::util::{
     auth_bad_request_response, auth_error_response, auth_ok_response, auth_unauthorized_response,
     bad_request_response, create_refresh_token, login_failed_response, not_found_response,
@@ -8,6 +6,7 @@ use crate::util::{
 use crate::{app::AppState, auth_tokens::Claims};
 use crate::{auth_tokens, util::simple_error_response};
 use crate::{auth_tokens::decode_token, util::simple_ok_response};
+use backend_repo_pg::passwords;
 use backend_repo_pg::{
     change_sets::UpdateChangePasswordToken, change_sets::UpdateUser,
     change_sets::UpdateVerifyEmailToken, errors::PgRepoError, insertables::NewChangePasswordToken,
@@ -20,9 +19,8 @@ use backend_repo_pg::{
     insertables::NewUser,
     models::requests::{LoginRequest, RefreshRequest, RegisterRequest},
 };
-use backend_repo_pg::{models::db_models::VerifyEmailToken, passwords};
-use chrono::{Duration, NaiveDateTime, Utc};
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use chrono::{Duration, Utc};
+use rand::{distributions::Alphanumeric, Rng};
 use warp::hyper::header;
 use warp::{http::StatusCode, Reply};
 

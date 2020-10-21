@@ -1,7 +1,7 @@
 use crate::errors::PgRepoError;
 use crate::filters::GetAllTechnologiesFilter;
 use crate::models::{db_models, domain};
-use crate::options::{PaginationOptions, TechnologySort};
+use crate::options::{PaginationOptions, TechnologySortType};
 use crate::schema::technologies;
 use crate::{change_sets::UpdateTechnology, insertables::NewTechnology};
 use diesel::prelude::*;
@@ -61,10 +61,10 @@ impl TechnologyRepo {
     pub async fn find(
         &self,
         filter: GetAllTechnologiesFilter,
-        sort: TechnologySort,
+        sort: Option<TechnologySortType>,
         pagination: PaginationOptions,
     ) -> Result<(Vec<domain::Technology>, i64), PgRepoError> {
-        use crate::schema::technologies::dsl::{id as link_id, technologies};
+        use crate::schema::technologies::dsl::technologies;
         let q = technologies
             .select((
                 technologies::all_columns(),

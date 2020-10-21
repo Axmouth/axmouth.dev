@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { BlogPost } from '../../../models/api/blog-post';
 import { BlogPostService } from '../../services/blog-post.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -21,11 +21,13 @@ export class ViewBlogPostsCategoryPageComponent implements OnInit, OnDestroy {
   blogPostsList: BlogPost[] = [];
   page: number;
   pageSize: number;
+  sortType: string;
   loading = true;
 
   constructor(
-    private blogPostService: BlogPostService,
+    private router: Router,
     private route: ActivatedRoute,
+    private blogPostService: BlogPostService,
     private title: Title,
     private meta: Meta,
     @Inject(DOCUMENT) private doc: Document,
@@ -34,13 +36,20 @@ export class ViewBlogPostsCategoryPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe((params) => {
       this.categoryName = params.categoryName;
-      if (isNaN(+params.page) === false) {
-        this.page = +params.page;
-      }
-      if (isNaN(+params.pageSize) === false) {
-        this.pageSize = +params.pageSize;
-      }
-      this.initialiseState(); // reset and set based on new parameter this time
+      this.route.queryParams.pipe(takeUntil(this.ngUnsubscribe)).subscribe((qParams) => {
+        if (isNaN(+qParams.page) === false) {
+          this.page = +qParams.page ?? 1;
+        } else {
+          this.page = 1;
+        }
+        if (isNaN(+qParams.pageSize) === false) {
+          this.pageSize = +qParams.pageSize ?? 5;
+        } else {
+          this.pageSize = 5;
+        }
+        this.sortType = qParams.sortType ?? 'CreatedAtDesc';
+        this.initialiseState();
+      });
     });
   }
 
@@ -48,7 +57,12 @@ export class ViewBlogPostsCategoryPageComponent implements OnInit, OnDestroy {
     this.title.setTitle(`Loading Blog Posts, Category: ${this.categoryName} | Axmouth's Website`);
     this.loading = true;
     this.blogPostService
-      .getAllPostsByCategory(this.categoryName, this.page, this.pageSize)
+      .getAllPosts({
+        categoryName: this.categoryName,
+        page: this.page,
+        pageSize: this.pageSize,
+        sortType: this.sortType,
+      })
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe((result) => {
         this.blogPostsList = result.data;
@@ -67,6 +81,14 @@ export class ViewBlogPostsCategoryPageComponent implements OnInit, OnDestroy {
         });
         this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
       });
+  }
+
+  onPageChange(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: this.page, pageSize: this.pageSize, sortType: this.sortType },
+      queryParamsHandling: 'merge',
+    });
   }
 
   ngOnDestroy(): void {

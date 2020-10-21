@@ -1,9 +1,9 @@
-use crate::errors::PgRepoError;
 use crate::filters::GetAllBlogPostCommentsFilter;
 use crate::models::{db_models, domain};
-use crate::options::{BlogPostCommentSort, PaginationOptions};
+use crate::options::PaginationOptions;
 use crate::schema::blog_post_comments;
 use crate::{change_sets::UpdateBlogPostComment, insertables::NewBlogPostComment};
+use crate::{errors::PgRepoError, options::BlogPostCommentSortType};
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
 use r2d2::Pool;
@@ -67,16 +67,17 @@ impl BlogPostCommentRepo {
     pub async fn find(
         &self,
         filter: GetAllBlogPostCommentsFilter,
-        sort: BlogPostCommentSort,
+        sort: Option<BlogPostCommentSortType>,
         pagination: PaginationOptions,
     ) -> Result<(Vec<domain::BlogPostComment>, i64), PgRepoError> {
-        use crate::schema::blog_post_comments::dsl::{blog_post_comments, id, post_id};
+        use crate::schema::blog_post_comments::dsl::{
+            blog_post_comments as blog_post_comments_dsl, post_id,
+        };
         use crate::schema::users::dsl::{id as user_id, users};
-        use diesel::dsl::count_star;
-        let q = blog_post_comments
+        let q = blog_post_comments_dsl
             .inner_join(users)
             .select((
-                blog_post_comments::all_columns(),
+                blog_post_comments_dsl::all_columns(),
                 users::all_columns(),
                 diesel::dsl::sql::<diesel::sql_types::BigInt>("count(*) over()"),
             ))
@@ -96,6 +97,19 @@ impl BlogPostCommentRepo {
 
         let q = if let (Some(page), Some(page_size)) = (pagination.page, pagination.page_size) {
             q.offset((page - 1) * page_size).limit(page_size)
+        } else {
+            q
+        };
+
+        let q = if let Some(sort_type) = sort {
+            match sort_type {
+                BlogPostCommentSortType::CreatedAtAsc => {
+                    q.order(blog_post_comments::created_at.asc())
+                }
+                BlogPostCommentSortType::CreatedAtDesc => {
+                    q.order(blog_post_comments::created_at.desc())
+                }
+            }
         } else {
             q
         };

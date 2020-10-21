@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::options::{CategorySort, CategorySortType, PaginationOptions, SortOrder};
+use backend_repo_pg::options::PaginationOptions;
 use backend_repo_pg::{
     change_sets::UpdateCategory,
     filters::GetAllCategoriesFilter,
@@ -17,7 +17,6 @@ use backend_repo_pg::{
         requests::{CreateCategoryRequest, UpdateCategoryRequest},
     },
 };
-use chrono::Utc;
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
     let category_result = match state.repository.category_repository.find_one(id).await {
@@ -44,10 +43,7 @@ pub async fn get_all(
         .category_repository
         .find(
             filter,
-            CategorySort {
-                order: None,
-                sort_type: None,
-            },
+            query.sort_type,
             PaginationOptions {
                 page: query.page,
                 page_size: query.page_size,

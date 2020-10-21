@@ -1,0 +1,12 @@
+mat-selection-list {
+}
+
+mat-list-option {
+  border-left: 1px solid gray;
+  border-right: 1px solid gray;
+  border-top: 1px solid gray;
+}
+
+mat-list-option:last-of-type {
+  border-bottom: 1px solid gray;
+}

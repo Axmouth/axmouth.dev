@@ -16,10 +16,14 @@
       <div class="row">
         <div
           *ngIf="registerForm.controls['email']?.touched && registerForm.controls['email']?.invalid"
-          class="alert alert-danger col-md-5 offset-md-5"
+          class="col-md-5 offset-md-5"
         >
-          <div *ngIf="registerForm.controls['email']?.errors?.required">E-Mail Address is required.</div>
-          <div *ngIf="registerForm.controls['email']?.errors?.email">E-Mail Address must be a valid email format.</div>
+          <div *ngIf="registerForm.controls['email']?.errors?.required" class="alert alert-danger">
+            E-Mail Address is required.
+          </div>
+          <div *ngIf="registerForm.controls['email']?.errors?.email" class="alert alert-danger">
+            E-Mail Address must be a valid email format.
+          </div>
         </div>
       </div>
 

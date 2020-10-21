@@ -1,8 +1,7 @@
 use crate::errors::PgRepoError;
-use crate::extra::UserRole;
 use crate::filters::GetAllUsersFilter;
 use crate::models::{db_models, domain};
-use crate::options::{PaginationOptions, UserSort};
+use crate::options::{PaginationOptions, UserSortType};
 use crate::schema::users;
 use crate::{change_sets::UpdateUser, insertables::NewUser};
 use diesel::prelude::*;
@@ -79,10 +78,10 @@ impl UserRepo {
     pub async fn find(
         &self,
         filter: GetAllUsersFilter,
-        sort: UserSort,
+        sort: Option<UserSortType>,
         pagination: PaginationOptions,
     ) -> Result<Vec<domain::User>, PgRepoError> {
-        use crate::schema::users::dsl::{id, users};
+        use crate::schema::users::dsl::users;
         let q = users.select(users::all_columns()).into_boxed();
 
         let q = if let (Some(page), Some(page_size)) = (pagination.page, pagination.page_size) {

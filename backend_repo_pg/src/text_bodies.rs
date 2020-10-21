@@ -1,7 +1,7 @@
 use crate::errors::PgRepoError;
 use crate::filters::GetAllTextBodiesFilter;
 use crate::models::{db_models, domain};
-use crate::options::{PaginationOptions, TextBodySort};
+use crate::options::{PaginationOptions, TextBodySortType};
 use crate::schema::text_bodies;
 use crate::{change_sets::UpdateTextBody, insertables::NewTextBody};
 use diesel::prelude::*;
@@ -83,10 +83,10 @@ impl TextBodyRepo {
     pub async fn find(
         &self,
         filter: GetAllTextBodiesFilter,
-        sort: TextBodySort,
+        sort: Option<TextBodySortType>,
         pagination: PaginationOptions,
     ) -> Result<(Vec<domain::TextBody>, i64), PgRepoError> {
-        use crate::schema::text_bodies::dsl::{id as text_body_id, text_bodies};
+        use crate::schema::text_bodies::dsl::text_bodies;
         let q = text_bodies
             .select((
                 text_bodies::all_columns(),

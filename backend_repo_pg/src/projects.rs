@@ -1,7 +1,7 @@
 use crate::errors::PgRepoError;
 use crate::filters::GetAllProjectsFilter;
 use crate::models::{db_models, domain};
-use crate::options::{PaginationOptions, ProjectSort};
+use crate::options::{PaginationOptions, ProjectSortType};
 use crate::schema::{projects, projects_technologies, technologies};
 use crate::{
     change_sets::UpdateProject,
@@ -179,11 +179,11 @@ impl ProjectRepo {
     pub async fn find(
         &self,
         filter: GetAllProjectsFilter,
-        sort: ProjectSort,
+        sort: Option<ProjectSortType>,
         pagination: PaginationOptions,
     ) -> Result<(Vec<domain::Project>, i64), PgRepoError> {
         use crate::schema::projects::dsl::{
-            id as project_id, projects, published as project_published,
+            id as project_id, projects as projects_dsl, published as project_published,
         };
         use crate::schema::projects_technologies::dsl::{
             project_id as projects_technologies_project_id,
@@ -194,11 +194,11 @@ impl ProjectRepo {
             name as technology_name, technologies as technologies_dsl,
         };
 
-        let q = projects
+        let q = projects_dsl
             .left_join(projects_technologies_dsl.inner_join(technologies_dsl))
             .group_by(project_id)
             .select((
-                projects::all_columns(),
+                projects_dsl::all_columns(),
                 diesel::dsl::sql::<
                     diesel::sql_types::Array<
                         diesel::sql_types::Nullable<diesel::sql_types::VarChar>,
@@ -239,6 +239,17 @@ impl ProjectRepo {
 
         let q = if let Some(published) = filter.published {
             q.filter(project_published.eq(published))
+        } else {
+            q
+        };
+
+        let q = if let Some(sort_type) = sort {
+            match sort_type {
+                ProjectSortType::CreatedAtAsc => q.order(projects::created_at.asc()),
+                ProjectSortType::CreatedAtDesc => q.order(projects::created_at.desc()),
+                ProjectSortType::NameAsc => q.order(projects::name.asc()),
+                ProjectSortType::NameDesc => q.order(projects::name.desc()),
+            }
         } else {
             q
         };

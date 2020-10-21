@@ -1,10 +1,5 @@
 use crate::errors::PgRepoError;
-use crate::extra::UserRole;
-use crate::filters::GetAllUsersFilter;
 use crate::models::{db_models, domain};
-use crate::options::{PaginationOptions, UserSort};
-use crate::schema::users;
-use crate::{change_sets::UpdateUser, insertables::NewUser};
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
 use r2d2::Pool;

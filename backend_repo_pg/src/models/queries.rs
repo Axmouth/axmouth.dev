@@ -1,5 +1,13 @@
 use serde::{Deserialize, Serialize};
 
+use crate::options::{
+    AdminLogSortType, BlogPostCommentFlagSortType, BlogPostCommentRatingSortType,
+    BlogPostCommentSortType, BlogPostSortType, CategorySortType, ChangePasswordTokenSortType,
+    HomePageLinkSortType, IdentificationCookieSortType, PageViewSortType, ProjectSortType,
+    RefreshTokenSortType, TechnologySortType, TextBodySortType, UploadedImageSortType,
+    UserSortType, VerifyEmailTokenSortType,
+};
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct GetAllBlogPostCommentsQuery {
@@ -7,6 +15,7 @@ pub struct GetAllBlogPostCommentsQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
     pub author: Option<i32>,
+    pub sort_type: Option<BlogPostCommentSortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -18,6 +27,7 @@ pub struct GetAllBlogPostsQuery {
     pub category_id: Option<i32>,
     pub category_name: Option<String>,
     pub published: Option<bool>,
+    pub sort_type: Option<BlogPostSortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -28,6 +38,7 @@ pub struct GetAllProjectsQuery {
     pub technology_id: Option<i32>,
     pub technology_name: Option<String>,
     pub published: Option<bool>,
+    pub sort_type: Option<ProjectSortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -35,6 +46,7 @@ pub struct GetAllProjectsQuery {
 pub struct GetAllUsersQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
+    pub sort_type: Option<UserSortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -42,6 +54,7 @@ pub struct GetAllUsersQuery {
 pub struct GetAllRefreshTokensQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
+    pub sort_type: Option<RefreshTokenSortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -49,6 +62,7 @@ pub struct GetAllRefreshTokensQuery {
 pub struct GetAllTextBodiesQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
+    pub sort_type: Option<TextBodySortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -56,6 +70,7 @@ pub struct GetAllTextBodiesQuery {
 pub struct GetAllUploadedImagesQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
+    pub sort_type: Option<UploadedImageSortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -63,6 +78,7 @@ pub struct GetAllUploadedImagesQuery {
 pub struct GetAllIdentificationCookiesQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
+    pub sort_type: Option<IdentificationCookieSortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -70,6 +86,7 @@ pub struct GetAllIdentificationCookiesQuery {
 pub struct GetAllVerifyEmailTokensQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
+    pub sort_type: Option<VerifyEmailTokenSortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -77,6 +94,7 @@ pub struct GetAllVerifyEmailTokensQuery {
 pub struct GetAllPageViewsQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
+    pub sort_type: Option<PageViewSortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -84,6 +102,7 @@ pub struct GetAllPageViewsQuery {
 pub struct GetAllBlogPostCommentRatingsQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
+    pub sort_type: Option<BlogPostCommentRatingSortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -91,6 +110,7 @@ pub struct GetAllBlogPostCommentRatingsQuery {
 pub struct GetAllBlogPostCommentFlagsQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
+    pub sort_type: Option<BlogPostCommentFlagSortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -98,6 +118,7 @@ pub struct GetAllBlogPostCommentFlagsQuery {
 pub struct GetAllAdminLogsQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
+    pub sort_type: Option<AdminLogSortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -105,6 +126,7 @@ pub struct GetAllAdminLogsQuery {
 pub struct GetAllHomePageLinksQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
+    pub sort_type: Option<HomePageLinkSortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -112,6 +134,7 @@ pub struct GetAllHomePageLinksQuery {
 pub struct GetAllTechnologiesQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
+    pub sort_type: Option<TechnologySortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -119,6 +142,7 @@ pub struct GetAllTechnologiesQuery {
 pub struct GetAllCategoriesQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
+    pub sort_type: Option<CategorySortType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -126,4 +150,5 @@ pub struct GetAllCategoriesQuery {
 pub struct GetAllChangePasswordTokensQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
+    pub sort_type: Option<ChangePasswordTokenSortType>,
 }

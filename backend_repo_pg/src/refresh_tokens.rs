@@ -1,12 +1,10 @@
-use crate::errors::PgRepoError;
 use crate::models::{db_models, domain};
 use crate::schema::refresh_tokens;
 use crate::{
-    change_sets::UpdateRefreshToken,
-    filters::GetAllRefreshTokensFilter,
-    insertables::NewRefreshToken,
-    options::{PaginationOptions, RefreshTokenSort},
+    change_sets::UpdateRefreshToken, filters::GetAllRefreshTokensFilter,
+    insertables::NewRefreshToken, options::PaginationOptions,
 };
+use crate::{errors::PgRepoError, options::RefreshTokenSortType};
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
 use r2d2::Pool;
@@ -101,10 +99,10 @@ impl RefreshTokenRepo {
     pub async fn find(
         &self,
         filter: GetAllRefreshTokensFilter,
-        sort: RefreshTokenSort,
+        sort: Option<RefreshTokenSortType>,
         pagination: PaginationOptions,
     ) -> Result<Vec<domain::RefreshToken>, PgRepoError> {
-        use crate::schema::refresh_tokens::dsl::{id, refresh_tokens};
+        use crate::schema::refresh_tokens::dsl::refresh_tokens;
         let q = refresh_tokens
             .select(refresh_tokens::all_columns())
             .into_boxed();

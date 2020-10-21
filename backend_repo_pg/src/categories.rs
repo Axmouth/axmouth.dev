@@ -1,7 +1,7 @@
 use crate::errors::PgRepoError;
 use crate::filters::GetAllCategoriesFilter;
 use crate::models::{db_models, domain};
-use crate::options::{CategorySort, PaginationOptions};
+use crate::options::{CategorySortType, PaginationOptions};
 use crate::schema::categories;
 use crate::{change_sets::UpdateCategory, insertables::NewCategory};
 use diesel::prelude::*;
@@ -61,10 +61,10 @@ impl CategoryRepo {
     pub async fn find(
         &self,
         filter: GetAllCategoriesFilter,
-        sort: CategorySort,
+        sort: Option<CategorySortType>,
         pagination: PaginationOptions,
     ) -> Result<(Vec<domain::Category>, i64), PgRepoError> {
-        use crate::schema::categories::dsl::{categories, id as link_id};
+        use crate::schema::categories::dsl::categories;
         let q = categories
             .select((
                 categories::all_columns(),

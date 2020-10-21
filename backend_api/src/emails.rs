@@ -11,7 +11,6 @@ use lettre::{
 use native_tls::{Protocol, TlsConnector};
 use std::{env, error::Error};
 use tokio::task::block_in_place;
-use warp::{hyper::StatusCode, reject};
 
 #[derive(Debug, Clone)]
 pub struct EmailSender {

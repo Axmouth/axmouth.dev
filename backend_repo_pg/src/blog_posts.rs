@@ -1,12 +1,12 @@
-use crate::errors::PgRepoError;
 use crate::filters::GetAllBlogPostsFilter;
 use crate::models::{db_models, domain};
-use crate::options::{BlogPostSort, PaginationOptions};
+use crate::options::PaginationOptions;
 use crate::schema::{blog_posts, blog_posts_categories, categories};
 use crate::{
-    change_sets::{UpdateBlogPost, UpdateBlogPostCategory, UpdateCategory},
+    change_sets::UpdateBlogPost,
     insertables::{NewBlogPost, NewBlogPostCategory, NewCategory},
 };
+use crate::{errors::PgRepoError, options::BlogPostSortType};
 use diesel::pg::upsert::*;
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
@@ -192,7 +192,7 @@ impl BlogPostRepo {
     pub async fn find(
         &self,
         filter: GetAllBlogPostsFilter,
-        sort: BlogPostSort,
+        sort: Option<BlogPostSortType>,
         pagination: PaginationOptions,
     ) -> Result<(Vec<domain::BlogPost>, i64), PgRepoError> {
         use crate::schema::blog_posts::dsl::{
@@ -262,13 +262,22 @@ impl BlogPostRepo {
         } else {
             q
         };
+        let q = if let Some(sort_type) = sort {
+            match sort_type {
+                BlogPostSortType::CreatedAtAsc => q.order(blog_posts::created_at.asc()),
+                BlogPostSortType::CreatedAtDesc => q.order(blog_posts::created_at.desc()),
+                BlogPostSortType::TitleAsc => q.order(blog_posts::title.asc()),
+                BlogPostSortType::TitleDesc => q.order(blog_posts::title.desc()),
+            }
+        } else {
+            q
+        };
 
         let q = if let (Some(page), Some(page_size)) = (pagination.page, pagination.page_size) {
             q.offset((page - 1) * page_size).limit(page_size)
         } else {
             q
         };
-        let q = q.order(blog_posts::created_at.desc());
 
         let conn = self.pool.get()?;
         let post_results: Vec<(

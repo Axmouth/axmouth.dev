@@ -2,7 +2,7 @@ use crate::errors::PgRepoError;
 use crate::filters::GetAllAdminLogsFilter;
 use crate::insertables::NewAdminLog;
 use crate::models::{db_models, domain};
-use crate::options::{AdminLogSort, PaginationOptions};
+use crate::options::{AdminLogSortType, PaginationOptions};
 use crate::schema::admin_logs;
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
@@ -53,10 +53,10 @@ impl AdminLogRepo {
     pub async fn find(
         &self,
         filter: GetAllAdminLogsFilter,
-        sort: AdminLogSort,
+        sort: Option<AdminLogSortType>,
         pagination: PaginationOptions,
     ) -> Result<Vec<domain::AdminLog>, PgRepoError> {
-        use crate::schema::admin_logs::dsl::{admin_logs, id};
+        use crate::schema::admin_logs::dsl::admin_logs;
         let q = admin_logs.select(admin_logs::all_columns()).into_boxed();
 
         let q = if let (Some(page), Some(page_size)) = (pagination.page, pagination.page_size) {

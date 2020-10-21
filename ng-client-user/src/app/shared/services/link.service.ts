@@ -21,13 +21,13 @@ export class LinkService implements OnDestroy {
 
   getLink(id: string): Observable<Response<HomePageLink>> {
     return this.apiService
-      .get<Response<HomePageLink>>(LinkService.url, id, {}, true)
+      .get<Response<HomePageLink>>(LinkService.url, id, {}, true, false)
       .pipe(takeUntil(this.ngUnsubscribe));
   }
 
   getAllLinks(page?: number, pageSize?: number): Observable<Response<HomePageLink[]>> {
     return this.apiService
-      .getAll<Response<HomePageLink[]>>(LinkService.url, { page, pageSize }, true)
+      .getAll<Response<HomePageLink[]>>(LinkService.url, { page, pageSize }, true, false)
       .pipe(takeUntil(this.ngUnsubscribe));
   }
 

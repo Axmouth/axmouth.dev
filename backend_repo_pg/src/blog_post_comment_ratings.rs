@@ -1,7 +1,7 @@
 use crate::errors::PgRepoError;
 use crate::filters::GetAllBlogPostCommentRatingsFilter;
 use crate::models::{db_models, domain};
-use crate::options::{BlogPostCommentRatingSort, PaginationOptions};
+use crate::options::{BlogPostCommentRatingSortType, PaginationOptions};
 use crate::schema::blog_post_comment_ratings;
 use crate::{change_sets::UpdateBlogPostCommentRating, insertables::NewBlogPostCommentRating};
 use diesel::prelude::*;
@@ -72,10 +72,10 @@ impl BlogPostCommentRatingRepo {
     pub async fn find(
         &self,
         filter: GetAllBlogPostCommentRatingsFilter,
-        sort: BlogPostCommentRatingSort,
+        sort: Option<BlogPostCommentRatingSortType>,
         pagination: PaginationOptions,
     ) -> Result<Vec<domain::BlogPostCommentRating>, PgRepoError> {
-        use crate::schema::blog_post_comment_ratings::dsl::{blog_post_comment_ratings, id};
+        use crate::schema::blog_post_comment_ratings::dsl::blog_post_comment_ratings;
         let q = blog_post_comment_ratings
             .select(blog_post_comment_ratings::all_columns())
             .into_boxed();

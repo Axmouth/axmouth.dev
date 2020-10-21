@@ -16,12 +16,12 @@ export class TextBodyService implements OnDestroy {
   constructor(private apiService: RestApiService) {}
 
   getTextBody(slug: string): Observable<Response<TextBody>> {
-    return this.apiService.get<Response<TextBody>>(this.url, slug, {}).pipe(takeUntil(this.ngUnsubscribe));
+    return this.apiService.get<Response<TextBody>>(this.url, slug, {}, true, false).pipe(takeUntil(this.ngUnsubscribe));
   }
 
   getAllTextBodies(page?: number, pageSize?: number): Observable<Response<TextBody[]>> {
     return this.apiService
-      .getAll<Response<TextBody[]>>(this.url, { page, pageSize }, true)
+      .getAll<Response<TextBody[]>>(this.url, { page, pageSize }, true, false)
       .pipe(takeUntil(this.ngUnsubscribe));
   }
 

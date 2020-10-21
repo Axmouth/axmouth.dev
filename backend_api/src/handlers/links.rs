@@ -7,9 +7,7 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::options::{
-    HomePageLinkSort, HomePageLinkSortType, PaginationOptions, SortOrder,
-};
+use backend_repo_pg::options::PaginationOptions;
 use backend_repo_pg::{
     change_sets::UpdateHomePageLink,
     filters::GetAllHomePageLinksFilter,
@@ -19,7 +17,6 @@ use backend_repo_pg::{
         requests::{CreateHomePageLinkRequest, UpdateHomePageLinkRequest},
     },
 };
-use chrono::Utc;
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
     let link_result = match state.repository.link_repository.find_one(id).await {
@@ -46,10 +43,7 @@ pub async fn get_all(
         .link_repository
         .find(
             filter,
-            HomePageLinkSort {
-                order: None,
-                sort_type: None,
-            },
+            query.sort_type,
             PaginationOptions {
                 page: query.page,
                 page_size: query.page_size,

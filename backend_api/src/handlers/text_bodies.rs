@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::options::{PaginationOptions, SortOrder, TextBodySort, TextBodySortType};
+use backend_repo_pg::options::PaginationOptions;
 use backend_repo_pg::{
     change_sets::UpdateTextBody,
     filters::GetAllTextBodiesFilter,
@@ -49,10 +49,7 @@ pub async fn get_all(
         .text_body_repository
         .find(
             filter,
-            TextBodySort {
-                order: None,
-                sort_type: None,
-            },
+            query.sort_type,
             PaginationOptions {
                 page: query.page,
                 page_size: query.page_size,

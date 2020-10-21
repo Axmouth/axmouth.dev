@@ -2,7 +2,7 @@ use crate::errors::PgRepoError;
 use crate::filters::GetAllPageViewsFilter;
 use crate::insertables::NewPageView;
 use crate::models::{db_models, domain};
-use crate::options::{PageViewSort, PaginationOptions};
+use crate::options::{PageViewSortType, PaginationOptions};
 use crate::schema::page_views;
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
@@ -53,10 +53,10 @@ impl PageViewRepo {
     pub async fn find(
         &self,
         filter: GetAllPageViewsFilter,
-        sort: PageViewSort,
+        sort: Option<PageViewSortType>,
         pagination: PaginationOptions,
     ) -> Result<Vec<domain::PageView>, PgRepoError> {
-        use crate::schema::page_views::dsl::{id, page_views};
+        use crate::schema::page_views::dsl::page_views;
         let q = page_views.select(page_views::all_columns()).into_boxed();
 
         let q = if let (Some(page), Some(page_size)) = (pagination.page, pagination.page_size) {

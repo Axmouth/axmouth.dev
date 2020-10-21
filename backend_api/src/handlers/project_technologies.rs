@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::options::{PaginationOptions, SortOrder, TechnologySort, TechnologySortType};
+use backend_repo_pg::options::PaginationOptions;
 use backend_repo_pg::{
     change_sets::UpdateTechnology,
     filters::GetAllTechnologiesFilter,
@@ -17,7 +17,6 @@ use backend_repo_pg::{
         requests::{CreateTechnologyRequest, UpdateTechnologyRequest},
     },
 };
-use chrono::Utc;
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
     let technology_result = match state.repository.technology_repository.find_one(id).await {
@@ -44,10 +43,7 @@ pub async fn get_all(
         .technology_repository
         .find(
             filter,
-            TechnologySort {
-                order: None,
-                sort_type: None,
-            },
+            query.sort_type,
             PaginationOptions {
                 page: query.page,
                 page_size: query.page_size,

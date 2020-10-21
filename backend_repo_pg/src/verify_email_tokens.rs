@@ -1,7 +1,7 @@
 use crate::errors::PgRepoError;
 use crate::filters::GetAllVerifyEmailTokensFilter;
 use crate::models::{db_models, domain};
-use crate::options::{PaginationOptions, VerifyEmailTokenSort};
+use crate::options::{PaginationOptions, VerifyEmailTokenSortType};
 use crate::schema::verify_email_tokens;
 use crate::{change_sets::UpdateVerifyEmailToken, insertables::NewVerifyEmailToken};
 use diesel::prelude::*;
@@ -87,10 +87,10 @@ impl VerifyEmailTokenRepo {
     pub async fn find(
         &self,
         filter: GetAllVerifyEmailTokensFilter,
-        sort: VerifyEmailTokenSort,
+        sort: Option<VerifyEmailTokenSortType>,
         pagination: PaginationOptions,
     ) -> Result<Vec<domain::VerifyEmailToken>, PgRepoError> {
-        use crate::schema::verify_email_tokens::dsl::{id, verify_email_tokens};
+        use crate::schema::verify_email_tokens::dsl::verify_email_tokens;
         let q = verify_email_tokens
             .select(verify_email_tokens::all_columns())
             .into_boxed();

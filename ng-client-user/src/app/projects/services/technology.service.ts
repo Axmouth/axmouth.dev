@@ -16,12 +16,14 @@ export class TechnologyService implements OnDestroy {
   constructor(private apiService: RestApiService) {}
 
   getTechnology(id: string): Observable<Response<ProjectTechnology>> {
-    return this.apiService.get<Response<ProjectTechnology>>(this.url, id, {}).pipe(takeUntil(this.ngUnsubscribe));
+    return this.apiService
+      .get<Response<ProjectTechnology>>(this.url, id, {}, true, false)
+      .pipe(takeUntil(this.ngUnsubscribe));
   }
 
   getAllTechnologies(page?: number, pageSize?: number): Observable<Response<ProjectTechnology[]>> {
     return this.apiService
-      .getAll<Response<ProjectTechnology[]>>(this.url, { page, pageSize })
+      .getAll<Response<ProjectTechnology[]>>(this.url, { page, pageSize }, true, false)
       .pipe(takeUntil(this.ngUnsubscribe));
   }
 

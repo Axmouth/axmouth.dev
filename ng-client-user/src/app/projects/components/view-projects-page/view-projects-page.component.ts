@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 import { ProjectService } from '../../services/project.service';
 import { Project } from '../../../models/api/project';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -19,24 +19,31 @@ export class ViewProjectsPageComponent implements OnInit, OnDestroy {
   resultNumber = 0;
   page: number;
   pageSize: number;
+  sortType: string;
   loading = true;
 
   constructor(
-    private projectService: ProjectService,
+    private router: Router,
     private route: ActivatedRoute,
+    private projectService: ProjectService,
     private title: Title,
     private meta: Meta,
     @Inject(DOCUMENT) private doc: Document,
   ) {}
 
   ngOnInit(): void {
-    this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe((params) => {
+    this.route.queryParams.pipe(takeUntil(this.ngUnsubscribe)).subscribe((params) => {
       if (isNaN(+params.page) === false) {
-        this.page = +params.page;
+        this.page = +params.page ?? 1;
+      } else {
+        this.page = 1;
       }
       if (isNaN(+params.pageSize) === false) {
-        this.pageSize = +params.pageSize;
+        this.pageSize = +params.pageSize ?? 5;
+      } else {
+        this.pageSize = 5;
       }
+      this.sortType = params.sortType ?? 'CreatedAtDesc';
       this.initialiseState(); // reset and set based on new parameter this time
     });
   }
@@ -45,7 +52,7 @@ export class ViewProjectsPageComponent implements OnInit, OnDestroy {
     this.title.setTitle(`Loading Projects | Axmouth's Website`);
     this.loading = true;
     this.projectService
-      .getAllProjects(this.page, this.pageSize)
+      .getAllProjects({ page: this.page, pageSize: this.pageSize, sortType: this.sortType })
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe((result) => {
         this.projectsList = result.data;
@@ -64,6 +71,14 @@ export class ViewProjectsPageComponent implements OnInit, OnDestroy {
         });
         this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
       });
+  }
+
+  onPageChange(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: this.page, pageSize: this.pageSize, sortType: this.sortType },
+      queryParamsHandling: 'merge',
+    });
   }
 
   ngOnDestroy(): void {

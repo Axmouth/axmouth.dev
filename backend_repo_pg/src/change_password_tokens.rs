@@ -1,7 +1,7 @@
 use crate::errors::PgRepoError;
 use crate::filters::GetAllChangePasswordTokensFilter;
 use crate::models::{db_models, domain};
-use crate::options::{ChangePasswordTokenSort, PaginationOptions};
+use crate::options::{ChangePasswordTokenSortType, PaginationOptions};
 use crate::schema::change_password_tokens;
 use crate::{change_sets::UpdateChangePasswordToken, insertables::NewChangePasswordToken};
 use diesel::prelude::*;
@@ -88,10 +88,10 @@ impl ChangePasswordTokenRepo {
     pub async fn find(
         &self,
         filter: GetAllChangePasswordTokensFilter,
-        sort: ChangePasswordTokenSort,
+        sort: Option<ChangePasswordTokenSortType>,
         pagination: PaginationOptions,
     ) -> Result<Vec<domain::ChangePasswordToken>, PgRepoError> {
-        use crate::schema::change_password_tokens::dsl::{change_password_tokens, id};
+        use crate::schema::change_password_tokens::dsl::change_password_tokens;
         let q = change_password_tokens
             .select(change_password_tokens::all_columns())
             .into_boxed();

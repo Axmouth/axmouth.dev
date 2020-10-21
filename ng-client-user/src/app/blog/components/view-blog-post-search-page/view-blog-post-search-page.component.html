@@ -1,4 +1,35 @@
 <h1>Blog Search : {{ searchQuery }}</h1>
-<h5>{{ resultNumber }} Entries</h5>
+<h5>Showing {{ blogPostsList.length }} out of {{ resultNumber }} Entries</h5>
 <hr />
 <app-blog-post-preview [post]="post" *ngFor="let post of blogPostsList"></app-blog-post-preview>
+
+<div class="row">
+  <div class="ml-3 col-md-12">
+    <ngb-pagination
+      [collectionSize]="resultNumber"
+      [(page)]="page"
+      [boundaryLinks]="false"
+      [maxSize]="4"
+      [pageSize]="pageSize"
+      (pageChange)="onPageChange()"
+      class=""
+    ></ngb-pagination>
+  </div>
+  <div class="col-md-4">
+    <label for="page-size">Items / Page: &nbsp;</label>
+    <select id="page-size" class="custom-select col-md-6 col-6" (change)="onPageChange()" [(ngModel)]="pageSize">
+      <option value="5">5</option>
+      <option value="10">10</option>
+      <option value="25">25</option>
+    </select>
+  </div>
+  <div class="col-md-4">
+    <label for="sort-type">Sort Items: &nbsp;</label>
+    <select id="sort-type" class="custom-select col-md-6 col-6" (change)="onPageChange()" [(ngModel)]="sortType">
+      <option value="CreatedAtDesc">Date Added, Recent to Old</option>
+      <option value="CreatedAtAsc">Date Added, Old to Recent</option>
+      <option value="TitleAsc">Title, A to Z</option>
+      <option value="TitleDesc">Title, Z to A</option>
+    </select>
+  </div>
+</div>

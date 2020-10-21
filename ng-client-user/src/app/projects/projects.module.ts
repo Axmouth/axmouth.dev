@@ -11,6 +11,8 @@ import { ProjectPreviewComponent } from './components/project-preview/project-pr
 import { ViewProjectsTechnologyPageComponent } from './components/view-projects-technology-page/view-projects-technology-page.component';
 import { ProjectService } from './services/project.service';
 import { TechnologyService } from './services/technology.service';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -21,7 +23,7 @@ import { TechnologyService } from './services/technology.service';
     ProjectPreviewComponent,
     ViewProjectsTechnologyPageComponent,
   ],
-  imports: [CommonModule, ProjectsRoutingModule, SharedModule],
+  imports: [CommonModule, ProjectsRoutingModule, SharedModule, NgbModule, FormsModule],
   providers: [ProjectService, TechnologyService],
 })
 export class ProjectsModule {}

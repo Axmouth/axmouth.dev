@@ -22,6 +22,7 @@ import { CommentPostedComponent } from './components/comment-posted/comment-post
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommentPostedPageComponent } from './components/comment-posted-page/comment-posted-page.component';
 import { CommentPreviewPageComponent } from './components/comment-preview-page/comment-preview-page.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
@@ -42,7 +43,7 @@ import { CommentPreviewPageComponent } from './components/comment-preview-page/c
     CommentPostedPageComponent,
     CommentPreviewPageComponent,
   ],
-  imports: [CommonModule, BlogRoutingModule, SharedModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, BlogRoutingModule, SharedModule, ReactiveFormsModule, FormsModule, NgbModule],
   providers: [BlogPostService, BlogPostCommentService],
 })
 export class BlogModule {}

@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { BlogPostService } from '../../services/blog-post.service';
 import { BlogPost } from 'src/app/models/api/blog-post';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -20,25 +20,34 @@ export class ViewBlogPostsPageComponent implements OnInit, OnDestroy {
   blogPostsList: BlogPost[] = [];
   page: number;
   pageSize: number;
+  sortType: string;
   loading = true;
 
   constructor(
-    private blogPostService: BlogPostService,
+    private router: Router,
     private route: ActivatedRoute,
+    private blogPostService: BlogPostService,
     private title: Title,
     private meta: Meta,
     @Inject(DOCUMENT) private doc: Document,
   ) {}
 
   ngOnInit(): void {
-    this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe((params) => {
-      if (isNaN(+params.page) === false) {
-        this.page = +params.page;
+    this.route.queryParams.pipe(takeUntil(this.ngUnsubscribe)).subscribe((qParams) => {
+      if (isNaN(+qParams.page) === false) {
+        this.page = +qParams.page ?? 1;
+      } else {
+        this.page = 1;
       }
-      if (isNaN(+params.pageSize) === false) {
-        this.pageSize = +params.pageSize;
+      if (isNaN(+qParams.pageSize) === false) {
+        this.pageSize = +qParams.pageSize ?? 5;
+      } else {
+        this.pageSize = 5;
       }
-      this.initialiseState(); // reset and set based on new parameter this time
+      console.log(this.page);
+      console.log(this.page);
+      this.sortType = qParams.sortType ?? 'CreatedAtDesc';
+      this.initialiseState();
     });
   }
 
@@ -46,7 +55,7 @@ export class ViewBlogPostsPageComponent implements OnInit, OnDestroy {
     this.title.setTitle(`Loading Blog Posts | Axmouth's Website`);
     this.loading = true;
     this.blogPostService
-      .getAllPosts(this.page, this.pageSize)
+      .getAllPosts({ page: this.page, pageSize: this.pageSize, sortType: this.sortType })
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe((result) => {
         this.blogPostsList = result.data;
@@ -65,6 +74,14 @@ export class ViewBlogPostsPageComponent implements OnInit, OnDestroy {
         });
         this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
       });
+  }
+
+  onPageChange(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: this.page, pageSize: this.pageSize, sortType: this.sortType },
+      queryParamsHandling: 'merge',
+    });
   }
 
   ngOnDestroy(): void {

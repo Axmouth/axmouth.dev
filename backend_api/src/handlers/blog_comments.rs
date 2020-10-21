@@ -7,7 +7,7 @@ use crate::{
         unauthorized_response,
     },
 };
-use backend_repo_pg::options::{BlogPostCommentSort, PaginationOptions};
+use backend_repo_pg::options::PaginationOptions;
 use backend_repo_pg::{
     change_sets::UpdateBlogPostComment,
     filters::GetAllBlogPostCommentsFilter,
@@ -44,10 +44,7 @@ pub async fn get_all(
         .blog_comment_repository
         .find(
             filter,
-            BlogPostCommentSort {
-                sort_type: None,
-                order: None,
-            },
+            query.sort_type,
             PaginationOptions {
                 page: query.page,
                 page_size: query.page_size,

@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::options::{BlogPostSort, PaginationOptions};
+use backend_repo_pg::options::{BlogPostSortType, PaginationOptions};
 use backend_repo_pg::{
     change_sets::UpdateBlogPost,
     filters::GetAllBlogPostsFilter,
@@ -56,15 +56,13 @@ pub async fn get_all(
     } else {
         filter.published = Some(true);
     }
+    println!("{:#?}", query);
     let (posts_list, total_results) = match state
         .repository
         .blog_post_repository
         .find(
             filter,
-            BlogPostSort {
-                sort_type: None,
-                order: None,
-            },
+            query.sort_type,
             PaginationOptions {
                 page: query.page,
                 page_size: query.page_size,

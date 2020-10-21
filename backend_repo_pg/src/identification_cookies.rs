@@ -2,7 +2,7 @@ use crate::errors::PgRepoError;
 use crate::filters::GetAllIdentificationCookiesFilter;
 use crate::insertables::NewIdentificationCookie;
 use crate::models::{db_models, domain};
-use crate::options::{IdentificationCookieSort, PaginationOptions};
+use crate::options::{IdentificationCookieSortType, PaginationOptions};
 use crate::schema::identification_cookies;
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
@@ -56,10 +56,10 @@ impl IdentificationCookieRepo {
     pub async fn find(
         &self,
         filter: GetAllIdentificationCookiesFilter,
-        sort: IdentificationCookieSort,
+        sort: Option<IdentificationCookieSortType>,
         pagination: PaginationOptions,
     ) -> Result<Vec<domain::IdentificationCookie>, PgRepoError> {
-        use crate::schema::identification_cookies::dsl::{id, identification_cookies};
+        use crate::schema::identification_cookies::dsl::identification_cookies;
         let q = identification_cookies
             .select(identification_cookies::all_columns())
             .into_boxed();

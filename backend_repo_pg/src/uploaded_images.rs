@@ -2,7 +2,7 @@ use crate::errors::PgRepoError;
 use crate::filters::GetAllUploadedImagesFilter;
 use crate::insertables::NewUploadedImage;
 use crate::models::{db_models, domain};
-use crate::options::{PaginationOptions, UploadedImageSort};
+use crate::options::{PaginationOptions, UploadedImageSortType};
 use crate::schema::uploaded_images;
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
@@ -56,10 +56,10 @@ impl UploadedImageRepo {
     pub async fn find(
         &self,
         filter: GetAllUploadedImagesFilter,
-        sort: UploadedImageSort,
+        sort: Option<UploadedImageSortType>,
         pagination: PaginationOptions,
     ) -> Result<Vec<domain::UploadedImage>, PgRepoError> {
-        use crate::schema::uploaded_images::dsl::{id, uploaded_images};
+        use crate::schema::uploaded_images::dsl::uploaded_images;
         let q = uploaded_images
             .select(uploaded_images::all_columns())
             .into_boxed();

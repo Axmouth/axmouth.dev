@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 import { Project } from 'src/app/models/api/project';
 import { ProjectService } from '../../services/project.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -20,11 +20,13 @@ export class ViewProjectsTechnologyPageComponent implements OnInit, OnDestroy {
   resultNumber = 0;
   page: number;
   pageSize: number;
+  sortType: string;
   loading = true;
 
   constructor(
-    private projectService: ProjectService,
+    private router: Router,
     private route: ActivatedRoute,
+    private projectService: ProjectService,
     private title: Title,
     private meta: Meta,
     @Inject(DOCUMENT) private doc: Document,
@@ -33,13 +35,20 @@ export class ViewProjectsTechnologyPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe((params) => {
       this.technologyName = params.technologyName;
-      if (isNaN(+params.page) === false) {
-        this.page = +params.page;
-      }
-      if (isNaN(+params.pageSize) === false) {
-        this.pageSize = +params.pageSize;
-      }
-      this.initialiseState(); // reset and set based on new parameter this time
+      this.route.queryParams.pipe(takeUntil(this.ngUnsubscribe)).subscribe((qParams) => {
+        if (isNaN(+qParams.page) === false) {
+          this.page = +qParams.page ?? 1;
+        } else {
+          this.page = 1;
+        }
+        if (isNaN(+qParams.pageSize) === false) {
+          this.pageSize = +qParams.pageSize ?? 5;
+        } else {
+          this.pageSize = 5;
+        }
+        this.sortType = qParams.sortType;
+        this.initialiseState();
+      });
     });
   }
 
@@ -47,7 +56,12 @@ export class ViewProjectsTechnologyPageComponent implements OnInit, OnDestroy {
     this.title.setTitle(`Loading Projects | Axmouth's Website`);
     this.loading = true;
     this.projectService
-      .getAllProjectsByTechnology(this.technologyName, this.page, this.pageSize)
+      .getAllProjects({
+        page: this.page,
+        pageSize: this.pageSize,
+        sortType: this.sortType,
+        technologyName: this.technologyName,
+      })
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe((result) => {
         this.projectsList = result.data;
@@ -66,6 +80,14 @@ export class ViewProjectsTechnologyPageComponent implements OnInit, OnDestroy {
         });
         this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
       });
+  }
+
+  onPageChange(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: this.page, pageSize: this.pageSize, sortType: this.sortType },
+      queryParamsHandling: 'merge',
+    });
   }
 
   ngOnDestroy(): void {
