@@ -4,6 +4,8 @@ extern crate diesel;
 extern crate validator_derive;
 #[macro_use]
 extern crate diesel_migrations;
+#[macro_use]
+extern crate lazy_static;
 extern crate validator;
 
 pub mod admin_logs;

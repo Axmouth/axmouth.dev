@@ -1,12 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
-pub enum SortOrder {
-    ASC,
-    DESC,
-}
-
-#[derive(Deserialize, Serialize, Debug, Clone)]
 pub enum BlogPostCommentSortType {
     CreatedAtAsc,
     CreatedAtDesc,

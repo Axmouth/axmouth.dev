@@ -46,7 +46,7 @@ export class ViewProjectsTechnologyPageComponent implements OnInit, OnDestroy {
         } else {
           this.pageSize = 5;
         }
-        this.sortType = qParams.sortType;
+        this.sortType = qParams.sortType ?? 'CreatedAtDesc';
         this.initialiseState();
       });
     });

@@ -75,6 +75,24 @@ impl UserRepo {
         Ok(Some(user))
     }
 
+    pub async fn find_one_by_display_name(
+        &self,
+        display_name_value: String,
+    ) -> Result<Option<db_models::User>, PgRepoError> {
+        use crate::schema::users::dsl::{display_name, users};
+
+        let conn = self.pool.get()?;
+        let query = users
+            .filter(display_name.eq(display_name_value))
+            .select(users::all_columns());
+        let user: db_models::User =
+            match tokio::task::block_in_place(move || query.first(&conn).optional())? {
+                Some(value) => value,
+                None => return Ok(None),
+            };
+        Ok(Some(user))
+    }
+
     pub async fn find(
         &self,
         filter: GetAllUsersFilter,

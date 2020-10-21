@@ -4,7 +4,7 @@ use crate::{
     errors::ExpiredAuthentication,
 };
 use serde::de::DeserializeOwned;
-use validator::{Validate, ValidationError, ValidationErrors};
+use validator::{Validate, ValidationErrors};
 use warp::{reject, Filter};
 
 #[derive(Debug, Clone)]
@@ -46,8 +46,8 @@ impl RequestValidationFailure {
 fn validation_errors_to_msg(errors: ValidationErrors) -> String {
     let mut error_msg = String::from("");
     for (field, error_kinds) in errors.clone().into_errors() {
-        let msg = format!("Error on field `{}`", field);
-        error_msg.push_str(msg.as_str());
+        let mut msg_init = format!("Error on field `{}`", field);
+        // error_msg.push_str(msg.as_str());
         match error_kinds {
             validator::ValidationErrorsKind::Struct(errors) => {
                 let inner_msg = validation_errors_to_msg(*errors);
@@ -55,9 +55,9 @@ fn validation_errors_to_msg(errors: ValidationErrors) -> String {
             }
             validator::ValidationErrorsKind::List(errors_map) => {
                 for (i, errors) in errors_map {
-                    error_msg.push_str(format!(" list element {}", i).as_str());
-                    let inner_msg = validation_errors_to_msg(*errors);
-                    error_msg.push_str(inner_msg.as_str());
+                    msg_init.push_str(format!(" list element {}", i).as_str());
+                    let msg_init = validation_errors_to_msg(*errors);
+                    error_msg.push_str(msg_init.as_str());
                 }
             }
             validator::ValidationErrorsKind::Field(errors) => {
@@ -65,7 +65,8 @@ fn validation_errors_to_msg(errors: ValidationErrors) -> String {
                     let inner_msg =
                         match error.code.to_string().as_str() {
                             "length" => format!(
-                                ", invalid length with allowed range from {} to {}",
+                                "{}, invalid length with allowed range from {} to {}",
+                                msg_init,
                                 error.params.get("min").unwrap_or(
                                     &serde_json::value::Value::String("null".to_string())
                                 ),
@@ -73,8 +74,10 @@ fn validation_errors_to_msg(errors: ValidationErrors) -> String {
                                     &serde_json::value::Value::String("null".to_string())
                                 )
                             ),
-                            "email" => format!(", it was invalid as an email"),
-                            _ => format!(""),
+                            "email" => format!("{}, it was invalid as an email", msg_init),
+                            _ => error.message.map_or(format!("{}\n", msg_init), |v| {
+                                format!("{}, {}\n", msg_init, v.to_string())
+                            }),
                         };
                     error_msg.push_str(inner_msg.as_str());
                 }

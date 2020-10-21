@@ -145,6 +145,40 @@ pub async fn register(
     request: RegisterRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
+    match state
+        .repository
+        .user_repository
+        .find_one_by_email(request.email.clone())
+        .await
+    {
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
+        Ok(Some(_)) => {
+            return Ok(simple_error_response(
+                String::from("This E-Mail Address is already in use"),
+                StatusCode::CONFLICT,
+            ));
+        }
+        Ok(None) => {}
+    }
+    match state
+        .repository
+        .user_repository
+        .find_one_by_display_name(request.display_name.clone())
+        .await
+    {
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
+        Ok(Some(_)) => {
+            return Ok(simple_error_response(
+                String::from("This Display Name is already in use"),
+                StatusCode::CONFLICT,
+            ));
+        }
+        Ok(None) => {}
+    }
     let new_user = NewUser {
         email: request.email.clone(),
         display_name: request.display_name.clone(),

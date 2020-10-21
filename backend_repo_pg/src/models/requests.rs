@@ -1,4 +1,16 @@
+use regex::Regex;
 use serde::{Deserialize, Serialize};
+
+lazy_static! {
+    static ref HAS_UPPER_CASE: Regex = Regex::new("[A-Z]").unwrap();
+    static ref HAS_LOWER_CASE: Regex = Regex::new("[a-z]").unwrap();
+    static ref HAS_DIGIT: Regex = Regex::new("\\d").unwrap();
+    static ref HAS_SPECIAL_CHAR: Regex =
+        Regex::new("[ !@#$%^&*()_+\\-=\\[\\]{};':\"\\|,.<>/?]").unwrap();
+    static ref HAS_NO_SPECIAL_CHAR: Regex =
+        Regex::new("^[^!@#$%^&*()_+\\-=\\[\\]{};':\"\\|,.<>/?]+$").unwrap();
+    static ref HAS_NO_SPACE_PREFFIX_OR_SUFFIX: Regex = Regex::new("^[^ ]+.*[^ ]+$").unwrap();
+}
 
 #[derive(Serialize, Deserialize, Validate, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -91,10 +103,22 @@ pub struct EmailConfirmEmailRequest {
 #[derive(Serialize, Deserialize, Validate, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RegisterRequest {
+    #[validate(regex(
+        path = "HAS_NO_SPECIAL_CHAR",
+        message = "cannot have a special character"
+    ))]
+    #[validate(regex(
+        path = "HAS_NO_SPACE_PREFFIX_OR_SUFFIX",
+        message = "cannot start or end with whitespace"
+    ))]
     #[validate(length(min = 3, max = 25))]
     pub display_name: String,
     #[validate(email)]
     pub email: String,
+    #[validate(regex(path = "HAS_UPPER_CASE", message = "needs an upper case character"))]
+    #[validate(regex(path = "HAS_LOWER_CASE", message = "needs a lower case character"))]
+    #[validate(regex(path = "HAS_DIGIT", message = "lacks a numeric character"))]
+    #[validate(regex(path = "HAS_SPECIAL_CHAR", message = "lacks a special character"))]
     #[validate(length(min = 6, max = 35))]
     pub password: String,
 }

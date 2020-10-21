@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::options::{BlogPostSortType, PaginationOptions};
+use backend_repo_pg::options::PaginationOptions;
 use backend_repo_pg::{
     change_sets::UpdateBlogPost,
     filters::GetAllBlogPostsFilter,

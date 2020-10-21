@@ -425,7 +425,7 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
 
     if err.is_not_found() {
         code = StatusCode::NOT_FOUND;
-        message = "NOT_FOUND".to_string();
+        message = "Not Found".to_string();
     } else if let Some(e) = err.find::<crate::filters::RequestValidationFailure>() {
         message = e.get_err();
         code = StatusCode::BAD_REQUEST;
@@ -453,9 +453,9 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
         message = match e.source() {
             Some(cause) => {
                 if cause.to_string().contains("denom") {
-                    "FIELD_ERROR: denom".to_string()
+                    "Field Error: denom".to_string()
                 } else {
-                    format!("BAD_REQUEST: {}", e.to_string())
+                    format!("Bad Request: {}", e.to_string())
                 }
             }
             None => e.to_string(),
@@ -479,12 +479,18 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
         // We should have expected this... Just log and say its a 500
         eprintln!("unhandled rejection: {:?}", err);
         code = StatusCode::INTERNAL_SERVER_ERROR;
-        message = "UNHANDLED_REJECTION".to_string();
+        message = "Unhandles Rejection".to_string();
     }
 
     let json = warp::reply::json(&BaseResponse::<()> {
         data: None,
-        errors: Some(vec![message]),
+        errors: Some(
+            message
+                .trim()
+                .split('\n')
+                .map(|s| s.to_string())
+                .collect::<Vec<String>>(),
+        ),
         messages: None,
         pagination: None,
         success: Some(false),
