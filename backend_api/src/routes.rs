@@ -461,13 +461,16 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
             None => e.to_string(),
         };
         code = StatusCode::BAD_REQUEST;
+    } else if let Some(e) = err.find::<warp::reject::InvalidQuery>() {
+        code = StatusCode::BAD_REQUEST;
+        message = e.to_string();
     } else if let Some(e) = err.find::<warp::reject::MethodNotAllowed>() {
         // We can handle a specific error, here METHOD_NOT_ALLOWED,
         // and render it however we want
         code = StatusCode::METHOD_NOT_ALLOWED;
         message = e.to_string();
-    } else if let Some(e) = err.find::<warp::reject::InvalidQuery>() {
-        code = StatusCode::BAD_REQUEST;
+    } else if let Some(e) = err.find::<warp::reject::PayloadTooLarge>() {
+        code = StatusCode::PAYLOAD_TOO_LARGE;
         message = e.to_string();
     } else if let Some(e) = err.find::<warp::reject::MissingCookie>() {
         code = StatusCode::BAD_REQUEST;
