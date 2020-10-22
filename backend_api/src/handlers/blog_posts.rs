@@ -56,7 +56,6 @@ pub async fn get_all(
     } else {
         filter.published = Some(true);
     }
-    println!("{:#?}", query);
     let (posts_list, total_results) = match state
         .repository
         .blog_post_repository

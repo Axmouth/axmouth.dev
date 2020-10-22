@@ -5,6 +5,8 @@ services:
     cap_add: ["NET_ADMIN", "NET_RAW"]
     # mem_limit: 8M
     restart: unless-stopped
+    networks:
+      - axmouth.dev.net
   axmouth.dev-postfix:
     image: boky/postfix
     container_name: axmouth.dev-postfix
@@ -21,6 +23,8 @@ services:
     #  - 1587:587
     volumes:
       - /host/keys:/etc/opendkim/keys
+    networks:
+      - axmouth.dev.net
 
   axmouth.dev-user-client:
     restart: unless-stopped
@@ -28,13 +32,15 @@ services:
     ports:
       - "39052:4000"
     container_name: axmouth.dev-user-client
+    networks:
+      - axmouth.dev.net
 
   axmouth.dev-backend:
     working_dir: /var/lib/axmouth/axmouth.dev/backend
     restart: unless-stopped
     tty: true
     image: ghcr.io/axmouth/axmouth.dev-backend:latest
-    container_name: axmouth.dev-backend
+    container_name: axmouth.dev.backend
     ports:
       - "39051:39051"
     env_file:
@@ -59,5 +65,10 @@ services:
       - WEBSITE_URL
     volumes:
       - axmouth.dev-files:/var/lib/axmouth/axmouth.dev/static-assets:rw
+    networks:
+      - axmouth.dev.net
 volumes:
   axmouth.dev-files:
+
+networks:
+  axmouth.dev.net:
