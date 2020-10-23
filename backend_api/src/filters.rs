@@ -65,7 +65,7 @@ fn validation_errors_to_msg(errors: ValidationErrors) -> String {
                     let inner_msg =
                         match error.code.to_string().as_str() {
                             "length" => format!(
-                                "{}, invalid length with allowed range from {} to {}",
+                                "{}, not within allowed range of {} to {}",
                                 msg_init,
                                 error.params.get("min").unwrap_or(
                                     &serde_json::value::Value::String("null".to_string())
@@ -74,7 +74,8 @@ fn validation_errors_to_msg(errors: ValidationErrors) -> String {
                                     &serde_json::value::Value::String("null".to_string())
                                 )
                             ),
-                            "email" => format!("{}, it was invalid as an email", msg_init),
+                            "email" => format!("{}, not a valid url", msg_init),
+                            "url" => format!("{}, not a valid email", msg_init),
                             _ => error.message.map_or(format!("{}\n", msg_init), |v| {
                                 format!("{}, {}\n", msg_init, v.to_string())
                             }),

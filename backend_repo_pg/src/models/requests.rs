@@ -36,6 +36,7 @@ pub struct UpdateProjectRequest {
     pub body: Option<String>,
     pub technologies: Option<Vec<String>>,
     pub description: Option<Option<String>>,
+    #[validate(url)]
     pub cover_image: Option<Option<String>>,
     pub name: Option<String>,
     pub published: Option<bool>,
@@ -67,6 +68,7 @@ pub struct CreateProjectRequest {
     pub body: String,
     pub technologies: Vec<String>,
     pub description: Option<String>,
+    #[validate(url)]
     pub cover_image: Option<String>,
     pub name: String,
 }
@@ -105,20 +107,20 @@ pub struct EmailConfirmEmailRequest {
 pub struct RegisterRequest {
     #[validate(regex(
         path = "HAS_NO_SPECIAL_CHAR",
-        message = "cannot have a special character"
+        message = "not allowed to have a special character"
     ))]
     #[validate(regex(
         path = "HAS_NO_SPACE_PREFFIX_OR_SUFFIX",
-        message = "cannot start or end with whitespace"
+        message = "not allowed to start or end with whitespace"
     ))]
     #[validate(length(min = 3, max = 25))]
     pub display_name: String,
     #[validate(email)]
     pub email: String,
-    #[validate(regex(path = "HAS_UPPER_CASE", message = "needs an upper case character"))]
-    #[validate(regex(path = "HAS_LOWER_CASE", message = "needs a lower case character"))]
-    #[validate(regex(path = "HAS_DIGIT", message = "lacks a numeric character"))]
-    #[validate(regex(path = "HAS_SPECIAL_CHAR", message = "lacks a special character"))]
+    #[validate(regex(path = "HAS_UPPER_CASE", message = "requires an upper case character"))]
+    #[validate(regex(path = "HAS_LOWER_CASE", message = "requires a lower case character"))]
+    #[validate(regex(path = "HAS_DIGIT", message = "requires a numeric character"))]
+    #[validate(regex(path = "HAS_SPECIAL_CHAR", message = "requires a special character"))]
     #[validate(length(min = 6, max = 35))]
     pub password: String,
 }
@@ -146,9 +148,9 @@ pub struct PasswordChangeRequest {
 pub struct CreateHomePageLinkRequest {
     #[validate(length(min = 1, max = 55))]
     pub name: String,
-    #[validate(length(min = 6, max = 1550))]
+    #[validate(url)]
     pub image: String,
-    #[validate(length(min = 6, max = 1550))]
+    #[validate(url)]
     pub target: String,
 }
 
@@ -157,9 +159,9 @@ pub struct CreateHomePageLinkRequest {
 pub struct UpdateHomePageLinkRequest {
     #[validate(length(min = 1, max = 55))]
     pub name: Option<String>,
-    #[validate(length(min = 6, max = 1550))]
+    #[validate(url)]
     pub image: Option<String>,
-    #[validate(length(min = 6, max = 1550))]
+    #[validate(url)]
     pub target: Option<String>,
 }
 
