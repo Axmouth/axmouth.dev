@@ -42,11 +42,44 @@ impl RequestValidationFailure {
         return error_msg;
     }
 }
+trait TitleCase {
+    fn title(&self) -> String;
+    fn untitle(&self) -> String;
+}
+
+impl TitleCase for &str {
+    fn title(&self) -> String {
+        if !self.is_ascii() || self.is_empty() {
+            return String::from(*self);
+        }
+        let (head, tail) = self.split_at(1);
+        head.to_uppercase() + tail
+    }
+
+    fn untitle(&self) -> String {
+        if !self.is_ascii() || self.is_empty() {
+            return String::from(*self);
+        }
+        let (head, tail) = self.split_at(1);
+        head.to_lowercase() + tail
+    }
+}
+
+fn camel_to_snake(snake: String) -> String {
+    snake
+        .split('_')
+        .map(|s| s.title())
+        .collect::<Vec<String>>()
+        .join("")
+        .as_str()
+        .untitle()
+        .to_string()
+}
 
 fn validation_errors_to_msg(errors: ValidationErrors) -> String {
     let mut error_msg = String::from("");
     for (field, error_kinds) in errors.clone().into_errors() {
-        let mut msg_init = format!("Error on field `{}`", field);
+        let mut msg_init = format!("Error on field `{}`", camel_to_snake(field.to_string()));
         // error_msg.push_str(msg.as_str());
         match error_kinds {
             validator::ValidationErrorsKind::Struct(errors) => {
@@ -62,9 +95,9 @@ fn validation_errors_to_msg(errors: ValidationErrors) -> String {
             }
             validator::ValidationErrorsKind::Field(errors) => {
                 for error in errors {
-                    let inner_msg =
-                        match error.code.to_string().as_str() {
-                            "length" => format!(
+                    let inner_msg = match error.code.to_string().as_str() {
+                        "length" => {
+                            format!(
                                 "{}, not within allowed range of {} to {}",
                                 msg_init,
                                 error.params.get("min").unwrap_or(
@@ -73,13 +106,21 @@ fn validation_errors_to_msg(errors: ValidationErrors) -> String {
                                 error.params.get("max").unwrap_or(
                                     &serde_json::value::Value::String("null".to_string())
                                 )
-                            ),
-                            "email" => format!("{}, not a valid url", msg_init),
-                            "url" => format!("{}, not a valid email", msg_init),
-                            _ => error.message.map_or(format!("{}\n", msg_init), |v| {
-                                format!("{}, {}\n", msg_init, v.to_string())
-                            }),
-                        };
+                            )
+                        }
+                        "email" => format!("{}, not a valid url", msg_init),
+                        "url" => format!("{}, not a valid email", msg_init),
+                        "phone" => format!("{}, not a valid phone number", msg_init),
+                        "credit_card" => format!("{}, not a valid credit card number", msg_init),
+                        "required" => format!("{}, field is required", msg_init),
+                        "required_nested" => format!("{}, field is required", msg_init),
+                        "non_control_character" => {
+                            format!("{}, requires a non control character", msg_init)
+                        }
+                        _ => error.message.map_or(format!("{}\n", msg_init), |v| {
+                            format!("{}, {}\n", msg_init, v.to_string())
+                        }),
+                    };
                     error_msg.push_str(inner_msg.as_str());
                 }
             }
@@ -182,8 +223,6 @@ pub fn auth_opt_filter(
             }
         })
 }
-
-// TODO Validate Input filter
 
 pub fn validated_json<T: Validate + DeserializeOwned + Send>(
 ) -> impl Filter<Extract = (T,), Error = warp::Rejection> + Clone {
