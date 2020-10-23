@@ -49,19 +49,19 @@ trait TitleCase {
 
 impl TitleCase for &str {
     fn title(&self) -> String {
-        if !self.is_ascii() || self.is_empty() {
-            return String::from(*self);
+        let mut c = self.chars();
+        match c.next() {
+            None => String::new(),
+            Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
         }
-        let (head, tail) = self.split_at(1);
-        head.to_uppercase() + tail
     }
 
     fn untitle(&self) -> String {
-        if !self.is_ascii() || self.is_empty() {
-            return String::from(*self);
+        let mut c = self.chars();
+        match c.next() {
+            None => String::new(),
+            Some(f) => f.to_lowercase().collect::<String>() + c.as_str(),
         }
-        let (head, tail) = self.split_at(1);
-        head.to_lowercase() + tail
     }
 }
 
