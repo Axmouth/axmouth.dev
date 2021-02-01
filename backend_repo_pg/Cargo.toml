@@ -10,16 +10,16 @@ edition = "2018"
 diesel = { version = "1.4", features = ["chrono", "postgres", "r2d2", "uuidv07", "serde_json", "uuid"] }
 diesel_migrations = "1.4"
 r2d2 = "0.8"
-tokio = { version = "0.2", features = ["rt-threaded", "time", "stream", "fs", "macros", "uds", "blocking"] }
+tokio = { version = "1.1", features = ["rt-multi-thread", "time", "fs", "macros"] }
 dotenv = "0.15"
 serde = "1"
 serde_derive = "1"
 uuid = { version = "0.8", features = ["serde", "v4"] }
-rand = "0.7"
+rand = "0.8"
 env_logger = "0.8"
 chrono = { version = "0.4", features = ["serde"] }
-validator = "0.11"
-validator_derive = "0.11"
+validator = "0.12"
+validator_derive = "0.12"
 rust-argon2 = "0.8"
 lazy_static = "1.4"
 regex = "1.4"

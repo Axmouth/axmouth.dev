@@ -20,12 +20,6 @@ impl ToString for FileUploadError {
     }
 }
 
-impl From<FileUploadError> for warp::Rejection {
-    fn from(error: FileUploadError) -> warp::Rejection {
-        reject::custom(error)
-    }
-}
-
 impl From<warp::Error> for FileUploadError {
     fn from(error: warp::Error) -> FileUploadError {
         FileUploadError {
@@ -56,11 +50,6 @@ impl ToString for EmailError {
     }
 }
 
-impl From<EmailError> for warp::Rejection {
-    fn from(error: EmailError) -> warp::Rejection {
-        reject::custom(error)
-    }
-}
 
 impl From<lettre_email::error::Error> for EmailError {
     fn from(error: lettre_email::error::Error) -> EmailError {
@@ -127,12 +116,6 @@ impl From<warp::hyper::Error> for CaptchaError {
     }
 }
 
-impl From<CaptchaError> for warp::Rejection {
-    fn from(error: CaptchaError) -> warp::Rejection {
-        reject::custom(error)
-    }
-}
-
 // EmailError
 #[derive(Debug)]
 pub struct ExpiredAuthentication {
@@ -150,11 +133,5 @@ impl reject::Reject for ExpiredAuthentication {}
 impl ToString for ExpiredAuthentication {
     fn to_string(&self) -> String {
         return self.err.clone();
-    }
-}
-
-impl From<ExpiredAuthentication> for warp::Rejection {
-    fn from(error: ExpiredAuthentication) -> warp::Rejection {
-        reject::custom(error)
     }
 }

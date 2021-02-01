@@ -101,15 +101,15 @@ fn validation_errors_to_msg(errors: ValidationErrors) -> String {
                                 "{}, not within allowed range of {} to {}",
                                 msg_init,
                                 error.params.get("min").unwrap_or(
-                                    &serde_json::value::Value::String("null".to_string())
+                                    &serde_json::value::Value::String(String::from("null"))
                                 ),
                                 error.params.get("max").unwrap_or(
-                                    &serde_json::value::Value::String("null".to_string())
+                                    &serde_json::value::Value::String(String::from("null"))
                                 )
                             )
                         }
-                        "email" => format!("{}, not a valid url", msg_init),
-                        "url" => format!("{}, not a valid email", msg_init),
+                        "email" => format!("{}, not a valid email", msg_init),
+                        "url" => format!("{}, not a valid url", msg_init),
                         "phone" => format!("{}, not a valid phone number", msg_init),
                         "credit_card" => format!("{}, not a valid credit card number", msg_init),
                         "required" => format!("{}, field is required", msg_init),

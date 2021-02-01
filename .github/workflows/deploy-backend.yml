@@ -1,6 +1,9 @@
 name: Publish Docker image of axmouth.dev Backend to GHCR then update the image version on server
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   push_to_registry_and_deploy_to_server:

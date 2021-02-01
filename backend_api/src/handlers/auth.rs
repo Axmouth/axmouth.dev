@@ -679,6 +679,7 @@ async fn create_verify_email_token(
 ) -> Result<String, PgRepoError> {
     let token = rand::thread_rng()
         .sample_iter(&Alphanumeric)
+        .map(char::from)
         .take(75)
         .collect::<String>();
 
@@ -702,6 +703,7 @@ async fn create_reset_password_token(
 ) -> Result<String, PgRepoError> {
     let token = rand::thread_rng()
         .sample_iter(&Alphanumeric)
+        .map(char::from)
         .take(75)
         .collect::<String>();
 

@@ -12,7 +12,7 @@ use bytes::BufMut;
 use chrono::Utc;
 use futures::{Stream, TryFutureExt, TryStreamExt};
 use std::{ffi::OsStr, path::Path};
-use tokio::{fs::File, io::AsyncWriteExt, prelude::AsyncWrite};
+use tokio::{fs::File, io::AsyncWriteExt};
 use warp::{hyper::StatusCode, Buf, Reply};
 use warp::{multipart, reject, Filter};
 
