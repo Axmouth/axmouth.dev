@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { HtmlFieldComponent } from './html-field.component';
 
@@ -6,7 +6,7 @@ describe('HtmlFieldComponent', () => {
   let component: HtmlFieldComponent;
   let fixture: ComponentFixture<HtmlFieldComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ HtmlFieldComponent ]
     })

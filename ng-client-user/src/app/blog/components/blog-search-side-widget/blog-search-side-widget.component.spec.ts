@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { BlogSearchSideWidgetComponent } from './blog-search-side-widget.component';
 
@@ -6,7 +6,7 @@ describe('BlogSearchSideWidgetComponent', () => {
   let component: BlogSearchSideWidgetComponent;
   let fixture: ComponentFixture<BlogSearchSideWidgetComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ BlogSearchSideWidgetComponent ]
     })

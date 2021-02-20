@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { MarkdownFieldComponent } from './markdown-field.component';
 
@@ -6,7 +6,7 @@ describe('MarkdownFieldComponent', () => {
   let component: MarkdownFieldComponent;
   let fixture: ComponentFixture<MarkdownFieldComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ MarkdownFieldComponent ]
     })

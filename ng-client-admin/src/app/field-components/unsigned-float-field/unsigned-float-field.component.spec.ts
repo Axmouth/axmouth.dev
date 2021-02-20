@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { UnsignedFloatFieldComponent } from './unsigned-float-field.component';
 
@@ -6,7 +6,7 @@ describe('UnsignedFloatFieldComponent', () => {
   let component: UnsignedFloatFieldComponent;
   let fixture: ComponentFixture<UnsignedFloatFieldComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ UnsignedFloatFieldComponent ]
     })

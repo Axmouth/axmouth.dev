@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ViewBlogPostSearchPageComponent } from './view-blog-post-search-page.component';
 
@@ -6,7 +6,7 @@ describe('ViewBlogPostSearchPageComponent', () => {
   let component: ViewBlogPostSearchPageComponent;
   let fixture: ComponentFixture<ViewBlogPostSearchPageComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ ViewBlogPostSearchPageComponent ]
     })

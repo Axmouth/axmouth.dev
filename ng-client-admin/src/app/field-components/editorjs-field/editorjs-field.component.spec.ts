@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { EditorjsFieldComponent } from './editorjs-field.component';
 
@@ -6,7 +6,7 @@ describe('EditorjsFieldComponent', () => {
   let component: EditorjsFieldComponent;
   let fixture: ComponentFixture<EditorjsFieldComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ EditorjsFieldComponent ]
     })

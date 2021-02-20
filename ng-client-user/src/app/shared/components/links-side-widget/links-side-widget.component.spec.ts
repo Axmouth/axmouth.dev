@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { LinksSideWidgetComponent } from './links-side-widget.component';
 
@@ -6,7 +6,7 @@ describe('LinksSideWidgetComponent', () => {
   let component: LinksSideWidgetComponent;
   let fixture: ComponentFixture<LinksSideWidgetComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ LinksSideWidgetComponent ]
     })

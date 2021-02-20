@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { NameListFieldComponent } from './name-list-field.component';
 
@@ -6,7 +6,7 @@ describe('NameListFieldComponent', () => {
   let component: NameListFieldComponent;
   let fixture: ComponentFixture<NameListFieldComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ NameListFieldComponent ]
     })
