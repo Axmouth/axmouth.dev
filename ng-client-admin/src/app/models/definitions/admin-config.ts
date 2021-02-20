@@ -113,6 +113,7 @@ const userModel: AdminModel = {
 const linkModel: AdminModel = {
   name: 'Links',
   idField: 'id',
+  displayField: 'name',
   endpoint: `${apiRoot}/links`,
   fields: [
     {
@@ -142,9 +143,51 @@ const linkModel: AdminModel = {
   ],
 };
 
+const textBodyModel: AdminModel = {
+  name: 'Text Bodies',
+  idField: 'id',
+  displayField: 'id',
+  endpoint: `${apiRoot}/links`,
+  fields: [
+    {
+      name: 'Title',
+      identifier: 'title',
+      type: FieldType.titleField,
+      editable: true,
+      insertable: true,
+      nullable: true,
+    },
+    {
+      name: 'Slug',
+      identifier: 'slug',
+      type: FieldType.titleField,
+      editable: true,
+      insertable: true,
+      nullable: false,
+    },
+    {
+      name: 'Body',
+      identifier: 'body',
+      type: FieldType.editorJsField,
+      editable: true,
+      insertable: true,
+      nullable: false,
+    },
+    {
+      name: 'Url used',
+      identifier: 'urlUsed',
+      type: FieldType.titleField,
+      editable: true,
+      insertable: true,
+      nullable: true,
+    },
+  ],
+};
+
 const categoryModel: AdminModel = {
   name: 'Categories',
   idField: 'id',
+  displayField: 'name',
   endpoint: `${apiRoot}/categories`,
   fields: [
     {
@@ -161,6 +204,7 @@ const categoryModel: AdminModel = {
 const projectModel: AdminModel = {
   name: 'Projects',
   idField: 'id',
+  displayField: 'name',
   endpoint: `${apiRoot}/projects`,
   fields: [
     {
@@ -217,6 +261,7 @@ const projectModel: AdminModel = {
 const technologyModel: AdminModel = {
   name: 'Technologies',
   idField: 'id',
+  displayField: 'name',
   endpoint: `${apiRoot}/technologies`,
   fields: [
     {
@@ -245,6 +290,6 @@ export const categoryList: AdminCategory[] = [
   },
   {
     name: 'Home Page',
-    models: [linkModel],
+    models: [linkModel, textBodyModel],
   },
 ];
