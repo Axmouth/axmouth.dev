@@ -145,9 +145,9 @@ const linkModel: AdminModel = {
 
 const textBodyModel: AdminModel = {
   name: 'Text Bodies',
-  idField: 'id',
-  displayField: 'id',
-  endpoint: `${apiRoot}/links`,
+  idField: 'slug',
+  displayField: 'slug',
+  endpoint: `${apiRoot}/text-bodies`,
   fields: [
     {
       name: 'Title',
