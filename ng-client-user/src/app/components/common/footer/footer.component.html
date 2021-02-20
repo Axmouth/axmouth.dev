@@ -1,0 +1,38 @@
+<div class="footer-dark">
+  <footer>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-6 col-md-3 item">
+          <h3>Pages</h3>
+          <ul>
+            <li><a href="/projects" [routerLink]="['/projects']">Projects</a></li>
+            <li><a href="/blog" [routerLink]="['/blog']">Blog Posts</a></li>
+          </ul>
+        </div>
+        <div class="col-sm-6 col-md-3 item">
+          <h3>About</h3>
+          <ul>
+            <li><a href="/contact" [routerLink]="['/contact']">Contact Me</a></li>
+            <li><a href="/auth/settings" [routerLink]="['/auth/settings']">Account</a></li>
+          </ul>
+        </div>
+        <div class="col-md-6 item text">
+          <h3>axmouth.dev</h3>
+          <p>
+            This is my website, featuring some projects, posts related to them as well as some social links and means to
+            contact me
+          </p>
+        </div>
+        <div class="col item social">
+          <a href="https://github.com/axmouth" target="_blank"><fa-icon [icon]="faGithub"></fa-icon></a>
+          <a
+            href="https://www.linkedin.com/in/giorgos-nikolopoulos-65b38a43/?lipi=urn%3Ali%3Apage%3Ad_flagship3_feed%3B%2B7qrLd9PT3CpEPt1Ns1i5Q%3D%3D"
+            target="_blank"
+            ><fa-icon [icon]="faLinkedIn"></fa-icon
+          ></a>
+        </div>
+      </div>
+      <p class="copyright">Georgios Nikolopoulos © 2019</p>
+    </div>
+  </footer>
+</div>

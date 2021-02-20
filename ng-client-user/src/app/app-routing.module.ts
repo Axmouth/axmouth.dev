@@ -7,6 +7,7 @@ const routes: Routes = [
   { path: 'blog', loadChildren: () => import('./blog/blog.module').then((m) => m.BlogModule) },
   { path: 'contact', loadChildren: () => import('./contact/contact.module').then((m) => m.ContactModule) },
   { path: 'auth', loadChildren: () => import('./auth-pages/auth-pages.module').then((m) => m.AuthPagesModule) },
+  { path: 'login', redirectTo: '/auth/login' },
   { path: '', loadChildren: () => import('./home-page/home-page.module').then((m) => m.HomePageModule) },
   { path: '**', component: NotFoundPageComponent, pathMatch: 'full' },
 ];
@@ -14,9 +15,9 @@ const routes: Routes = [
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, {
-    initialNavigation: 'enabled',
-    relativeLinkResolution: 'legacy'
-}),
+      initialNavigation: 'enabled',
+      relativeLinkResolution: 'legacy',
+    }),
   ],
   exports: [RouterModule],
 })

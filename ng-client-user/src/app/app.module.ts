@@ -14,9 +14,11 @@ import { HCaptchaDirective } from './shared/directives/h-captcha.directive';
 import { NgbModule, NgbAlertModule } from '@ng-bootstrap/ng-bootstrap';
 import { jwtWhitelist } from 'src/environments/environment';
 import { JwtInterceptor } from 'src/auth';
+import { FooterComponent } from './components/common/footer/footer.component';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [AppComponent, FooterComponent],
   imports: [
     BrowserModule.withServerTransition({ appId: 'serverApp' }),
     HttpClientModule,
@@ -54,6 +56,7 @@ import { JwtInterceptor } from 'src/auth';
       },
     }),
     NgbModule,
+    FontAwesomeModule,
   ],
   providers: [
     {
