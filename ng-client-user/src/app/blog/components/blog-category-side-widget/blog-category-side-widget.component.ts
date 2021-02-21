@@ -3,6 +3,7 @@ import { BlogPostCategoryService } from '../../services/blog-post-category.servi
 import { ActivatedRoute } from '@angular/router';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { BlogPostCategory } from 'src/app/models/api/blog-post-category';
 
 @Component({
   selector: 'app-blog-category-side-widget',
@@ -11,7 +12,7 @@ import { Subject } from 'rxjs';
 })
 export class BlogCategorySideWidgetComponent implements OnInit, OnDestroy {
   ngUnsubscribe = new Subject<void>();
-  blogCategoriesList: any[] = [];
+  blogCategoriesList: BlogPostCategory[];
   resultNumber = 0;
   page: number;
   pageSize: number;

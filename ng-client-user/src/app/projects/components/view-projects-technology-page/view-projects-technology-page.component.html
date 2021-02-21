@@ -3,10 +3,12 @@
 <ng-template #entries>
   <h5>Showing {{ projectsList.length }} out of {{ resultNumber }} Entries</h5></ng-template
 >
-<br />
-<div class="row">
+<div class="" *ngIf="projectsList; else placeholder">
   <app-project-preview *ngFor="let project of projectsList" [project]="project"></app-project-preview>
 </div>
+<ng-template #placeholder>
+  <app-project-preview-placeholder *ngFor="let i of [1, 2, 3, 4, 5]"></app-project-preview-placeholder>
+</ng-template>
 
 <div class="row">
   <div class="ml-3 col-md-12">

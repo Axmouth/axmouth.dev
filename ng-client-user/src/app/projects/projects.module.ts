@@ -13,6 +13,8 @@ import { ProjectService } from './services/project.service';
 import { TechnologyService } from './services/technology.service';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { FormsModule } from '@angular/forms';
+import { ProjectPreviewPlaceholderComponent } from './components/project-preview-placeholder/project-preview-placeholder.component';
+import { ProjectDetailsPlaceholderComponent } from './components/project-details-placeholder/project-details-placeholder.component';
 
 @NgModule({
   declarations: [
@@ -22,6 +24,8 @@ import { FormsModule } from '@angular/forms';
     ProjectsTechnologiesSideWidgetComponent,
     ProjectPreviewComponent,
     ViewProjectsTechnologyPageComponent,
+    ProjectPreviewPlaceholderComponent,
+    ProjectDetailsPlaceholderComponent,
   ],
   imports: [CommonModule, ProjectsRoutingModule, SharedModule, NgbModule, FormsModule],
   providers: [ProjectService, TechnologyService],

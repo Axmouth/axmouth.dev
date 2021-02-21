@@ -4,7 +4,15 @@
   <h5>Showing {{ blogPostsList.length }} out of {{ resultNumber }} Entries</h5></ng-template
 >
 <hr />
-<app-blog-post-preview [post]="post" *ngFor="let post of blogPostsList"></app-blog-post-preview>
+<ng-template *ngIf="blogPostsList; else placeholder">
+  <app-blog-post-preview [post]="post" *ngFor="let post of blogPostsList"></app-blog-post-preview
+></ng-template>
+<ng-template #placeholder>
+  <ul class="list-unstyled mb-0 row placeholder">
+    <li class="col-lg-12" *ngFor="let i of [1, 2, 3, 4, 5]">
+      <span class="text link"></span>
+    </li></ul
+></ng-template>
 
 <div class="row">
   <div class="ml-3 col-md-12">

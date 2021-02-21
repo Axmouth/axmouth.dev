@@ -2,12 +2,19 @@
 <div class="card my-4">
   <h5 class="card-header text-light bg-primary">Project Technologies</h5>
   <div class="card-body">
-    <ul class="list-unstyled mb-0 row">
+    <ul class="list-unstyled mb-0 row" *ngIf="projectTechnologiesList; else placeholder">
       <li class="col-lg-12" *ngFor="let technology of projectTechnologiesList">
         <a href="/projects/technology/{{ technology.name }}" routerLink="/projects/technology/{{ technology.name }}"
           >{{ technology.name }}
         </a>
       </li>
     </ul>
+    <ng-template #placeholder>
+      <ul class="list-unstyled mb-0 row placeholder">
+        <li class="col-lg-12" *ngFor="let i of [1, 2, 3, 4, 5, 6]">
+          <span class="text link"></span>
+        </li>
+      </ul>
+    </ng-template>
   </div>
 </div>

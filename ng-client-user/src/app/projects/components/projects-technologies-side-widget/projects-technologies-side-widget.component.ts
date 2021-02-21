@@ -12,7 +12,7 @@ import { TechnologyService } from '../../services/technology.service';
 })
 export class ProjectsTechnologiesSideWidgetComponent implements OnInit, OnDestroy {
   ngUnsubscribe = new Subject<void>();
-  projectTechnologiesList: ProjectTechnology[] = [];
+  projectTechnologiesList: ProjectTechnology[];
   resultNumber = 0;
   page: number;
   pageSize: number;

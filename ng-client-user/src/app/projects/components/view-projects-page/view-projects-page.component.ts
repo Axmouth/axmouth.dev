@@ -15,7 +15,7 @@ import { websiteUrl } from 'src/environments/environment';
 })
 export class ViewProjectsPageComponent implements OnInit, OnDestroy {
   ngUnsubscribe = new Subject<void>();
-  projectsList: Project[] = [];
+  projectsList: Project[];
   resultNumber = 0;
   page: number;
   pageSize: number;

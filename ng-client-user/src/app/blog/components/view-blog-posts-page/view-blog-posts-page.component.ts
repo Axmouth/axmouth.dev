@@ -17,7 +17,7 @@ import { websiteUrl } from 'src/environments/environment';
 export class ViewBlogPostsPageComponent implements OnInit, OnDestroy {
   ngUnsubscribe = new Subject<void>();
   resultNumber = 0;
-  blogPostsList: BlogPost[] = [];
+  blogPostsList: BlogPost[];
   page: number;
   pageSize: number;
   sortType: string;

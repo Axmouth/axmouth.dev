@@ -1,1 +1,29 @@
-<app-editor-js-renderer [content]="introduction"></app-editor-js-renderer>
+<div *ngIf="loading === false; else placeholder">
+  <app-editor-js-renderer [content]="introduction"></app-editor-js-renderer>
+</div>
+<ng-template #placeholder>
+  <div class="placeholder">
+    <h1 class="text"></h1>
+    <div class="empty-line"></div>
+    <span class="text"></span>
+    <span class="text"></span>
+    <span class="text"></span>
+    <span class="text"></span>
+    <div class="empty-line"></div>
+    <h4 class="text half"></h4>
+    <div class="empty-line"></div>
+    <span class="text"></span>
+    <span class="text"></span>
+    <span class="text"></span>
+    <span class="text"></span>
+    <span class="text"></span>
+    <div class="empty-line"></div>
+    <h4 class="text half"></h4>
+    <div class="empty-line"></div>
+    <span class="text"></span>
+    <span class="text"></span>
+    <span class="text"></span>
+    <div class="empty-line"></div>
+    <div class="empty-line"></div>
+  </div>
+</ng-template>

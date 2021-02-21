@@ -41,15 +41,6 @@
     }
   }
 
-  h1.text {
-    width: 60%;
-    height: 3.1rem;
-    margin: 15px 0;
-    opacity: 0.5;
-    background-color: black;
-    animation: fading 1.5s infinite;
-  }
-
   h4.text {
     height: 2rem;
     margin: 3px 0;
@@ -85,8 +76,8 @@
     border-radius: 10px;
     display: inline-block;
     background-color: #608df0;
-    height: 23em;
-    width: 70%;
+    height: 6em;
+    width: 50%;
     opacity: 0.2;
     animation: fading 1.5s infinite;
     padding: 0.5em;

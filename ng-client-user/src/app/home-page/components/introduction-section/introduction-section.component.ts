@@ -11,6 +11,7 @@ import { TextBodyService } from '../../../shared/services/text-body.service';
 export class IntroductionSectionComponent implements OnInit, OnDestroy {
   ngUnsubscribe = new Subject<void>();
   introduction: any;
+  loading = true;
 
   constructor(private textBodyService: TextBodyService) {}
 
@@ -20,6 +21,7 @@ export class IntroductionSectionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe((result) => {
         this.introduction = JSON.parse(result.data.body);
+        this.loading = false;
       });
   }
 

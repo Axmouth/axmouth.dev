@@ -1,0 +1,56 @@
+.placeholder {
+  font-size: 0;
+  line-height: 0;
+
+  .text {
+    display: inline-block;
+    border-radius: 100px;
+    min-width: 100px;
+    width: 85%;
+    opacity: 0.1;
+    margin-bottom: 0.2rem;
+    margin-top: 0.2rem;
+    animation: fading 1.5s infinite;
+
+    &.link {
+      background-color: var(--blue);
+      opacity: 0.4;
+      height: 1.1rem;
+    }
+
+    &.line {
+      width: 100%;
+    }
+  }
+
+  h4.text {
+    height: 20px;
+    margin: 3px 0;
+    opacity: 0.2;
+  }
+
+  .image {
+    border-radius: 10px;
+    margin: 0.1rem;
+    display: inline-block;
+    background-color: #0051ff;
+    height: 1.4rem;
+    width: 1.4rem;
+    opacity: 0.2;
+    animation: fading 1.5s infinite;
+  }
+}
+
+@keyframes fading {
+  0% {
+    opacity: 0.1;
+  }
+
+  50% {
+    opacity: 0.2;
+  }
+
+  100% {
+    opacity: 0.1;
+  }
+}
