@@ -3,7 +3,7 @@
 <ng-template #entries>
   <h5>Showing {{ projectsList.length }} out of {{ resultNumber }} Entries</h5></ng-template
 >
-<div class="" *ngIf="projectsList; else placeholder">
+<div class="" *ngIf="projectsList != null; else placeholder">
   <app-project-preview *ngFor="let project of projectsList" [project]="project"></app-project-preview>
 </div>
 <ng-template #placeholder>

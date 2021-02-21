@@ -23,9 +23,6 @@
 
     &.link {
       background-color: var(--blue);
-      opacity: 0.4;
-      height: 1.1rem;
-      width: 3rem;
     }
 
     &.line {
@@ -48,6 +45,16 @@
     margin: 15px 0;
     opacity: 0.5;
     background-color: black;
+    animation: fading 1.5s infinite;
+  }
+
+  h2.text {
+    border-radius: 100px;
+    width: 40%;
+    height: 2.2rem;
+    margin: 10px 0;
+    opacity: 0.4;
+    background-color: var(--blue);
     animation: fading 1.5s infinite;
   }
 

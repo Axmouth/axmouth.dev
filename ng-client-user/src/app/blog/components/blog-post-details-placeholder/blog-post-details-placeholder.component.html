@@ -1,0 +1,37 @@
+<div class="placeholder">
+  <h1 class="text"></h1>
+  <br />
+  <small class="text third">&nbsp; </small>
+  <div class="empty-line"></div>
+  <div class="blog-content">
+    <span class="text"></span>
+    <span class="text"></span>
+    <span class="text"></span>
+    <div class="image"></div>
+    <span class="text"></span>
+    <span class="text"></span>
+    <span class="text"></span>
+    <span class="text"></span>
+  </div>
+  <div class="empty-line"></div>
+  <div class="empty-line"></div>
+  <span class="text"></span>
+  <div class="empty-line"></div>
+
+  <div>
+    <span class="text third"></span>&nbsp;
+    <span *ngFor="let i of [1, 2, 3, 4]">&nbsp; <span class="text link"></span></span>
+  </div>
+  &nbsp;
+  <div class="empty-line"></div>
+  <div class="empty-line"></div>
+  <div class="empty-line"></div>
+  <h1 class="text"></h1>
+  <div class="form"></div>
+  <div class="empty-line"></div>
+  <span class="text link half"></span>
+  <div class="empty-line"></div>
+  <span class="text link half"></span>
+  <div class="empty-line"></div>
+  <app-blog-post-comments-list [blogPostComments]="undefined"></app-blog-post-comments-list>
+</div>

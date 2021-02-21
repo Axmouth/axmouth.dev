@@ -1,26 +1,30 @@
 <app-not-found-page *ngIf="notFound; else projectPage"></app-not-found-page>
+<div *ngIf="loading">
+  <app-blog-post-details-placeholder></app-blog-post-details-placeholder>
+</div>
 
-<div class="spinner-border" *ngIf="loading"></div>
-<ng-template #projectPage
-  ><h1>{{ post?.title }}</h1>
+<ng-template #projectPage>
+  <div *ngIf="loading === false">
+    <h1>{{ post?.title }}</h1>
 
-  <div class="alert alert-warning alert-dismissible fade show" *ngIf="post?.published === false">
-    <strong>Warning!</strong> This Blog Post is not published.
+    <div class="alert alert-warning alert-dismissible fade show" *ngIf="post?.published === false">
+      <strong>Warning!</strong> This Blog Post is not published.
+    </div>
+    <small> {{ post?.createdAt | date: 'mediumDate' }}&nbsp; </small>
+    <div class="blog-content">
+      <app-editor-js-renderer [content]="postBodyData"></app-editor-js-renderer>
+    </div>
+    <br /><br />
+    Categories:&nbsp;
+    <a
+      href="/blog/category/{{ categoryName }}"
+      routerLink="/blog/category/{{ categoryName }}"
+      *ngFor="let categoryName of post?.categories"
+    >
+      {{ categoryName }} </a
+    >&nbsp; <br /><br /><br /><br /><br />
+    <h1>{{ commentsCount }} Comments</h1>
+    <app-comment-form (commentPosted)="onCommentPosted()"></app-comment-form>
+    <app-blog-post-comments-list [blogPostComments]="blogPostComments"></app-blog-post-comments-list>
   </div>
-  <small> {{ post?.createdAt | date: 'mediumDate' }}&nbsp; </small>
-  <div class="blog-content">
-    <app-editor-js-renderer [content]="postBodyData"></app-editor-js-renderer>
-  </div>
-  <br /><br />
-  Categories:&nbsp;
-  <a
-    href="/blog/category/{{ categoryName }}"
-    routerLink="/blog/category/{{ categoryName }}"
-    *ngFor="let categoryName of post?.categories"
-  >
-    {{ categoryName }} </a
-  >&nbsp; <br /><br /><br /><br /><br />
-  <h1>{{ commentsCount }} Comments</h1>
-  <app-comment-form (commentPosted)="onCommentPosted()"></app-comment-form>
-  <app-blog-post-comments-list [blogPostComments]="blogPostComments"></app-blog-post-comments-list>
 </ng-template>

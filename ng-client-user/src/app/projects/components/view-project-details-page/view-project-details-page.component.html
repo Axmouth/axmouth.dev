@@ -1,12 +1,11 @@
 <app-not-found-page *ngIf="notFound; else projectPage"></app-not-found-page>
 
 <div *ngIf="loading">
-  <div class="spinner-border"></div>
   <app-project-details-placeholder></app-project-details-placeholder>
 </div>
 
 <ng-template #projectPage>
-  <ng-template *ngIf="loading === false">
+  <div *ngIf="loading === false">
     <h1>{{ project?.name }}</h1>
 
     <div class="alert alert-warning alert-dismissible fade show" *ngIf="project?.published === false">
@@ -32,6 +31,7 @@
           {{ technologyName }} </a
         >&nbsp;
         <br />
-      </div></div
-  ></ng-template>
+      </div>
+    </div>
+  </div>
 </ng-template>

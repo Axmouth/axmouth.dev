@@ -13,7 +13,7 @@ import { takeUntil } from 'rxjs/operators';
 export class BlogPostCommentsListComponent implements OnInit, OnDestroy {
   ngUnsubscribe = new Subject<void>();
   @Input()
-  blogPostComments: BlogPostComment[] = [];
+  blogPostComments: BlogPostComment[];
   resultNumber = 0;
   page: number;
   pageSize: number;

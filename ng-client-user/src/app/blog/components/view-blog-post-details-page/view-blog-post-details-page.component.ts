@@ -52,30 +52,40 @@ export class ViewBlogPostDetailsPageComponent implements OnInit, OnDestroy {
   }
 
   initialiseState() {
-    this.blogPostService.getPost(this.postId).subscribe((result) => {
-      this.post = result.data;
-      this.postBodyData = JSON.parse(result.data.body);
-      this.loading = false;
-      this.title.setTitle(`${this.post.title} | Axmouth's Website`);
-      this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
-      this.meta.updateTag({ name: `description`, content: this?.post?.description });
-      this.meta.updateTag({
-        name: `keywords`,
-        content: `axmouth,developer,webdev,programmer,portfolio,${this.post.categories.join(',')}`,
-      });
-      this.meta.updateTag({
-        property: `og:url`,
-        content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
-      });
-      this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
-      this.meta.updateTag({ property: `og:description`, content: this?.post?.description });
-      this.meta.updateTag({
-        property: `twitter:url`,
-        content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
-      });
-      this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
-      this.meta.updateTag({ property: `twitter:description`, content: this?.post?.description });
-    });
+    this.blogPostService.getPost(this.postId).subscribe(
+      (result) => {
+        this.post = result.data;
+        this.postBodyData = JSON.parse(result.data.body);
+        this.loading = false;
+        this.title.setTitle(`${this.post.title} | Axmouth's Website`);
+        this.meta.updateTag({ name: `title`, content: this.title.getTitle() });
+        this.meta.updateTag({ name: `description`, content: this?.post?.description });
+        this.meta.updateTag({
+          name: `keywords`,
+          content: `axmouth,developer,webdev,programmer,portfolio,${this.post.categories.join(',')}`,
+        });
+        this.meta.updateTag({
+          property: `og:url`,
+          content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
+        });
+        this.meta.updateTag({ property: `og:title`, content: this.title.getTitle() });
+        this.meta.updateTag({ property: `og:description`, content: this?.post?.description });
+        this.meta.updateTag({
+          property: `twitter:url`,
+          content: this.doc.location.href.replace(this.doc.location.origin, websiteUrl),
+        });
+        this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
+        this.meta.updateTag({ property: `twitter:description`, content: this?.post?.description });
+      },
+      (error) => {
+        console.log(error);
+        if (error.status === 404) {
+          this.notFound = true;
+          this.title.setTitle('axmouth.dev - Blog Post Not Found');
+          this.loading = false;
+        }
+      },
+    );
     this.commentService
       .getAllCommentsByPost(this.postId, this.commentPage, this.commentPageSize)
       .pipe(takeUntil(this.ngUnsubscribe))
@@ -89,8 +99,8 @@ export class ViewBlogPostDetailsPageComponent implements OnInit, OnDestroy {
           if (error.status === 404) {
             this.notFound = true;
             this.title.setTitle('axmouth.dev - Blog Post Not Found');
+            this.loading = false;
           }
-          this.loading = false;
         },
       );
   }
