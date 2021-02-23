@@ -3,16 +3,18 @@
 <ng-template #entries>
   <h5>Showing {{ blogPostsList.length }} out of {{ resultNumber }} Entries</h5></ng-template
 >
+
 <hr />
-<div *ngIf="blogPostsList != null; else placeholder">
+<div *ngIf="loading === false; else placeholder">
   <app-blog-post-preview [post]="post" *ngFor="let post of blogPostsList"></app-blog-post-preview>
 </div>
 <ng-template #placeholder>
   <ul class="list-unstyled mb-0 row placeholder">
     <li class="col-lg-12" *ngFor="let i of [1, 2, 3, 4, 5]">
       <app-blog-post-preview-placeholder></app-blog-post-preview-placeholder>
-    </li></ul
-></ng-template>
+    </li>
+  </ul>
+</ng-template>
 
 <div class="row">
   <div class="ml-3 col-md-12">
