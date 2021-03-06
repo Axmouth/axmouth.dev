@@ -17,8 +17,8 @@
 
     <div [ngbCollapse]="isMenuCollapsed" class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
-        <li class="nav-item" routerLink="/home" routerLinkActive="active">
-          <a class="nav-link" href="/home" routerLink="/home">Home</a>
+        <li class="nav-item" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+          <a class="nav-link" href="/" routerLink="/">Home</a>
         </li>
         <li class="nav-item" routerLink="/projects" routerLinkActive="active">
           <a class="nav-link" href="/projects" routerLink="/projects">Projects</a>

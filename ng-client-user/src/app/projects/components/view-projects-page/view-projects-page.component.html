@@ -8,7 +8,7 @@
   <app-project-preview *ngFor="let project of projectsList" [project]="project"></app-project-preview>
 </div>
 <ng-template #placeholder>
-  <app-project-preview-placeholder *ngFor="let i of [1, 2, 3, 4, 5]"></app-project-preview-placeholder>
+  <app-project-preview-placeholder *ngFor="let i of [].constructor(5)"></app-project-preview-placeholder>
 </ng-template>
 
 <div class="row">

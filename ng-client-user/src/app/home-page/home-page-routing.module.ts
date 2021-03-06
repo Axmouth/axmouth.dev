@@ -12,7 +12,7 @@ const routes: Routes = [
 
     children: [
       { path: '', component: HomePageComponent, pathMatch: 'full' },
-      { path: 'home', component: MyPageComponent, pathMatch: 'full' },
+      { path: 'home', component: MyPageComponent, redirectTo: '/' },
       { path: '**', component: NotFoundPageComponent, pathMatch: 'full' },
     ],
   },

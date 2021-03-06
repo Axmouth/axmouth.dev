@@ -1,6 +1,6 @@
 <div id="comments" class="container-fluid py-3">
   <div *ngIf="blogPostComments == null; else comments">
-    <app-blog-post-comment-placeholder *ngFor="let i of [1, 2, 3, 4, 5]"></app-blog-post-comment-placeholder>
+    <app-blog-post-comment-placeholder *ngFor="let i of [].constructor(5)"></app-blog-post-comment-placeholder>
   </div>
   <ng-template #comments>
     <div class="media comment-box" id="c{{ comment.id }}" *ngFor="let comment of blogPostComments">
