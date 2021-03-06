@@ -1,0 +1,46 @@
+.navbar-toggler-plus {
+  width: 2.2em;
+  height: 2em;
+  content: '';
+  padding: 0;
+  margin: 0;
+}
+
+.navbar-toggler-icon-c,
+.navbar-toggler-icon-c::before,
+.navbar-toggler-icon-c::after {
+  width: 1em;
+  height: 1px;
+  border-radius: 1px;
+  background: #aaa;
+  display: block;
+  margin: auto;
+
+  transition: transform 350ms ease-in-out, opacity 200ms linear;
+}
+
+.navbar-toggler-icon-c::before,
+.navbar-toggler-icon-c::after {
+  content: '';
+  position: absolute;
+}
+
+.navbar-toggler-icon-c::before {
+  bottom: 30%;
+}
+
+.navbar-toggler-icon-c::after {
+  top: 30%;
+}
+
+.navbtn-open .navbar-toggler-icon-c {
+  transform: rotate(45deg);
+}
+
+.navbtn-open .navbar-toggler-icon-c::before {
+  opacity: 0;
+}
+
+.navbtn-open .navbar-toggler-icon-c::after {
+  transform: rotate(90deg);
+}

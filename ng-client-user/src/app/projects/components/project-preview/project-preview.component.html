@@ -1,27 +1,29 @@
-<div class="col-md-8 card mb-2 project-preview-card">
-  <img class="card-img-top project-preview-card-img" src="{{ project?.coverImage }}" loading="lazy" />
-  <div class="card-body">
-    <h5 class="card-title">{{ project?.name }}</h5>
+<div class="col-md-8">
+  <div class="card mb-2 project-preview-card">
+    <img class="card-img-top project-preview-card-img" src="{{ project?.coverImage }}" loading="lazy" />
+    <div class="card-body">
+      <h5 class="card-title">{{ project?.name }}</h5>
 
-    <div class="alert alert-warning alert-dismissible fade show" *ngIf="project?.published === false">
-      <strong>Warning!</strong> This Project is not published.
+      <div class="alert alert-warning alert-dismissible fade show" *ngIf="project?.published === false">
+        <strong>Warning!</strong> This Project is not published.
+      </div>
+      <p class="card-text">{{ project?.description }}</p>
+      <a href="/projects/{{ project?.id }}" routerLink="/projects/{{ project?.id }}" class="btn btn-primary">
+        Read More
+      </a>
+      <br />
+      <br />
+      <span>Technologies used:&nbsp;</span>
+      <span *ngFor="let technologyName of projectTechnologiesList"
+        >&nbsp;
+        <a
+          href="/projects/technology/{{ technologyName }}"
+          routerLink="/projects/technology/{{ technologyName }}"
+          class="text-primary"
+        >
+          {{ technologyName }}
+        </a>
+      </span>
     </div>
-    <p class="card-text">{{ project?.description }}</p>
-    <a href="/projects/{{ project?.id }}" routerLink="/projects/{{ project?.id }}" class="btn btn-primary">
-      Read More
-    </a>
-    <br />
-    <br />
-    <span>Technologies used:&nbsp;</span>
-    <span *ngFor="let technologyName of projectTechnologiesList"
-      >&nbsp;
-      <a
-        href="/projects/technology/{{ technologyName }}"
-        routerLink="/projects/technology/{{ technologyName }}"
-        class="text-primary"
-      >
-        {{ technologyName }}
-      </a></span
-    >
   </div>
 </div>

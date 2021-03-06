@@ -4,11 +4,20 @@
 
 .project-preview-card {
   width: 100%;
+  transition: ease-in-out 0.5s;
+  box-shadow: 3px 6px 5px #dddddd;
+}
+
+.project-preview-card:hover {
+  background: #eeeeee;
+  transition: ease-in-out 0.5s;
+  box-shadow: 4px 8px 5px #bbbbbb;
 }
 
 .project-preview-card-img {
   height: 8em;
   width: auto;
+  transition: ease-in-out 0.25s;
   object-fit: scale-down;
   padding: 0.5em;
   margin: 0 auto;

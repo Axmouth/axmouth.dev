@@ -2,7 +2,7 @@
   <div class="container">
     <a class="navbar-brand" href="/" routerLink="/">Georgios Nikolopoulos</a>
     <button
-      class="navbar-toggler"
+      class="navbar-toggler navbar-toggler-plus"
       type="button"
       data-toggle="collapse"
       data-target="#navbarSupportedContent"
@@ -10,8 +10,9 @@
       aria-expanded="false"
       aria-label="Toggle navigation"
       (click)="isMenuCollapsed = !isMenuCollapsed"
+      [ngClass]="{ 'navbtn-open': !isMenuCollapsed }"
     >
-      <span class="navbar-toggler-icon"></span>
+      <span class="navbar-toggler-icon navbar-toggler-icon-c"></span>
     </button>
 
     <div [ngbCollapse]="isMenuCollapsed" class="collapse navbar-collapse" id="navbarSupportedContent">
