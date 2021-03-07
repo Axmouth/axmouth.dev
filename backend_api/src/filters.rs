@@ -122,6 +122,7 @@ fn validation_errors_to_msg(errors: ValidationErrors) -> String {
                         }),
                     };
                     error_msg.push_str(inner_msg.as_str());
+                    error_msg.push_str("\n");
                 }
             }
         }
