@@ -1,11 +1,11 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { ViewBlogPostsPageComponent } from './components/view-blog-posts-page/view-blog-posts-page.component';
-import { ViewBlogPostDetailsPageComponent } from './components/view-blog-post-details-page/view-blog-post-details-page.component';
+import { ViewBlogPostsPageComponent } from './pages/view-blog-posts-page/view-blog-posts-page.component';
+import { ViewBlogPostDetailsPageComponent } from './pages/view-blog-post-details-page/view-blog-post-details-page.component';
 import { BlogMainComponent } from './components/blog-main/blog-main.component';
 import { NotFoundPageComponent } from '../shared/components/not-found-page/not-found-page.component';
-import { ViewBlogPostsCategoryPageComponent } from './components/view-blog-posts-category-page/view-blog-posts-category-page.component';
-import { ViewBlogPostSearchPageComponent } from './components/view-blog-post-search-page/view-blog-post-search-page.component';
+import { ViewBlogPostsCategoryPageComponent } from './pages/view-blog-posts-category-page/view-blog-posts-category-page.component';
+import { ViewBlogPostSearchPageComponent } from './pages/view-blog-post-search-page/view-blog-post-search-page.component';
 
 const routes: Routes = [
   {

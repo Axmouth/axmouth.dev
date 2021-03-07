@@ -2,8 +2,8 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ContactRoutingModule } from './contact-routing.module';
-import { ContactPageComponent } from './components/contact-page/contact-page.component';
-import { ContactSuccessPageComponent } from './components/contact-success-page/contact-success-page.component';
+import { ContactPageComponent } from './pages/contact-page/contact-page.component';
+import { ContactSuccessPageComponent } from './pages/contact-success-page/contact-success-page.component';
 import { SharedModule } from '../shared/shared.module';
 import { ContactMainComponent } from './components/contact-main/contact-main.component';
 import { ContactService } from './services/contact.service';

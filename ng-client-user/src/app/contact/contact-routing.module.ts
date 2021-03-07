@@ -2,8 +2,8 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { ContactMainComponent } from './components/contact-main/contact-main.component';
 import { NotFoundPageComponent } from '../shared/components/not-found-page/not-found-page.component';
-import { ContactSuccessPageComponent } from './components/contact-success-page/contact-success-page.component';
-import { ContactPageComponent } from './components/contact-page/contact-page.component';
+import { ContactSuccessPageComponent } from './pages/contact-success-page/contact-success-page.component';
+import { ContactPageComponent } from './pages/contact-page/contact-page.component';
 
 const routes: Routes = [
   {

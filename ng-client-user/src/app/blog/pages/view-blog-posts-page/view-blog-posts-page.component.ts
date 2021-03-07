@@ -44,8 +44,6 @@ export class ViewBlogPostsPageComponent implements OnInit, OnDestroy {
       } else {
         this.pageSize = 5;
       }
-      console.log(this.page);
-      console.log(this.page);
       this.sortType = qParams.sortType ?? 'CreatedAtDesc';
       this.initialiseState();
     });
