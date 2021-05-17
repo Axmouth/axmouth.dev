@@ -1,4 +1,11 @@
-<div [ngSwitch]="fieldOptions.type">
+<h2>{{ this.fieldOptions.name }}</h2>
+<mat-checkbox (change)="onSkipChanged($event.checked)" [checked]="isSkipped">Skip</mat-checkbox>
+<br />
+<mat-checkbox *ngIf="fieldOptions.nullable && !isSkipped" (change)="onNullifyChanged($event.checked)" [checked]="isNull"
+  >Nullify</mat-checkbox
+>
+
+<div *ngIf="(isNull || isSkipped) === false" [ngSwitch]="fieldOptions.type">
   <div *ngSwitchCase="'titleField'">
     <app-title-field
       [content]="content"

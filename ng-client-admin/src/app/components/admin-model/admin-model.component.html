@@ -17,7 +17,6 @@
 
     <div *ngFor="let field of model.fields">
       <div *ngIf="(creating && field.insertable) || (editing && field.editable)">
-        {{ field?.name }}
         <app-field-chooser
           [fieldOptions]="field"
           [content]="entity[field.identifier]"

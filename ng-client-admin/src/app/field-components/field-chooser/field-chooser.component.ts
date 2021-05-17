@@ -14,11 +14,39 @@ export class FieldChooserComponent implements OnInit {
   @Output()
   contentChange: EventEmitter<any>;
 
+  isNull = false;
+  isSkipped = false;
+
   constructor() {
     this.contentChange = new EventEmitter();
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (this.content === null) {
+      this.isNull = true;
+    }
+    if (this.content === undefined) {
+      this.isSkipped = true;
+    }
+  }
+
+  onNullifyChanged(value: boolean) {
+    this.isNull = value;
+    if (value === true) {
+      this.contentChange.emit(null);
+    } else {
+      this.contentChange.emit(this.content);
+    }
+  }
+
+  onSkipChanged(value: boolean) {
+    this.isSkipped = value;
+    if (value === true) {
+      this.contentChange.emit(undefined);
+    } else {
+      this.contentChange.emit(this.content);
+    }
+  }
 
   onContentChanged(content: any): void {
     this.content = content;
