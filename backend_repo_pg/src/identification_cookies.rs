@@ -1,9 +1,9 @@
-use crate::errors::PgRepoError;
 use crate::filters::GetAllIdentificationCookiesFilter;
 use crate::insertables::NewIdentificationCookie;
 use crate::models::{db_models, domain};
 use crate::options::{IdentificationCookieSortType, PaginationOptions};
 use crate::schema::identification_cookies;
+use crate::{errors::PgRepoError, pg_util::Repo};
 use chrono::Utc;
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
@@ -15,8 +15,8 @@ pub struct IdentificationCookieRepo {
 }
 
 impl IdentificationCookieRepo {
-    pub fn new(pool: Pool<ConnectionManager<PgConnection>>) -> Self {
-        Self { pool }
+    pub fn new(repo: Repo) -> Self {
+        Self { pool: repo.pool }
     }
 
     pub async fn insert_one(

@@ -1,9 +1,9 @@
-use crate::errors::PgRepoError;
 use crate::filters::GetAllUsersFilter;
 use crate::models::{db_models, domain};
 use crate::options::{PaginationOptions, UserSortType};
 use crate::schema::users;
 use crate::{change_sets::UpdateUser, insertables::NewUser};
+use crate::{errors::PgRepoError, pg_util::Repo};
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
 use r2d2::Pool;
@@ -14,8 +14,8 @@ pub struct UserRepo {
 }
 
 impl UserRepo {
-    pub fn new(pool: Pool<ConnectionManager<PgConnection>>) -> Self {
-        Self { pool }
+    pub fn new(repo: Repo) -> Self {
+        Self { pool: repo.pool }
     }
 
     pub async fn insert_one(&self, new_user: NewUser) -> Result<domain::User, PgRepoError> {

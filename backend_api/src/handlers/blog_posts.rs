@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::options::PaginationOptions;
+use backend_repo_pg::{blog_posts::BlogPostRepo, options::PaginationOptions};
 use backend_repo_pg::{
     change_sets::UpdateBlogPost,
     filters::GetAllBlogPostsFilter,
@@ -24,7 +24,8 @@ pub async fn get(
     claims: Option<Claims>,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let post_result = match state.repository.blog_post_repository.find_one(id).await {
+    let blog_post_repository = BlogPostRepo::new(state.repo.clone());
+    let post_result = match blog_post_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -56,9 +57,8 @@ pub async fn get_all(
     } else {
         filter.published = Some(true);
     }
-    let (posts_list, total_results) = match state
-        .repository
-        .blog_post_repository
+    let blog_post_repository = BlogPostRepo::new(state.repo.clone());
+    let (posts_list, total_results) = match blog_post_repository
         .find(
             filter,
             query.sort_type,
@@ -87,7 +87,8 @@ pub async fn delete(
     _claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let _ = match state.repository.blog_post_repository.find_one(id).await {
+    let blog_post_repository = BlogPostRepo::new(state.repo.clone());
+    let _ = match blog_post_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -98,7 +99,7 @@ pub async fn delete(
             Some(value) => value,
         },
     };
-    let post_result = match state.repository.blog_post_repository.delete_one(id).await {
+    let post_result = match blog_post_repository.delete_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -116,7 +117,8 @@ pub async fn update(
     request: UpdateBlogPostRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let _ = match state.repository.blog_post_repository.find_one(id).await {
+    let blog_post_repository = BlogPostRepo::new(state.repo.clone());
+    let _ = match blog_post_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -134,9 +136,7 @@ pub async fn update(
         description: request.description,
     };
     if let Some(categories_list) = request.categories {
-        let post_result = match state
-            .repository
-            .blog_post_repository
+        let post_result = match blog_post_repository
             .update_one_with_categories(id, post_updates, categories_list)
             .await
         {
@@ -147,12 +147,7 @@ pub async fn update(
         };
         Ok(simple_created_response(post_result))
     } else {
-        let post_result = match state
-            .repository
-            .blog_post_repository
-            .update_one(id, post_updates)
-            .await
-        {
+        let post_result = match blog_post_repository.update_one(id, post_updates).await {
             Err(err) => {
                 return Ok(server_error_response(err));
             }
@@ -174,9 +169,8 @@ pub async fn create(
         published: false,
         description: request.description,
     };
-    let post_result = match state
-        .repository
-        .blog_post_repository
+    let blog_post_repository = BlogPostRepo::new(state.repo.clone());
+    let post_result = match blog_post_repository
         .insert_one_with_categories(new_post, request.categories)
         .await
     {

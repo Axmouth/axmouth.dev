@@ -1,9 +1,10 @@
 use crate::cookies::CookieBuilder;
-use backend_repo_pg::models::responses::{
-    AuthSuccess, BaseResponse, FileUploadedResponse, Pagination,
-};
 use backend_repo_pg::{
     errors::PgRepoError, insertables::NewRefreshToken, refresh_tokens::RefreshTokenRepo,
+};
+use backend_repo_pg::{
+    insertables::NewAdminLog,
+    models::responses::{AuthSuccess, BaseResponse, FileUploadedResponse, Pagination},
 };
 use chrono::{Duration, Utc};
 use serde::Serialize;
@@ -234,4 +235,15 @@ pub async fn create_refresh_token(
         expires_at: (Utc::now() + Duration::days(30 * 6)).naive_utc(),
     };
     Ok(repo.insert_one(new_token).await?.id)
+}
+
+pub async fn create_admin_log() {
+    let new_admin_log = NewAdminLog {
+        change_message: format!(""),
+        object_id: format!(""),
+        user_id: 0,
+        label: format!(""),
+        model: format!(""),
+        action_flag: 0,
+    };
 }

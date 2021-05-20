@@ -7,7 +7,6 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::options::PaginationOptions;
 use backend_repo_pg::{
     change_sets::UpdateTechnology,
     filters::GetAllTechnologiesFilter,
@@ -17,9 +16,11 @@ use backend_repo_pg::{
         requests::{CreateTechnologyRequest, UpdateTechnologyRequest},
     },
 };
+use backend_repo_pg::{options::PaginationOptions, technologies::TechnologyRepo};
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
-    let technology_result = match state.repository.technology_repository.find_one(id).await {
+    let technology_repository = TechnologyRepo::new(state.repo.clone());
+    let technology_result = match technology_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -38,9 +39,8 @@ pub async fn get_all(
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let filter = GetAllTechnologiesFilter::from_query(query.clone());
-    let (technologies_list, total_results) = match state
-        .repository
-        .technology_repository
+    let technology_repository = TechnologyRepo::new(state.repo.clone());
+    let (technologies_list, total_results) = match technology_repository
         .find(
             filter,
             query.sort_type,
@@ -69,7 +69,8 @@ pub async fn delete(
     _claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let _ = match state.repository.technology_repository.find_one(id).await {
+    let technology_repository = TechnologyRepo::new(state.repo.clone());
+    let _ = match technology_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -80,7 +81,7 @@ pub async fn delete(
             Some(value) => value,
         },
     };
-    let technology_result = match state.repository.technology_repository.delete_one(id).await {
+    let technology_result = match technology_repository.delete_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -98,7 +99,8 @@ pub async fn update(
     request: UpdateTechnologyRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let _ = match state.repository.technology_repository.find_one(id).await {
+    let technology_repository = TechnologyRepo::new(state.repo.clone());
+    let _ = match technology_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -110,9 +112,7 @@ pub async fn update(
         },
     };
     let updated_technology = UpdateTechnology { name: request.name };
-    let technology_result = match state
-        .repository
-        .technology_repository
+    let technology_result = match technology_repository
         .update_one(id, updated_technology)
         .await
     {
@@ -130,12 +130,8 @@ pub async fn create(
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let new_technology = NewTechnology { name: request.name };
-    let technology_result = match state
-        .repository
-        .technology_repository
-        .insert_one(new_technology)
-        .await
-    {
+    let technology_repository = TechnologyRepo::new(state.repo.clone());
+    let technology_result = match technology_repository.insert_one(new_technology).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }

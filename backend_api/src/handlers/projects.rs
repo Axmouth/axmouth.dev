@@ -7,7 +7,6 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::options::PaginationOptions;
 use backend_repo_pg::{
     change_sets::UpdateProject,
     filters::GetAllProjectsFilter,
@@ -17,6 +16,7 @@ use backend_repo_pg::{
         requests::{CreateProjectRequest, UpdateProjectRequest},
     },
 };
+use backend_repo_pg::{options::PaginationOptions, projects::ProjectRepo};
 use chrono::Utc;
 
 pub async fn get(
@@ -24,7 +24,8 @@ pub async fn get(
     claims: Option<Claims>,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let project_result = match state.repository.project_repository.find_one(id).await {
+    let project_repository = ProjectRepo::new(state.repo.clone());
+    let project_result = match project_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -56,9 +57,8 @@ pub async fn get_all(
     } else {
         filter.published = Some(true);
     }
-    let (projects_list, total_results) = match state
-        .repository
-        .project_repository
+    let project_repository = ProjectRepo::new(state.repo.clone());
+    let (projects_list, total_results) = match project_repository
         .find(
             filter,
             query.sort_type,
@@ -87,7 +87,8 @@ pub async fn delete(
     _claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let _ = match state.repository.project_repository.find_one(id).await {
+    let project_repository = ProjectRepo::new(state.repo.clone());
+    let _ = match project_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -98,7 +99,7 @@ pub async fn delete(
             Some(value) => value,
         },
     };
-    let project_result = match state.repository.project_repository.delete_one(id).await {
+    let project_result = match project_repository.delete_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -116,7 +117,8 @@ pub async fn update(
     request: UpdateProjectRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let _ = match state.repository.project_repository.find_one(id).await {
+    let project_repository = ProjectRepo::new(state.repo.clone());
+    let _ = match project_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -136,9 +138,7 @@ pub async fn update(
         published: request.published,
     };
     if let Some(technologies_list) = request.technologies {
-        let project_result = match state
-            .repository
-            .project_repository
+        let project_result = match project_repository
             .update_one_with_technologies(id, updated_project, technologies_list)
             .await
         {
@@ -149,12 +149,7 @@ pub async fn update(
         };
         Ok(simple_created_response(project_result))
     } else {
-        let project_result = match state
-            .repository
-            .project_repository
-            .update_one(id, updated_project)
-            .await
-        {
+        let project_result = match project_repository.update_one(id, updated_project).await {
             Err(err) => {
                 return Ok(server_error_response(err));
             }
@@ -175,9 +170,8 @@ pub async fn create(
         name: request.name,
         description: request.description,
     };
-    let project_result = match state
-        .repository
-        .project_repository
+    let project_repository = ProjectRepo::new(state.repo.clone());
+    let project_result = match project_repository
         .insert_one_with_technologies(new_project, request.technologies)
         .await
     {

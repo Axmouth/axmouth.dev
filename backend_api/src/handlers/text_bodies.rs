@@ -7,7 +7,6 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::options::PaginationOptions;
 use backend_repo_pg::{
     change_sets::UpdateTextBody,
     filters::GetAllTextBodiesFilter,
@@ -17,15 +16,12 @@ use backend_repo_pg::{
         requests::{CreateTextBodyRequest, UpdateTextBodyRequest},
     },
 };
+use backend_repo_pg::{options::PaginationOptions, text_bodies::TextBodyRepo};
 use chrono::Utc;
 
 pub async fn get(slug: String, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
-    let text_body_result = match state
-        .repository
-        .text_body_repository
-        .find_one_by_slug(slug)
-        .await
-    {
+    let text_body_repository = TextBodyRepo::new(state.repo.clone());
+    let text_body_result = match text_body_repository.find_one_by_slug(slug).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -44,9 +40,8 @@ pub async fn get_all(
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let filter = GetAllTextBodiesFilter::from_query(query.clone());
-    let (text_bodies_list, total_results) = match state
-        .repository
-        .text_body_repository
+    let text_body_repository = TextBodyRepo::new(state.repo.clone());
+    let (text_bodies_list, total_results) = match text_body_repository
         .find(
             filter,
             query.sort_type,
@@ -75,12 +70,8 @@ pub async fn delete(
     _claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let old_entity = match state
-        .repository
-        .text_body_repository
-        .find_one_by_slug(slug)
-        .await
-    {
+    let text_body_repository = TextBodyRepo::new(state.repo.clone());
+    let old_entity = match text_body_repository.find_one_by_slug(slug).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -91,12 +82,7 @@ pub async fn delete(
             Some(value) => value,
         },
     };
-    let text_body_result = match state
-        .repository
-        .text_body_repository
-        .delete_one(old_entity.id)
-        .await
-    {
+    let text_body_result = match text_body_repository.delete_one(old_entity.id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -114,12 +100,8 @@ pub async fn update(
     request: UpdateTextBodyRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let old_entity = match state
-        .repository
-        .text_body_repository
-        .find_one_by_slug(slug)
-        .await
-    {
+    let text_body_repository = TextBodyRepo::new(state.repo.clone());
+    let old_entity = match text_body_repository.find_one_by_slug(slug).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -137,9 +119,7 @@ pub async fn update(
         url_used: request.url_used,
         updated_at: Some(Utc::now().naive_utc()),
     };
-    let text_body_result = match state
-        .repository
-        .text_body_repository
+    let text_body_result = match text_body_repository
         .update_one(old_entity.id, updated_text_body)
         .await
     {
@@ -162,12 +142,8 @@ pub async fn create(
         title: request.title,
         url_used: request.url_used,
     };
-    let text_body_result = match state
-        .repository
-        .text_body_repository
-        .insert_one(new_text_body)
-        .await
-    {
+    let text_body_repository = TextBodyRepo::new(state.repo.clone());
+    let text_body_result = match text_body_repository.insert_one(new_text_body).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }

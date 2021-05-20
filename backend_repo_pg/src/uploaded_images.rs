@@ -1,9 +1,9 @@
-use crate::errors::PgRepoError;
 use crate::filters::GetAllUploadedImagesFilter;
 use crate::insertables::NewUploadedImage;
 use crate::models::{db_models, domain};
 use crate::options::{PaginationOptions, UploadedImageSortType};
 use crate::schema::uploaded_images;
+use crate::{errors::PgRepoError, pg_util::Repo};
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
 use r2d2::Pool;
@@ -14,8 +14,8 @@ pub struct UploadedImageRepo {
 }
 
 impl UploadedImageRepo {
-    pub fn new(pool: Pool<ConnectionManager<PgConnection>>) -> Self {
-        Self { pool }
+    pub fn new(repo: Repo) -> Self {
+        Self { pool: repo.pool }
     }
 
     pub async fn insert_one(

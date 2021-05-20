@@ -2,12 +2,13 @@ use crate::{
     app::AppState,
     util::{not_found_response, server_error_response, simple_ok_response},
 };
-use backend_repo_pg::models::responses::GetUserProfileResponse;
+use backend_repo_pg::{models::responses::GetUserProfileResponse, users::UserRepo};
 
 // pub type Response = std::result::Result<warp::reply::Json, warp::Rejection>;
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
-    let user = match state.repository.user_repository.find_one(id).await {
+    let user_repository = UserRepo::new(state.repo.clone());
+    let user = match user_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }

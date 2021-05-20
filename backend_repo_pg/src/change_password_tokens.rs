@@ -1,9 +1,9 @@
-use crate::errors::PgRepoError;
 use crate::filters::GetAllChangePasswordTokensFilter;
 use crate::models::{db_models, domain};
 use crate::options::{ChangePasswordTokenSortType, PaginationOptions};
 use crate::schema::change_password_tokens;
 use crate::{change_sets::UpdateChangePasswordToken, insertables::NewChangePasswordToken};
+use crate::{errors::PgRepoError, pg_util::Repo};
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
 use r2d2::Pool;
@@ -14,8 +14,8 @@ pub struct ChangePasswordTokenRepo {
 }
 
 impl ChangePasswordTokenRepo {
-    pub fn new(pool: Pool<ConnectionManager<PgConnection>>) -> Self {
-        Self { pool }
+    pub fn new(repo: Repo) -> Self {
+        Self { pool: repo.pool }
     }
 
     pub async fn insert_one(

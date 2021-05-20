@@ -1,9 +1,9 @@
-use crate::errors::PgRepoError;
 use crate::filters::GetAllCategoriesFilter;
 use crate::models::{db_models, domain};
 use crate::options::{CategorySortType, PaginationOptions};
 use crate::schema::categories;
 use crate::{change_sets::UpdateCategory, insertables::NewCategory};
+use crate::{errors::PgRepoError, pg_util::Repo};
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
 use r2d2::Pool;
@@ -14,8 +14,8 @@ pub struct CategoryRepo {
 }
 
 impl CategoryRepo {
-    pub fn new(pool: Pool<ConnectionManager<PgConnection>>) -> Self {
-        Self { pool }
+    pub fn new(repo: Repo) -> Self {
+        Self { pool: repo.pool }
     }
 
     pub async fn insert_one(&self, new_comment: NewCategory) -> Result<usize, PgRepoError> {

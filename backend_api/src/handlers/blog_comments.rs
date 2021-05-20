@@ -7,7 +7,9 @@ use crate::{
         unauthorized_response,
     },
 };
-use backend_repo_pg::options::PaginationOptions;
+use backend_repo_pg::{
+    blog_comments::BlogPostCommentRepo, blog_posts::BlogPostRepo, options::PaginationOptions,
+};
 use backend_repo_pg::{
     change_sets::UpdateBlogPostComment,
     filters::GetAllBlogPostCommentsFilter,
@@ -20,7 +22,8 @@ use backend_repo_pg::{
 use chrono::Utc;
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
-    let comment_result = match state.repository.blog_comment_repository.find_one(id).await {
+    let blog_comment_repository = BlogPostCommentRepo::new(state.repo.clone());
+    let comment_result = match blog_comment_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -39,9 +42,8 @@ pub async fn get_all(
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let filter = GetAllBlogPostCommentsFilter::from_query(query.clone());
-    let (comments_list, total_results) = match state
-        .repository
-        .blog_comment_repository
+    let blog_comment_repository = BlogPostCommentRepo::new(state.repo.clone());
+    let (comments_list, total_results) = match blog_comment_repository
         .find(
             filter,
             query.sort_type,
@@ -70,7 +72,8 @@ pub async fn delete(
     claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let comment = match state.repository.blog_comment_repository.find_one(id).await {
+    let blog_comment_repository = BlogPostCommentRepo::new(state.repo.clone());
+    let comment = match blog_comment_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -84,12 +87,7 @@ pub async fn delete(
     if comment.author.id != claims.user_id() || claims.is_admin() == false {
         return Ok(unauthorized_response("comment"));
     }
-    let comment_result = match state
-        .repository
-        .blog_comment_repository
-        .delete_one(id)
-        .await
-    {
+    let comment_result = match blog_comment_repository.delete_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -107,7 +105,8 @@ pub async fn update(
     request: UpdateBlogPostCommentRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let updated_comment = match state.repository.blog_comment_repository.find_one(id).await {
+    let blog_comment_repository = BlogPostCommentRepo::new(state.repo.clone());
+    let updated_comment = match blog_comment_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -125,9 +124,7 @@ pub async fn update(
         body: Some(request.body),
         updated_at: Some(Some(Utc::now().naive_utc())),
     };
-    let comment_result = match state
-        .repository
-        .blog_comment_repository
+    let comment_result = match blog_comment_repository
         .update_one(id, comment_updates)
         .await
     {
@@ -144,12 +141,8 @@ pub async fn create(
     request: CreateBlogPostCommentRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let _ = match state
-        .repository
-        .blog_post_repository
-        .find_one(request.post_id)
-        .await
-    {
+    let blog_post_repository = BlogPostRepo::new(state.repo.clone());
+    let _ = match blog_post_repository.find_one(request.post_id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -165,12 +158,8 @@ pub async fn create(
         post_id: request.post_id,
         author_id: claims.user_id(),
     };
-    let comment_result = match state
-        .repository
-        .blog_comment_repository
-        .insert_one(new_comment)
-        .await
-    {
+    let blog_comment_repository = BlogPostCommentRepo::new(state.repo.clone());
+    let comment_result = match blog_comment_repository.insert_one(new_comment).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }

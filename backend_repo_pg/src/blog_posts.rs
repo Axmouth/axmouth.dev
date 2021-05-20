@@ -1,4 +1,3 @@
-use crate::filters::GetAllBlogPostsFilter;
 use crate::models::{db_models, domain};
 use crate::options::PaginationOptions;
 use crate::schema::{blog_posts, blog_posts_categories, categories};
@@ -7,6 +6,7 @@ use crate::{
     insertables::{NewBlogPost, NewBlogPostCategory, NewCategory},
 };
 use crate::{errors::PgRepoError, options::BlogPostSortType};
+use crate::{filters::GetAllBlogPostsFilter, pg_util::Repo};
 use diesel::pg::upsert::*;
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
@@ -18,8 +18,8 @@ pub struct BlogPostRepo {
 }
 
 impl BlogPostRepo {
-    pub fn new(pool: Pool<ConnectionManager<PgConnection>>) -> Self {
-        Self { pool }
+    pub fn new(repo: Repo) -> Self {
+        Self { pool: repo.pool }
     }
 
     pub async fn insert_one(&self, new_post: NewBlogPost) -> Result<usize, PgRepoError> {

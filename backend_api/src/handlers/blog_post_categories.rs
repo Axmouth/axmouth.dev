@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::options::PaginationOptions;
+use backend_repo_pg::{categories::CategoryRepo, options::PaginationOptions};
 use backend_repo_pg::{
     change_sets::UpdateCategory,
     filters::GetAllCategoriesFilter,
@@ -19,7 +19,8 @@ use backend_repo_pg::{
 };
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
-    let category_result = match state.repository.category_repository.find_one(id).await {
+    let category_repository = CategoryRepo::new(state.repo.clone());
+    let category_result = match category_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -38,9 +39,8 @@ pub async fn get_all(
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let filter = GetAllCategoriesFilter::from_query(query.clone());
-    let (categories_list, total_results) = match state
-        .repository
-        .category_repository
+    let category_repository = CategoryRepo::new(state.repo.clone());
+    let (categories_list, total_results) = match category_repository
         .find(
             filter,
             query.sort_type,
@@ -69,7 +69,8 @@ pub async fn delete(
     _claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let _ = match state.repository.category_repository.find_one(id).await {
+    let category_repository = CategoryRepo::new(state.repo.clone());
+    let _ = match category_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -80,7 +81,7 @@ pub async fn delete(
             Some(value) => value,
         },
     };
-    let category_result = match state.repository.category_repository.delete_one(id).await {
+    let category_result = match category_repository.delete_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -98,7 +99,8 @@ pub async fn update(
     request: UpdateCategoryRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let _ = match state.repository.category_repository.find_one(id).await {
+    let category_repository = CategoryRepo::new(state.repo.clone());
+    let _ = match category_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -110,12 +112,7 @@ pub async fn update(
         },
     };
     let updated_category = UpdateCategory { name: request.name };
-    let category_result = match state
-        .repository
-        .category_repository
-        .update_one(id, updated_category)
-        .await
-    {
+    let category_result = match category_repository.update_one(id, updated_category).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -130,12 +127,8 @@ pub async fn create(
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let new_category = NewCategory { name: request.name };
-    let category_result = match state
-        .repository
-        .category_repository
-        .insert_one(new_category)
-        .await
-    {
+    let category_repository = CategoryRepo::new(state.repo.clone());
+    let category_result = match category_repository.insert_one(new_category).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }

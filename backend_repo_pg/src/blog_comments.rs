@@ -1,9 +1,9 @@
-use crate::filters::GetAllBlogPostCommentsFilter;
 use crate::models::{db_models, domain};
 use crate::options::PaginationOptions;
 use crate::schema::blog_post_comments;
 use crate::{change_sets::UpdateBlogPostComment, insertables::NewBlogPostComment};
 use crate::{errors::PgRepoError, options::BlogPostCommentSortType};
+use crate::{filters::GetAllBlogPostCommentsFilter, pg_util::Repo};
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
 use r2d2::Pool;
@@ -14,8 +14,8 @@ pub struct BlogPostCommentRepo {
 }
 
 impl BlogPostCommentRepo {
-    pub fn new(pool: Pool<ConnectionManager<PgConnection>>) -> Self {
-        Self { pool }
+    pub fn new(repo: Repo) -> Self {
+        Self { pool: repo.pool }
     }
 
     pub async fn insert_one(&self, new_comment: NewBlogPostComment) -> Result<usize, PgRepoError> {

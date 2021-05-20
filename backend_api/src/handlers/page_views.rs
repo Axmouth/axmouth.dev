@@ -8,7 +8,10 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::models::requests::CreatePageViewRequest;
+use backend_repo_pg::{
+    identification_cookies::IdentificationCookieRepo, models::requests::CreatePageViewRequest,
+    page_views::PageViewRepo,
+};
 use backend_repo_pg::{
     insertables::{NewIdentificationCookie, NewPageView},
     models::queries::GetPageViewsQuery,
@@ -23,12 +26,8 @@ pub async fn get(
     query: GetPageViewsQuery,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let page_views_result = match state
-        .repository
-        .pages_views_repository
-        .count_by_url(url)
-        .await
-    {
+    let pages_views_repository = PageViewRepo::new(state.repo.clone());
+    let page_views_result = match pages_views_repository.count_by_url(url).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -49,11 +48,10 @@ pub async fn create(
 
     let id_hash;
 
+    let identification_cookies_repository = IdentificationCookieRepo::new(state.repo.clone());
     // TODO: handle cookie expiration
     if let Some(token) = id_cookie {
-        let id_cookie_data = match state
-            .repository
-            .identification_cookies_repository
+        let id_cookie_data = match identification_cookies_repository
             .find_one_by_token(token)
             .await
         {
@@ -81,9 +79,7 @@ pub async fn create(
         let hash_result = hasher.finalize();
         let new_id_hash = format!("{:x}", hash_result);
 
-        let existing_cookie = match state
-            .repository
-            .identification_cookies_repository
+        let existing_cookie = match identification_cookies_repository
             .find_one_by_hash(new_id_hash.clone())
             .await
         {
@@ -109,9 +105,7 @@ pub async fn create(
                 expires_at: (Utc::now() + Duration::days(30 * 6)).naive_utc(),
             };
 
-            match state
-                .repository
-                .identification_cookies_repository
+            match identification_cookies_repository
                 .insert_one(new_cookie)
                 .await
             {
@@ -136,19 +130,15 @@ pub async fn create(
         longitude: request.longitude,
         country_code: request.country_code,
     };
-    let category_result = match state
-        .repository
-        .pages_views_repository
-        .insert_one(new_view)
-        .await
-    {
+    let pages_views_repository = PageViewRepo::new(state.repo.clone());
+    let view_insert_result = match pages_views_repository.insert_one(new_view).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
         Ok(value) => value,
     };
 
-    let resp = simple_created_response(category_result);
+    let resp = simple_created_response(view_insert_result);
 
     if let Some(token) = return_cookie {
         Ok(state

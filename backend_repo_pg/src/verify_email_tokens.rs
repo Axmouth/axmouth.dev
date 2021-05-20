@@ -1,9 +1,9 @@
-use crate::errors::PgRepoError;
 use crate::filters::GetAllVerifyEmailTokensFilter;
 use crate::models::{db_models, domain};
 use crate::options::{PaginationOptions, VerifyEmailTokenSortType};
 use crate::schema::verify_email_tokens;
 use crate::{change_sets::UpdateVerifyEmailToken, insertables::NewVerifyEmailToken};
+use crate::{errors::PgRepoError, pg_util::Repo};
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
 use r2d2::Pool;
@@ -14,8 +14,8 @@ pub struct VerifyEmailTokenRepo {
 }
 
 impl VerifyEmailTokenRepo {
-    pub fn new(pool: Pool<ConnectionManager<PgConnection>>) -> Self {
-        Self { pool }
+    pub fn new(repo: Repo) -> Self {
+        Self { pool: repo.pool }
     }
 
     pub async fn insert_one(

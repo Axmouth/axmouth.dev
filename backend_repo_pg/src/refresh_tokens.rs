@@ -1,10 +1,13 @@
-use crate::models::{db_models, domain};
 use crate::schema::refresh_tokens;
 use crate::{
     change_sets::UpdateRefreshToken, filters::GetAllRefreshTokensFilter,
     insertables::NewRefreshToken, options::PaginationOptions,
 };
 use crate::{errors::PgRepoError, options::RefreshTokenSortType};
+use crate::{
+    models::{db_models, domain},
+    pg_util::Repo,
+};
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
 use r2d2::Pool;
@@ -15,8 +18,8 @@ pub struct RefreshTokenRepo {
 }
 
 impl RefreshTokenRepo {
-    pub fn new(pool: Pool<ConnectionManager<PgConnection>>) -> Self {
-        Self { pool }
+    pub fn new(repo: Repo) -> Self {
+        Self { pool: repo.pool }
     }
 
     pub async fn insert_one(

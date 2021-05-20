@@ -1,6 +1,7 @@
 use std::env;
 use std::net::SocketAddr;
 
+use backend_repo_pg::pg_util::{get_pg_pool, Repo};
 use warp::{
     self,
     hyper::{header, Method},
@@ -8,7 +9,6 @@ use warp::{
 };
 
 use crate::cookies::CookieBuilder;
-use crate::db::Repo;
 use crate::{emails::EmailSender, routes};
 
 use tera::Tera;
@@ -31,7 +31,7 @@ lazy_static! {
 
 #[derive(Clone)]
 pub struct AppState {
-    pub repository: Repo,
+    pub repo: Repo,
     pub jwt_secret: String,
     pub jwt_duration: i64,
     pub captcha_secret: String,
@@ -47,7 +47,7 @@ pub async fn start() {
     let static_file_dir = env::var("STATIC_FILE_DIR").expect("STATIC_FILE_DIR must be set");
     let static_file_address =
         env::var("STATIC_FILE_ADDRESS").expect("STATIC_FILE_ADDRESS must be set");
-    let repository = Repo::new(database_url).await;
+    let repo = get_pg_pool(database_url, 64);
 
     let bind_address: SocketAddr = env::var("BIND_ADDRESS")
         .expect("BIND_ADDRESS is not set")
@@ -70,7 +70,7 @@ pub async fn start() {
     let email_sender: EmailSender = EmailSender::new();
 
     let app_state = AppState {
-        repository,
+        repo,
         jwt_secret,
         jwt_duration,
         captcha_secret,

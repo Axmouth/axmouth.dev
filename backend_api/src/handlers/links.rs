@@ -7,7 +7,6 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::options::PaginationOptions;
 use backend_repo_pg::{
     change_sets::UpdateHomePageLink,
     filters::GetAllHomePageLinksFilter,
@@ -17,9 +16,11 @@ use backend_repo_pg::{
         requests::{CreateHomePageLinkRequest, UpdateHomePageLinkRequest},
     },
 };
+use backend_repo_pg::{home_page_links::HomePageLinkRepo, options::PaginationOptions};
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
-    let link_result = match state.repository.link_repository.find_one(id).await {
+    let link_repository = HomePageLinkRepo::new(state.repo.clone());
+    let link_result = match link_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -38,9 +39,8 @@ pub async fn get_all(
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let filter = GetAllHomePageLinksFilter::from_query(query.clone());
-    let (links_list, total_results) = match state
-        .repository
-        .link_repository
+    let link_repository = HomePageLinkRepo::new(state.repo.clone());
+    let (links_list, total_results) = match link_repository
         .find(
             filter,
             query.sort_type,
@@ -69,7 +69,8 @@ pub async fn delete(
     _claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let _ = match state.repository.link_repository.find_one(id).await {
+    let link_repository = HomePageLinkRepo::new(state.repo.clone());
+    let _ = match link_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -80,7 +81,7 @@ pub async fn delete(
             Some(value) => value,
         },
     };
-    let link_result = match state.repository.link_repository.delete_one(id).await {
+    let link_result = match link_repository.delete_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -98,7 +99,8 @@ pub async fn update(
     request: UpdateHomePageLinkRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let _ = match state.repository.link_repository.find_one(id).await {
+    let link_repository = HomePageLinkRepo::new(state.repo.clone());
+    let _ = match link_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -114,12 +116,7 @@ pub async fn update(
         image: request.image,
         target: request.target,
     };
-    let link_result = match state
-        .repository
-        .link_repository
-        .update_one(id, updated_link)
-        .await
-    {
+    let link_result = match link_repository.update_one(id, updated_link).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -138,7 +135,8 @@ pub async fn create(
         image: request.image,
         target: request.target,
     };
-    let link_result = match state.repository.link_repository.insert_one(new_link).await {
+    let link_repository = HomePageLinkRepo::new(state.repo.clone());
+    let link_result = match link_repository.insert_one(new_link).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }

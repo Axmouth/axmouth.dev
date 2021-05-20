@@ -6,19 +6,21 @@ use crate::util::{
 use crate::{app::AppState, auth_tokens::Claims};
 use crate::{auth_tokens, util::simple_error_response};
 use crate::{auth_tokens::decode_token, util::simple_ok_response};
-use backend_repo_pg::passwords;
 use backend_repo_pg::{
-    change_sets::UpdateChangePasswordToken, change_sets::UpdateUser,
-    change_sets::UpdateVerifyEmailToken, errors::PgRepoError, insertables::NewChangePasswordToken,
-    insertables::NewVerifyEmailToken, models::requests::RequestResetPasswordEmailRequest,
+    change_password_tokens::ChangePasswordTokenRepo, change_sets::UpdateChangePasswordToken,
+    change_sets::UpdateUser, change_sets::UpdateVerifyEmailToken, errors::PgRepoError,
+    insertables::NewChangePasswordToken, insertables::NewVerifyEmailToken,
+    models::requests::RequestResetPasswordEmailRequest,
     models::requests::RequestVerificationEmailRequest, models::requests::ResetPasswordRequest,
     models::requests::VerifyEmailRequest, models::responses::BaseResponse,
+    refresh_tokens::RefreshTokenRepo, verify_email_tokens::VerifyEmailTokenRepo,
 };
 use backend_repo_pg::{
     extra::UserRole,
     insertables::NewUser,
     models::requests::{LoginRequest, RefreshRequest, RegisterRequest},
 };
+use backend_repo_pg::{passwords, users::UserRepo};
 use chrono::{Duration, Utc};
 use rand::{distributions::Alphanumeric, Rng};
 use warp::hyper::header;
@@ -28,12 +30,8 @@ pub async fn login(
     request: LoginRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let user = match state
-        .repository
-        .user_repository
-        .find_one_by_email(request.email)
-        .await
-    {
+    let user_repository = UserRepo::new(state.repo.clone());
+    let user = match user_repository.find_one_by_email(request.email).await {
         Err(err) => {
             return Ok(auth_error_response(err));
         }
@@ -71,13 +69,13 @@ pub async fn login(
             state.jwt_duration,
         ),
     };
-    let refresh_token =
-        match create_refresh_token(user.id, jti, state.repository.refresh_token_repository).await {
-            Ok(value) => value,
-            Err(err) => {
-                return Ok(auth_error_response(err));
-            }
-        };
+    let refresh_token_repository = RefreshTokenRepo::new(state.repo.clone());
+    let refresh_token = match create_refresh_token(user.id, jti, refresh_token_repository).await {
+        Ok(value) => value,
+        Err(err) => {
+            return Ok(auth_error_response(err));
+        }
+    };
     Ok(auth_ok_response(
         jwt_token,
         refresh_token,
@@ -89,12 +87,8 @@ pub async fn admin_login(
     request: LoginRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let user = match state
-        .repository
-        .user_repository
-        .find_one_by_email(request.email)
-        .await
-    {
+    let user_repository = UserRepo::new(state.repo.clone());
+    let user = match user_repository.find_one_by_email(request.email).await {
         Err(err) => {
             return Ok(auth_error_response(err));
         }
@@ -127,13 +121,13 @@ pub async fn admin_login(
         user.display_name,
         state.jwt_duration,
     );
-    let refresh_token =
-        match create_refresh_token(user.id, jti, state.repository.refresh_token_repository).await {
-            Ok(value) => value,
-            Err(err) => {
-                return Ok(auth_error_response(err));
-            }
-        };
+    let refresh_token_repository = RefreshTokenRepo::new(state.repo.clone());
+    let refresh_token = match create_refresh_token(user.id, jti, refresh_token_repository).await {
+        Ok(value) => value,
+        Err(err) => {
+            return Ok(auth_error_response(err));
+        }
+    };
     Ok(auth_ok_response(
         jwt_token,
         refresh_token,
@@ -145,9 +139,8 @@ pub async fn register(
     request: RegisterRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    match state
-        .repository
-        .user_repository
+    let user_repository = UserRepo::new(state.repo.clone());
+    match user_repository
         .find_one_by_email(request.email.clone())
         .await
     {
@@ -162,9 +155,7 @@ pub async fn register(
         }
         Ok(None) => {}
     }
-    match state
-        .repository
-        .user_repository
+    match user_repository
         .find_one_by_display_name(request.display_name.clone())
         .await
     {
@@ -186,7 +177,7 @@ pub async fn register(
         role: UserRole::Ghost,
     };
 
-    let user_result = match state.repository.user_repository.insert_one(new_user).await {
+    let user_result = match user_repository.insert_one(new_user).await {
         Err(err) => {
             return Ok(auth_error_response(err));
         }
@@ -203,20 +194,17 @@ pub async fn register(
         request.display_name.clone(),
         state.jwt_duration,
     );
-    let refresh_token = match create_refresh_token(
-        user_result.id,
-        jti,
-        state.repository.refresh_token_repository,
-    )
-    .await
-    {
-        Ok(value) => value,
-        Err(err) => {
-            return Ok(auth_error_response(err));
-        }
-    };
+    let refresh_token_repository = RefreshTokenRepo::new(state.repo.clone());
+    let refresh_token =
+        match create_refresh_token(user_result.id, jti, refresh_token_repository).await {
+            Ok(value) => value,
+            Err(err) => {
+                return Ok(auth_error_response(err));
+            }
+        };
+    let verify_email_tokens_repository = VerifyEmailTokenRepo::new(state.repo.clone());
     let token = match create_verify_email_token(
-        state.repository.verify_email_tokens_repository,
+        verify_email_tokens_repository,
         request.email.clone(),
         None,
         user_result.id,
@@ -250,12 +238,8 @@ pub async fn refresh(
             return Ok(auth_bad_request_response(err.to_string().as_str()));
         }
     };
-    let mut token_data = match state
-        .repository
-        .refresh_token_repository
-        .find_one(id_value.clone())
-        .await
-    {
+    let refresh_token_repository = RefreshTokenRepo::new(state.repo.clone());
+    let mut token_data = match refresh_token_repository.find_one(id_value.clone()).await {
         Ok(opt) => match opt {
             Some(value) => value,
             None => {
@@ -284,12 +268,7 @@ pub async fn refresh(
     }
     token_data.used = true;
 
-    match state
-        .repository
-        .refresh_token_repository
-        .use_up(id_value)
-        .await
-    {
+    match refresh_token_repository.use_up(id_value).await {
         Ok(_) => {}
         Err(err) => {
             return Ok(auth_error_response(err));
@@ -300,18 +279,13 @@ pub async fn refresh(
     let jwt_token = claims
         .new_refreshed(jti, state.jwt_duration)
         .to_token(state.jwt_secret.as_str());
-    let refresh_token = match create_refresh_token(
-        claims.user_id(),
-        jti,
-        state.repository.refresh_token_repository,
-    )
-    .await
-    {
-        Ok(value) => value,
-        Err(err) => {
-            return Ok(auth_error_response(err));
-        }
-    };
+    let refresh_token =
+        match create_refresh_token(claims.user_id(), jti, refresh_token_repository).await {
+            Ok(value) => value,
+            Err(err) => {
+                return Ok(auth_error_response(err));
+            }
+        };
     Ok(auth_ok_response(
         jwt_token,
         refresh_token,
@@ -329,12 +303,8 @@ pub async fn logout(
             return Ok(auth_bad_request_response(err.to_string().as_str()));
         }
     };
-    let _ = match state
-        .repository
-        .refresh_token_repository
-        .find_one(id_value.clone())
-        .await
-    {
+    let refresh_token_repository = RefreshTokenRepo::new(state.repo.clone());
+    let _ = match refresh_token_repository.find_one(id_value.clone()).await {
         Ok(value_opt) => match value_opt {
             Some(value) => value,
             None => {
@@ -345,12 +315,7 @@ pub async fn logout(
             return Ok(auth_error_response(err));
         }
     };
-    match state
-        .repository
-        .refresh_token_repository
-        .invalidate(id_value)
-        .await
-    {
+    match refresh_token_repository.invalidate(id_value).await {
         Ok(_) => {}
         Err(err) => {
             return Ok(auth_error_response(err));
@@ -378,12 +343,8 @@ pub async fn request_verification_email(
     let old_email: Option<String>;
     let display_name: String;
 
-    let mut email: String = match state
-        .repository
-        .user_repository
-        .find_one(claims.user_id())
-        .await
-    {
+    let user_repository = UserRepo::new(state.repo.clone());
+    let mut email: String = match user_repository.find_one(claims.user_id()).await {
         Ok(Some(user)) => match user.email {
             Some(value) => {
                 user_id = user.id;
@@ -414,8 +375,9 @@ pub async fn request_verification_email(
         old_email = None;
     }
 
+    let verify_email_tokens_repository = VerifyEmailTokenRepo::new(state.repo.clone());
     let token: String = match create_verify_email_token(
-        state.repository.verify_email_tokens_repository,
+        verify_email_tokens_repository,
         email.clone(),
         old_email,
         user_id,
@@ -439,9 +401,8 @@ pub async fn verify_email(
     request: VerifyEmailRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let token_data = match state
-        .repository
-        .verify_email_tokens_repository
+    let verify_email_tokens_repository = VerifyEmailTokenRepo::new(state.repo.clone());
+    let token_data = match verify_email_tokens_repository
         .find_one_by_token(request.token)
         .await
     {
@@ -469,12 +430,8 @@ pub async fn verify_email(
             StatusCode::CONFLICT,
         ));
     }
-    let user = match state
-        .repository
-        .user_repository
-        .find_one(token_data.user_id)
-        .await
-    {
+    let user_repository = UserRepo::new(state.repo.clone());
+    let user = match user_repository.find_one(token_data.user_id).await {
         Ok(Some(value)) => value,
         Ok(None) => {
             return Ok(bad_request_response(
@@ -495,12 +452,7 @@ pub async fn verify_email(
     if user.role == UserRole::Ghost {
         updated_user.role = Some(UserRole::User);
     }
-    match state
-        .repository
-        .user_repository
-        .update_one(user.id, updated_user)
-        .await
-    {
+    match user_repository.update_one(user.id, updated_user).await {
         Ok(_) => {}
         Err(err) => {
             return Ok(server_error_response(err));
@@ -510,9 +462,7 @@ pub async fn verify_email(
         invalidated: None,
         used: Some(true),
     };
-    match state
-        .repository
-        .verify_email_tokens_repository
+    match verify_email_tokens_repository
         .update_one(token_data.id, updated_token)
         .await
     {
@@ -528,9 +478,8 @@ pub async fn request_reset_password_email(
     request: RequestResetPasswordEmailRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let user = match state
-        .repository
-        .user_repository
+    let user_repository = UserRepo::new(state.repo.clone());
+    let user = match user_repository
         .find_one_by_email(request.email.clone())
         .await
     {
@@ -543,17 +492,14 @@ pub async fn request_reset_password_email(
         }
     };
 
-    let token: String = match create_reset_password_token(
-        state.repository.change_password_tokens_repository,
-        user.id,
-    )
-    .await
-    {
-        Ok(value) => value,
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-    };
+    let change_password_tokens_repository = ChangePasswordTokenRepo::new(state.repo.clone());
+    let token: String =
+        match create_reset_password_token(change_password_tokens_repository, user.id).await {
+            Ok(value) => value,
+            Err(err) => {
+                return Ok(server_error_response(err));
+            }
+        };
     state
         .email_sender
         .send_reset_password_email(request.email, user.display_name, token)
@@ -566,9 +512,8 @@ pub async fn reset_password(
     request: ResetPasswordRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let token_data = match state
-        .repository
-        .change_password_tokens_repository
+    let change_password_tokens_repository = ChangePasswordTokenRepo::new(state.repo.clone());
+    let token_data = match change_password_tokens_repository
         .find_one_by_token(request.token)
         .await
     {
@@ -596,12 +541,8 @@ pub async fn reset_password(
             StatusCode::CONFLICT,
         ));
     }
-    let user = match state
-        .repository
-        .user_repository
-        .find_one(token_data.user_id)
-        .await
-    {
+    let user_repository = UserRepo::new(state.repo.clone());
+    let user = match user_repository.find_one(token_data.user_id).await {
         Ok(Some(value)) => value,
         Ok(None) => {
             return Ok(bad_request_response(
@@ -621,12 +562,7 @@ pub async fn reset_password(
         updated_at: Some(Some(Utc::now().naive_utc())),
     };
 
-    match state
-        .repository
-        .user_repository
-        .update_one(user.id, updated_user)
-        .await
-    {
+    match user_repository.update_one(user.id, updated_user).await {
         Ok(_) => {}
         Err(err) => {
             return Ok(server_error_response(err));
@@ -636,9 +572,7 @@ pub async fn reset_password(
         invalidated: None,
         used: Some(true),
     };
-    match state
-        .repository
-        .change_password_tokens_repository
+    match change_password_tokens_repository
         .update_one(token_data.id, updated_token)
         .await
     {
@@ -654,12 +588,8 @@ pub async fn get_profile(
     claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let user = match state
-        .repository
-        .user_repository
-        .find_one(claims.user_id())
-        .await
-    {
+    let user_repository = UserRepo::new(state.repo.clone());
+    let user = match user_repository.find_one(claims.user_id()).await {
         Ok(Some(value)) => value,
         Ok(None) => {
             return Ok(not_found_response("User"));

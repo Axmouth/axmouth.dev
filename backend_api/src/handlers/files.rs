@@ -7,6 +7,7 @@ use crate::{
 use backend_repo_pg::{
     insertables::NewUploadedImage,
     models::responses::{FileUploadedDetails, FileUploadedResponse},
+    uploaded_images::UploadedImageRepo,
 };
 use bytes::BufMut;
 use chrono::Utc;
@@ -79,9 +80,8 @@ pub async fn image_upload(
         url: upload_details.url.clone(),
         path: upload_details.path.clone(),
     };
-    match state
-        .repository
-        .uploaded_images_repository
+    let uploaded_images_repository = UploadedImageRepo::new(state.repo.clone());
+    match uploaded_images_repository
         .insert_one(new_uploaded_image)
         .await
     {
