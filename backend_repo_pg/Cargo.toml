@@ -18,8 +18,8 @@ uuid = { version = "0.8", features = ["serde", "v4"] }
 rand = "0.8"
 env_logger = "0.8"
 chrono = { version = "0.4", features = ["serde"] }
-validator = "0.12"
-validator_derive = "0.12"
+validator = "0.13"
+validator_derive = "0.13"
 rust-argon2 = "0.8"
 lazy_static = "1.4"
 regex = "1.4"

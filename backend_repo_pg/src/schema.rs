@@ -137,11 +137,13 @@ table! {
     page_views (id) {
         id -> Int4,
         page_url -> Varchar,
-        user_agent -> Varchar,
-        user_location -> Varchar,
+        user_agent -> Nullable<Varchar>,
         id_hash -> Varchar,
         registered -> Bool,
         created_at -> Timestamp,
+        latitude -> Nullable<Float8>,
+        longitude -> Nullable<Float8>,
+        country_code -> Nullable<Varchar>,
     }
 }
 

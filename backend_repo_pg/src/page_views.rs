@@ -4,7 +4,7 @@ use crate::insertables::NewPageView;
 use crate::models::{db_models, domain};
 use crate::options::{PageViewSortType, PaginationOptions};
 use crate::schema::page_views;
-use diesel::prelude::*;
+use diesel::{dsl::count_star, prelude::*};
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
 use r2d2::Pool;
 
@@ -48,6 +48,50 @@ impl PageViewRepo {
                 None => return Ok(None),
             };
         Ok(Some(domain::PageView::from(text_body)))
+    }
+
+    pub async fn find_one_by_url(
+        &self,
+        url_value: String,
+    ) -> Result<Option<domain::PageView>, PgRepoError> {
+        use crate::schema::page_views::dsl::{page_url, page_views};
+
+        let conn = self.pool.get()?;
+        let query = page_views
+            .filter(page_url.eq(url_value))
+            .select(page_views::all_columns());
+        let text_body: db_models::PageView =
+            match tokio::task::block_in_place(move || query.first(&conn).optional())? {
+                Some(value) => value,
+                None => return Ok(None),
+            };
+        Ok(Some(domain::PageView::from(text_body)))
+    }
+
+    pub async fn count_by_url(&self, url_value: String) -> Result<i64, PgRepoError> {
+        use crate::schema::page_views::dsl::{id_hash, page_url, page_views};
+
+        let conn = self.pool.get()?;
+        let query = page_views
+            .filter(page_url.eq(url_value))
+            .select(count_star())
+            .distinct_on(id_hash);
+        let count: i64 = tokio::task::block_in_place(move || query.first(&conn))?;
+
+        Ok(count)
+    }
+
+    pub async fn count_by_root_url(&self, url_value: String) -> Result<i64, PgRepoError> {
+        use crate::schema::page_views::dsl::{id_hash, page_url, page_views};
+
+        let conn = self.pool.get()?;
+        let query = page_views
+            .filter(page_url.like(format!("{}%", url_value)))
+            .select(count_star())
+            .distinct_on(id_hash);
+        let count: i64 = tokio::task::block_in_place(move || query.first(&conn))?;
+
+        Ok(count)
     }
 
     pub async fn find(

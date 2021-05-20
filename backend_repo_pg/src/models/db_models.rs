@@ -8,7 +8,9 @@ use crate::schema::{
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[belongs_to(parent = "User", foreign_key = "author_id")]
 #[belongs_to(parent = "BlogPost", foreign_key = "post_id")]
 #[table_name = "blog_post_comments"]
@@ -21,7 +23,9 @@ pub struct BlogPostComment {
     pub post_id: i32,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[belongs_to(parent = "User", foreign_key = "author_id")]
 #[table_name = "blog_posts"]
 pub struct BlogPost {
@@ -48,7 +52,9 @@ pub struct Project {
     pub published: bool,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[belongs_to(parent = "User", foreign_key = "user_id")]
 #[table_name = "refresh_tokens"]
 pub struct RefreshToken {
@@ -61,7 +67,9 @@ pub struct RefreshToken {
     pub expires_at: NaiveDateTime,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[table_name = "users"]
 pub struct User {
     pub id: i32,
@@ -73,7 +81,9 @@ pub struct User {
     pub role: UserRole,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[table_name = "home_page_links"]
 pub struct HomePageLink {
     pub id: i32,
@@ -82,14 +92,18 @@ pub struct HomePageLink {
     pub image: String,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[table_name = "categories"]
 pub struct Category {
     pub id: i32,
     pub name: String,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[belongs_to(parent = "Category", foreign_key = "category_id")]
 #[belongs_to(parent = "BlogPost", foreign_key = "blog_post_id")]
 #[table_name = "blog_posts_categories"]
@@ -99,14 +113,18 @@ pub struct BlogPostCategory {
     pub blog_post_id: i32,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[table_name = "technologies"]
 pub struct Technology {
     pub id: i32,
     pub name: String,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[belongs_to(parent = "Technology", foreign_key = "technology_id")]
 #[belongs_to(parent = "Project", foreign_key = "project_id")]
 #[table_name = "projects_technologies"]
@@ -116,7 +134,9 @@ pub struct ProjectTechnology {
     pub project_id: i32,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[belongs_to(parent = "User", foreign_key = "user_id")]
 #[table_name = "uploaded_images"]
 pub struct UploadedImage {
@@ -131,7 +151,9 @@ pub struct UploadedImage {
     pub url: String,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[table_name = "text_bodies"]
 pub struct TextBody {
     pub id: i32,
@@ -143,7 +165,9 @@ pub struct TextBody {
     pub updated_at: Option<NaiveDateTime>,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[table_name = "identification_cookies"]
 pub struct IdentificationCookie {
     pub id: i32,
@@ -152,7 +176,9 @@ pub struct IdentificationCookie {
     pub expires_at: NaiveDateTime,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[table_name = "verify_email_tokens"]
 #[belongs_to(parent = "User", foreign_key = "user_id")]
 pub struct VerifyEmailToken {
@@ -167,19 +193,25 @@ pub struct VerifyEmailToken {
     pub expires_at: NaiveDateTime,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[table_name = "page_views"]
 pub struct PageView {
     pub id: i32,
     pub page_url: String,
-    pub user_agent: String,
-    pub user_location: String,
+    pub user_agent: Option<String>,
     pub id_hash: String,
     pub registered: bool,
     pub created_at: NaiveDateTime,
+    pub latitude: Option<f64>,
+    pub longitude: Option<f64>,
+    pub country_code: Option<String>,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[belongs_to(parent = "BlogPostComment", foreign_key = "blog_post_comment_id")]
 #[belongs_to(parent = "User", foreign_key = "user_id")]
 #[table_name = "blog_post_comment_ratings"]
@@ -191,7 +223,9 @@ pub struct BlogPostCommentRating {
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[belongs_to(parent = "BlogPostComment", foreign_key = "blog_post_comment_id")]
 #[belongs_to(parent = "User", foreign_key = "user_id")]
 #[table_name = "blog_post_comment_flags"]
@@ -203,7 +237,9 @@ pub struct BlogPostCommentFlag {
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[belongs_to(parent = "User", foreign_key = "user_id")]
 #[table_name = "admin_logs"]
 pub struct AdminLog {
@@ -217,7 +253,9 @@ pub struct AdminLog {
     pub action_time: NaiveDateTime,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations)]
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
 #[table_name = "change_password_tokens"]
 #[belongs_to(parent = "User", foreign_key = "user_id")]
 pub struct ChangePasswordToken {

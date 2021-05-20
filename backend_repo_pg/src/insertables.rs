@@ -126,10 +126,12 @@ pub struct NewVerifyEmailToken {
 #[table_name = "page_views"]
 pub struct NewPageView {
     pub page_url: String,
-    pub user_agent: String,
-    pub user_location: String,
+    pub user_agent: Option<String>,
     pub id_hash: String,
     pub registered: bool,
+    pub latitude: Option<f64>,
+    pub longitude: Option<f64>,
+    pub country_code: Option<String>,
 }
 
 #[derive(Insertable)]

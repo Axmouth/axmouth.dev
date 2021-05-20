@@ -6,6 +6,7 @@ pub mod contact;
 pub mod files;
 pub mod health;
 pub mod links;
+pub mod page_views;
 pub mod project_technologies;
 pub mod projects;
 pub mod text_bodies;

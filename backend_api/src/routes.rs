@@ -67,7 +67,11 @@ macro_rules! debug_boxed {
     };
 }
 
-use warp::{self, hyper::StatusCode, Filter, Rejection, Reply};
+use warp::{
+    self,
+    hyper::{header, StatusCode},
+    Filter, Rejection, Reply,
+};
 
 use crate::app::AppState;
 use crate::filters::{auth_admin_filter, auth_filter, auth_opt_filter, validated_json, with_state};
@@ -90,6 +94,17 @@ pub fn routes(
         .and(with_state(state.clone()))
         .and_then(handlers::health::health);
 
+    let create_page_view = warp::path!("page-views")
+        .and(warp::post())
+        .and(warp::header::optional::<String>(
+            header::USER_AGENT.as_str(),
+        ))
+        .and(warp::cookie::optional("identifier"))
+        .and(warp::filters::addr::remote())
+        .and(auth_opt_filter(state.jwt_secret.clone()))
+        .and(validated_json())
+        .and(with_state(state.clone()))
+        .and_then(handlers::page_views::create);
     let get_blog_comment = warp::path!("blog-post-comments" / i32)
         .and(warp::get())
         .and(with_state(state.clone()))
@@ -357,6 +372,7 @@ pub fn routes(
     let files_get = warp::path("static").and(warp::fs::dir(state.static_file_dir));
 
     let handlers = balanced_or_tree!(
+        create_page_view,
         get_blog_post,
         create_blog_post,
         update_blog_post,

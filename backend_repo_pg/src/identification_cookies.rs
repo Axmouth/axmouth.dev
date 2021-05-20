@@ -4,6 +4,7 @@ use crate::insertables::NewIdentificationCookie;
 use crate::models::{db_models, domain};
 use crate::options::{IdentificationCookieSortType, PaginationOptions};
 use crate::schema::identification_cookies;
+use chrono::Utc;
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
 use r2d2::Pool;
@@ -44,6 +45,48 @@ impl IdentificationCookieRepo {
         let conn = self.pool.get()?;
         let query = identification_cookies
             .filter(id.eq(id_value))
+            .select(identification_cookies::all_columns());
+        let text_body: db_models::IdentificationCookie =
+            match tokio::task::block_in_place(move || query.first(&conn).optional())? {
+                Some(value) => value,
+                None => return Ok(None),
+            };
+        Ok(Some(domain::IdentificationCookie::from(text_body)))
+    }
+
+    pub async fn find_one_by_token(
+        &self,
+        token_value: String,
+    ) -> Result<Option<domain::IdentificationCookie>, PgRepoError> {
+        use crate::schema::identification_cookies::dsl::{
+            expires_at, identification_cookies, token,
+        };
+
+        let conn = self.pool.get()?;
+        let query = identification_cookies
+            .filter(expires_at.lt(Utc::now().naive_utc()))
+            .filter(token.eq(token_value))
+            .select(identification_cookies::all_columns());
+        let text_body: db_models::IdentificationCookie =
+            match tokio::task::block_in_place(move || query.first(&conn).optional())? {
+                Some(value) => value,
+                None => return Ok(None),
+            };
+        Ok(Some(domain::IdentificationCookie::from(text_body)))
+    }
+
+    pub async fn find_one_by_hash(
+        &self,
+        hash_value: String,
+    ) -> Result<Option<domain::IdentificationCookie>, PgRepoError> {
+        use crate::schema::identification_cookies::dsl::{
+            expires_at, id_hash, identification_cookies,
+        };
+
+        let conn = self.pool.get()?;
+        let query = identification_cookies
+            .filter(expires_at.lt(Utc::now().naive_utc()))
+            .filter(id_hash.eq(hash_value))
             .select(identification_cookies::all_columns());
         let text_body: db_models::IdentificationCookie =
             match tokio::task::block_in_place(move || query.first(&conn).optional())? {

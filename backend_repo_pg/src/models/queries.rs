@@ -99,6 +99,12 @@ pub struct GetAllPageViewsQuery {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+pub struct GetPageViewsQuery {
+    pub distinct: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct GetAllBlogPostCommentRatingsQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,

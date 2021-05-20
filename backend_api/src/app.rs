@@ -36,6 +36,7 @@ pub struct AppState {
     pub jwt_duration: i64,
     pub captcha_secret: String,
     pub refresh_cookie_builder: CookieBuilder,
+    pub id_cookie_builder: CookieBuilder,
     pub static_file_dir: String,
     pub static_file_address: String,
     pub email_sender: EmailSender,
@@ -62,6 +63,9 @@ pub async fn start() {
     let refresh_cookie_builder = CookieBuilder::new()
         .with_name("refresh_token".into())
         .with_http_only();
+    let id_cookie_builder = CookieBuilder::new()
+        .with_name("identifier".into())
+        .with_http_only();
 
     let email_sender: EmailSender = EmailSender::new();
 
@@ -71,6 +75,7 @@ pub async fn start() {
         jwt_duration,
         captcha_secret,
         refresh_cookie_builder,
+        id_cookie_builder,
         static_file_dir,
         static_file_address,
         email_sender,

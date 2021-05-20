@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AuthService } from 'src/auth/services/auth.service';
 import { websiteUrl } from 'src/environments/environment';
+import { PageViewService } from './shared/services/page-view.service';
 
 @Component({
   selector: 'app-root',
@@ -20,6 +21,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     private authService: AuthService,
+    private pageViewService: PageViewService,
     private title: Title,
     private meta: Meta,
     @Inject(DOCUMENT) private doc: Document,

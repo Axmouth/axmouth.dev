@@ -8,6 +8,7 @@ import { RestApiService } from './services/rest-api.service';
 import { SafePipe } from './pipes/safe.pipe';
 import { HighlightModule, HIGHLIGHT_OPTIONS } from 'ngx-highlightjs';
 import { HCaptchaDirective } from './directives/h-captcha.directive';
+import { PageViewService } from './services/page-view.service';
 
 @NgModule({
   declarations: [
@@ -24,6 +25,7 @@ import { HCaptchaDirective } from './directives/h-captcha.directive';
     HCaptchaDirective,
     LinkService,
     RestApiService,
+    PageViewService,
     {
       provide: HIGHLIGHT_OPTIONS,
       useValue: {
