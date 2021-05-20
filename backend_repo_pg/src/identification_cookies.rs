@@ -64,7 +64,7 @@ impl IdentificationCookieRepo {
 
         let conn = self.pool.get()?;
         let query = identification_cookies
-            .filter(expires_at.lt(Utc::now().naive_utc()))
+            .filter(expires_at.gt(Utc::now().naive_utc()))
             .filter(token.eq(token_value))
             .select(identification_cookies::all_columns());
         let text_body: db_models::IdentificationCookie =
@@ -85,7 +85,7 @@ impl IdentificationCookieRepo {
 
         let conn = self.pool.get()?;
         let query = identification_cookies
-            .filter(expires_at.lt(Utc::now().naive_utc()))
+            .filter(expires_at.gt(Utc::now().naive_utc()))
             .filter(id_hash.eq(hash_value))
             .select(identification_cookies::all_columns());
         let text_body: db_models::IdentificationCookie =

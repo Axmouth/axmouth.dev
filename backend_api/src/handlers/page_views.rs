@@ -18,7 +18,7 @@ use backend_repo_pg::{
 };
 use chrono::{Duration, Utc};
 use rand::{distributions::Alphanumeric, Rng};
-use sha2::{Digest, Sha256, Sha512};
+use sha2::{Digest, Sha512};
 use warp::Reply;
 
 pub async fn get(
@@ -46,36 +46,35 @@ pub async fn create(
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let mut return_cookie = None;
 
+    let identification_cookies_repository = IdentificationCookieRepo::new(state.repo.clone());
+
     let id_hash;
 
-    let identification_cookies_repository = IdentificationCookieRepo::new(state.repo.clone());
-    // TODO: handle cookie expiration
-    if let Some(token) = id_cookie {
-        let id_cookie_data = match identification_cookies_repository
+    let id_cookie_result = if let Some(token) = id_cookie {
+        match identification_cookies_repository
             .find_one_by_token(token)
             .await
         {
             Err(err) => {
                 return Ok(server_error_response(err));
             }
-            Ok(value_opt) => match value_opt {
-                None => {
-                    return Ok(not_found_response("Id Cookie Data"));
-                }
-                Some(value) => value,
-            },
-        };
+            Ok(value_opt) => value_opt,
+        }
+    } else {
+        None
+    };
 
-        id_hash = id_cookie_data.id_hash;
+    if let Some(id_cookie) = id_cookie_result {
+        id_hash = id_cookie.id_hash;
     } else {
         let mut hasher = Sha512::new();
         hasher.update(format!(
-            "{}{}{}{}",
-            user_agent.clone().unwrap_or(String::from("")),
+            "{}{}{}",
             request.latitude.unwrap_or(200.),
             request.longitude.unwrap_or(200.),
-            addr.map(|a| a.to_string()).unwrap_or(String::from(""))
+            addr.map(|a| a.ip().to_string()).unwrap_or(String::from(""))
         ));
+
         let hash_result = hasher.finalize();
         let new_id_hash = format!("{:x}", hash_result);
 
