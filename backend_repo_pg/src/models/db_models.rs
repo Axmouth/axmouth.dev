@@ -267,6 +267,3 @@ pub struct ChangePasswordToken {
     pub created_at: NaiveDateTime,
     pub expires_at: NaiveDateTime,
 }
-
-//TODO Implement Domain/Insertable/Changeset models bellow
-//TODO Finalize and add to DB bellow

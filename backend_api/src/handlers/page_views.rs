@@ -68,12 +68,13 @@ pub async fn create(
         id_hash = id_cookie.id_hash;
     } else {
         let mut hasher = Sha512::new();
-        hasher.update(format!(
+        let hash_string = format!(
             "{}{}{}",
             request.latitude.unwrap_or(200.),
             request.longitude.unwrap_or(200.),
             addr.map(|a| a.ip().to_string()).unwrap_or(String::from(""))
-        ));
+        );
+        hasher.update(hash_string);
 
         let hash_result = hasher.finalize();
         let new_id_hash = format!("{:x}", hash_result);
