@@ -20,6 +20,8 @@
         <app-field-chooser
           [fieldOptions]="field"
           [content]="entity[field.identifier]"
+          [creating]="creating"
+          [editing]="editing"
           *ngIf="editing && loaded"
         ></app-field-chooser>
         <app-field-chooser [fieldOptions]="field" *ngIf="!editing"></app-field-chooser>

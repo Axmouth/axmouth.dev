@@ -10,6 +10,10 @@ export class FieldChooserComponent implements OnInit {
   @Input()
   fieldOptions: AdminModelField;
   @Input()
+  editing: boolean;
+  @Input()
+  creating: boolean;
+  @Input()
   content: any;
   @Output()
   contentChange: EventEmitter<any>;
@@ -25,7 +29,7 @@ export class FieldChooserComponent implements OnInit {
     if (this.content === null) {
       this.isNull = true;
     }
-    if (this.content === undefined) {
+    if (this.content === undefined && this.editing === true) {
       this.isSkipped = true;
     }
   }
