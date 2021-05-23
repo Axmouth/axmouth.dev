@@ -1,4 +1,4 @@
-use crate::models::{db_models, domain};
+use crate::models::db_models;
 use crate::{errors::PgRepoError, pg_util::Repo};
 use diesel::prelude::*;
 use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
@@ -14,16 +14,18 @@ impl HealthRepo {
         Self { pool: repo.pool }
     }
 
-    pub async fn check(&self, id_value: i32) -> Result<Option<domain::User>, PgRepoError> {
-        use crate::schema::users::dsl::{id, users};
+    pub async fn check(&self) -> Result<Option<u128>, PgRepoError> {
+        use crate::schema::users::dsl::users;
 
+        let start = tokio::time::Instant::now();
         let conn = self.pool.get()?;
-        let query = users.filter(id.eq(id_value)).select(users::all_columns());
-        let user: db_models::User =
+        let query = users.select(users::all_columns());
+        let _: db_models::User =
             match tokio::task::block_in_place(move || query.first(&conn).optional())? {
                 Some(value) => value,
                 None => return Ok(None),
             };
-        Ok(Some(domain::User::from(user)))
+        let duration = start.elapsed();
+        Ok(Some(duration.as_millis()))
     }
 }

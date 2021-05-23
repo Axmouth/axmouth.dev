@@ -58,3 +58,12 @@ pub struct FileUploadedResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub errors: Option<Vec<String>>,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct HealthResponse {
+    pub db_up: bool,
+    pub db_response_time: Option<String>,
+    pub api_up: bool,
+    pub api_response_time: Option<String>,
+}
