@@ -80,7 +80,7 @@ use backend_repo_pg::models::{
     queries::{
         GetAllBlogPostCommentsQuery, GetAllBlogPostsQuery, GetAllCategoriesQuery,
         GetAllHomePageLinksQuery, GetAllProjectsQuery, GetAllTechnologiesQuery,
-        GetAllTextBodiesQuery,
+        GetAllTextBodiesQuery, GetPageViewsQuery,
     },
     responses::BaseResponse,
 };
@@ -105,6 +105,11 @@ pub fn routes(
         .and(validated_json())
         .and(with_state(state.clone()))
         .and_then(handlers::page_views::create);
+    let get_pages_views = warp::path!("page-views" / String)
+        .and(warp::get())
+        .and(warp::query::<GetPageViewsQuery>())
+        .and(with_state(state.clone()))
+        .and_then(handlers::page_views::get);
     let get_blog_comment = warp::path!("blog-post-comments" / i32)
         .and(warp::get())
         .and(with_state(state.clone()))
@@ -423,6 +428,7 @@ pub fn routes(
         image_upload_editorjs,
         image_upload,
         health_route,
+        get_pages_views,
     );
 
     warp::any()

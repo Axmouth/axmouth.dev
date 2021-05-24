@@ -74,8 +74,10 @@ impl PageViewRepo {
         let conn = self.pool.get()?;
         let query = page_views
             .filter(page_url.eq(url_value))
-            .select(count_star())
-            .distinct_on(id_hash);
+            .select(diesel::dsl::sql::<diesel::sql_types::BigInt>(
+                "Count(DISTINCT page_views.id_hash) ",
+            ));
+
         let count: i64 = tokio::task::block_in_place(move || query.first(&conn))?;
 
         Ok(count)
@@ -87,8 +89,9 @@ impl PageViewRepo {
         let conn = self.pool.get()?;
         let query = page_views
             .filter(page_url.like(format!("{}%", url_value)))
-            .select(count_star())
-            .distinct_on(id_hash);
+            .select(diesel::dsl::sql::<diesel::sql_types::BigInt>(
+                "Count(DISTINCT page_views.id_hash) ",
+            ));
         let count: i64 = tokio::task::block_in_place(move || query.first(&conn))?;
 
         Ok(count)

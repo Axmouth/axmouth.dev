@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 
 use crate::app::AppState;
+use crate::util::bad_request_response;
 use crate::{
     auth_tokens,
     util::{
@@ -19,6 +20,7 @@ use backend_repo_pg::{
 use chrono::{Duration, Utc};
 use rand::{distributions::Alphanumeric, Rng};
 use sha2::{Digest, Sha512};
+use urlencoding::decode;
 use warp::Reply;
 
 pub async fn get(
@@ -26,6 +28,12 @@ pub async fn get(
     query: GetPageViewsQuery,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
+    let url = match decode(&url) {
+        Err(err) => {
+            return Ok(bad_request_response(&err.to_string()));
+        }
+        Ok(value_opt) => value_opt,
+    };
     let pages_views_repository = PageViewRepo::new(state.repo.clone());
     let page_views_result = match pages_views_repository.count_by_url(url).await {
         Err(err) => {
