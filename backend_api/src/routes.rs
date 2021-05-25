@@ -449,25 +449,25 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
         code = StatusCode::NOT_FOUND;
         message = "Not Found".to_string();
     } else if let Some(e) = err.find::<crate::filters::RequestValidationFailure>() {
-        message = e.get_err();
+        message = format!("Validation: {}", e.get_err());
         code = StatusCode::BAD_REQUEST;
     } else if let Some(e) = err.find::<crate::filters::InvalidJWT>() {
-        message = e.get_err();
+        message = format!("JWT: {}", e.get_err());
         code = StatusCode::BAD_REQUEST;
     } else if let Some(e) = err.find::<crate::filters::MissingAuthentication>() {
-        message = e.get_err();
+        message = format!("Authentication: {}", e.get_err());
         code = StatusCode::UNAUTHORIZED;
     } else if let Some(e) = err.find::<crate::errors::ExpiredAuthentication>() {
-        message = e.to_string();
+        message = format!("Authentication: {}", e.to_string());
         code = StatusCode::UNAUTHORIZED;
     } else if let Some(e) = err.find::<crate::errors::EmailError>() {
-        message = e.to_string();
+        message = format!("Email: {}", e.to_string());
         code = StatusCode::INTERNAL_SERVER_ERROR;
     } else if let Some(e) = err.find::<crate::errors::FileUploadError>() {
-        message = e.to_string();
+        message = format!("File Upload: {}", e.to_string());
         code = StatusCode::INTERNAL_SERVER_ERROR;
     } else if let Some(e) = err.find::<crate::errors::CaptchaError>() {
-        message = e.to_string();
+        message = format!("Captcha: {}", e.to_string());
         code = StatusCode::BAD_REQUEST;
     } else if let Some(e) = err.find::<warp::filters::body::BodyDeserializeError>() {
         // This error happens if the body could not be deserialized correctly
@@ -484,22 +484,22 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
         };
         code = StatusCode::BAD_REQUEST;
     } else if let Some(e) = err.find::<warp::reject::InvalidQuery>() {
+        message = format!("Query: {}", e.to_string());
         code = StatusCode::BAD_REQUEST;
-        message = e.to_string();
     } else if let Some(e) = err.find::<warp::reject::MethodNotAllowed>() {
         // We can handle a specific error, here METHOD_NOT_ALLOWED,
         // and render it however we want
+        message = format!("Http Method: {}", e.to_string());
         code = StatusCode::METHOD_NOT_ALLOWED;
-        message = e.to_string();
     } else if let Some(e) = err.find::<warp::reject::PayloadTooLarge>() {
+        message = format!("Payload: {}", e.to_string());
         code = StatusCode::PAYLOAD_TOO_LARGE;
-        message = e.to_string();
     } else if let Some(e) = err.find::<warp::reject::MissingCookie>() {
+        message = format!("Cookie: {}", e.to_string());
         code = StatusCode::BAD_REQUEST;
-        message = e.to_string();
     } else if let Some(e) = err.find::<warp::reject::MissingHeader>() {
+        message = format!("Header: {}", e.to_string());
         code = StatusCode::BAD_REQUEST;
-        message = e.to_string();
     } else {
         // We should have expected this... Just log and say its a 500
         eprintln!("unhandled rejection: {:?}", err);
