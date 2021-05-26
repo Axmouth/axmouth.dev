@@ -18,6 +18,14 @@ const blogPostModel: AdminModel = {
       nullable: false,
     },
     {
+      name: 'Slug',
+      identifier: 'slug',
+      type: FieldType.titleField,
+      editable: true,
+      insertable: true,
+      nullable: false,
+    },
+    {
       name: 'Description',
       identifier: 'description',
       type: FieldType.textField,
@@ -210,6 +218,14 @@ const projectModel: AdminModel = {
     {
       name: 'Name',
       identifier: 'name',
+      type: FieldType.titleField,
+      editable: true,
+      insertable: true,
+      nullable: false,
+    },
+    {
+      name: 'Slug',
+      identifier: 'slug',
       type: FieldType.titleField,
       editable: true,
       insertable: true,

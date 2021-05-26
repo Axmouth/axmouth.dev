@@ -20,7 +20,7 @@ export class ViewBlogPostDetailsPageComponent implements OnInit, OnDestroy {
   ngUnsubscribe = new Subject<void>();
   post: BlogPost;
   commentsCount = 0;
-  postId: string;
+  postSlug: string;
   postBodyData: any[];
   blogPostComments: BlogPostComment[] = [];
   commentPage: number;
@@ -40,7 +40,7 @@ export class ViewBlogPostDetailsPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.title.setTitle(`Loading Blog Post | Axmouth's Website`);
     this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe((params) => {
-      this.postId = params.id;
+      this.postSlug = params.id;
       if (isNaN(+params.page) === false) {
         this.commentPage = +params.commentPage;
       }
@@ -52,7 +52,7 @@ export class ViewBlogPostDetailsPageComponent implements OnInit, OnDestroy {
   }
 
   initialiseState() {
-    this.blogPostService.getPost(this.postId).subscribe(
+    this.blogPostService.getPost(this.postSlug, { useSlug: true }).subscribe(
       (result) => {
         this.post = result.data;
         this.postBodyData = JSON.parse(result.data.body);
@@ -76,6 +76,23 @@ export class ViewBlogPostDetailsPageComponent implements OnInit, OnDestroy {
         });
         this.meta.updateTag({ property: `twitter:title`, content: this.title.getTitle() });
         this.meta.updateTag({ property: `twitter:description`, content: this?.post?.description });
+        this.commentService
+          .getAllCommentsByPost(this.post.id.toString(), this.commentPage, this.commentPageSize)
+          .pipe(takeUntil(this.ngUnsubscribe))
+          .subscribe(
+            (commentResult) => {
+              this.blogPostComments = commentResult.data;
+              this.commentsCount = commentResult?.pagination?.totalResults;
+            },
+            (error) => {
+              console.log(error);
+              if (error.status === 404) {
+                this.notFound = true;
+                this.title.setTitle('axmouth.dev - Blog Post Not Found');
+                this.loading = false;
+              }
+            },
+          );
       },
       (error) => {
         console.log(error);
@@ -86,23 +103,6 @@ export class ViewBlogPostDetailsPageComponent implements OnInit, OnDestroy {
         }
       },
     );
-    this.commentService
-      .getAllCommentsByPost(this.postId, this.commentPage, this.commentPageSize)
-      .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe(
-        (result) => {
-          this.blogPostComments = result.data;
-          this.commentsCount = result?.pagination?.totalResults;
-        },
-        (error) => {
-          console.log(error);
-          if (error.status === 404) {
-            this.notFound = true;
-            this.title.setTitle('axmouth.dev - Blog Post Not Found');
-            this.loading = false;
-          }
-        },
-      );
   }
 
   onCommentPosted() {

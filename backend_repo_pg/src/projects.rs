@@ -176,6 +176,43 @@ impl ProjectRepo {
         )))
     }
 
+    pub async fn find_one_by_slug(
+        &self,
+        slug_value: String,
+    ) -> Result<Option<domain::Project>, PgRepoError> {
+        use crate::schema::projects::dsl::{id as project_id, projects, slug};
+        use crate::schema::projects_technologies::dsl::{
+            project_id as projects_technologies_project_id,
+            projects_technologies as projects_technologies_dsl, technology_id,
+        };
+        use crate::schema::technologies::dsl::{
+            name as technology_name, technologies as technologies_dsl,
+        };
+
+        let conn = self.pool.get()?;
+        let query = projects
+            .filter(slug.eq(slug_value))
+            .left_join(projects_technologies_dsl.inner_join(technologies_dsl))
+            .group_by(project_id)
+            .select((
+                projects::all_columns(),
+                diesel::dsl::sql::<
+                    diesel::sql_types::Array<
+                        diesel::sql_types::Nullable<diesel::sql_types::VarChar>,
+                    >,
+                >("array_agg(\"technologies\".\"name\")"),
+            ));
+        let (project, technologies_list): (db_models::Project, Vec<Option<String>>) =
+            match tokio::task::block_in_place(move || query.first(&conn).optional())? {
+                Some(value) => value,
+                None => return Ok(None),
+            };
+        Ok(Some(domain::Project::from(
+            project,
+            technologies_list.into_iter().filter_map(|v| v).collect(),
+        )))
+    }
+
     pub async fn find(
         &self,
         filter: GetAllProjectsFilter,

@@ -42,6 +42,7 @@ pub struct BlogPost {
     pub published: bool,
     pub author: User,
     pub categories: Vec<String>,
+    pub slug: String,
 }
 
 impl BlogPost {
@@ -61,6 +62,7 @@ impl BlogPost {
             published: post.published,
             updated_at: post.updated_at,
             categories: categories_list,
+            slug: post.slug,
         }
     }
 }
@@ -78,6 +80,7 @@ pub struct Project {
     pub cover_image: Option<String>,
     pub name: String,
     pub published: bool,
+    pub slug: String,
 }
 
 impl Project {
@@ -92,6 +95,7 @@ impl Project {
             cover_image: project.cover_image,
             name: project.name,
             published: project.published,
+            slug: project.slug,
         }
     }
 }

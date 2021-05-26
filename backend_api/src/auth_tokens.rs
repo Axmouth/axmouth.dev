@@ -89,7 +89,7 @@ impl Claims {
     }
 
     pub fn is_admin(&self) -> bool {
-        self.role == UserRole::Admin && self.aud == AxmouthDotDevAudience::AdminDotAxmouthDotDev
+        self.role == UserRole::Admin
     }
 
     pub fn is_for_admin_site(&self) -> bool {

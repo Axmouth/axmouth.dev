@@ -189,6 +189,55 @@ impl BlogPostRepo {
         )))
     }
 
+    pub async fn find_one_by_slug(
+        &self,
+        slug_value: String,
+    ) -> Result<Option<domain::BlogPost>, PgRepoError> {
+        use crate::schema::blog_posts::dsl::{
+            blog_posts as blog_posts_dsl, id as blog_post_id, slug,
+        };
+        use crate::schema::blog_posts_categories::dsl::{
+            blog_post_id as blog_posts_categories_blog_post_id,
+            blog_posts_categories as blog_posts_categories_dsl,
+            category_id as blog_posts_categories_category_id,
+        };
+        use crate::schema::categories::dsl::{
+            categories as categories_dsl, id as category_id, name as category_name,
+        };
+        use crate::schema::users::dsl::id as user_id;
+        use crate::schema::users::dsl::users;
+
+        let conn = self.pool.get()?;
+
+        let query = blog_posts_dsl
+            .filter(slug.eq(slug_value))
+            .inner_join(users)
+            .left_join(blog_posts_categories_dsl.inner_join(categories_dsl))
+            .group_by((blog_post_id, user_id))
+            .select((
+                blog_posts_dsl::all_columns(),
+                users::all_columns(),
+                diesel::dsl::sql::<
+                    diesel::sql_types::Array<
+                        diesel::sql_types::Nullable<diesel::sql_types::VarChar>,
+                    >,
+                >("array_agg(\"categories\".\"name\")"),
+            ));
+        let (blog_post, user, categories_list): (
+            db_models::BlogPost,
+            db_models::User,
+            Vec<Option<String>>,
+        ) = match tokio::task::block_in_place(move || query.first(&conn).optional())? {
+            Some(value) => value,
+            None => return Ok(None),
+        };
+        Ok(Some(domain::BlogPost::from(
+            blog_post,
+            user,
+            categories_list.into_iter().filter_map(|v| v).collect(),
+        )))
+    }
+
     pub async fn find(
         &self,
         filter: GetAllBlogPostsFilter,

@@ -37,6 +37,7 @@ pub struct BlogPost {
     pub published: bool,
     pub author_id: i32,
     pub description: Option<String>,
+    pub slug: String,
 }
 
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable)]
@@ -50,6 +51,7 @@ pub struct Project {
     pub cover_image: Option<String>,
     pub name: String,
     pub published: bool,
+    pub slug: String,
 }
 
 #[derive(

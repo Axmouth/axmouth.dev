@@ -1,4 +1,5 @@
 use crate::app::AppState;
+use crate::util::bad_request_response;
 use crate::{
     auth_tokens,
     util::{
@@ -7,6 +8,7 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
+use backend_repo_pg::models::queries::GetBlogPostQuery;
 use backend_repo_pg::{blog_posts::BlogPostRepo, options::PaginationOptions};
 use backend_repo_pg::{
     change_sets::UpdateBlogPost,
@@ -20,24 +22,45 @@ use backend_repo_pg::{
 use chrono::Utc;
 
 pub async fn get(
-    id: i32,
+    id: String,
+    query: GetBlogPostQuery,
     claims: Option<Claims>,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let blog_post_repository = BlogPostRepo::new(state.repo.clone());
-    let post_result = match blog_post_repository.find_one(id).await {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value_opt) => match value_opt {
-            None => {
-                return Ok(not_found_response("Post"));
+    let post_result = if let Some(true) = query.use_slug {
+        match blog_post_repository.find_one_by_slug(id).await {
+            Err(err) => {
+                return Ok(server_error_response(err));
             }
-            Some(value) => value,
-        },
+            Ok(value_opt) => match value_opt {
+                None => {
+                    return Ok(not_found_response("Post"));
+                }
+                Some(value) => value,
+            },
+        }
+    } else {
+        let id = match id.parse::<i32>() {
+            Ok(v) => v,
+            Err(_) => {
+                return Ok(bad_request_response("Url: Bad Id value"));
+            }
+        };
+        match blog_post_repository.find_one(id).await {
+            Err(err) => {
+                return Ok(server_error_response(err));
+            }
+            Ok(value_opt) => match value_opt {
+                None => {
+                    return Ok(not_found_response("Post"));
+                }
+                Some(value) => value,
+            },
+        }
     };
     if let Some(claims) = claims {
-        if claims.is_admin() == false && post_result.published == false {
+        if claims.is_staff() == false && post_result.published == false {
             return Ok(not_found_response("Post"));
         }
     }
@@ -130,10 +153,11 @@ pub async fn update(
         },
     };
     let post_updates = UpdateBlogPost {
-        body: Some(request.body),
+        body: request.body,
         published: request.published,
         updated_at: Some(Some(Utc::now().naive_utc())),
         description: request.description,
+        slug: request.slug,
     };
     if let Some(categories_list) = request.categories {
         let post_result = match blog_post_repository
@@ -168,6 +192,7 @@ pub async fn create(
         author_id: claims.user_id(),
         published: false,
         description: request.description,
+        slug: request.slug,
     };
     let blog_post_repository = BlogPostRepo::new(state.repo.clone());
     let post_result = match blog_post_repository

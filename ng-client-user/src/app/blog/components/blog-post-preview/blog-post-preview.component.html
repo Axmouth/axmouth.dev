@@ -1,5 +1,5 @@
 <h2>
-  <a href="/blog/{{ post.id }}" routerLink="/blog/{{ post.id }}">{{ post.title }}</a>
+  <a href="/blog/{{ post.slug }}" routerLink="/blog/{{ post.slug }}">{{ post.title }}</a>
 </h2>
 
 <div class="alert alert-warning alert-dismissible fade show" *ngIf="!post.published">

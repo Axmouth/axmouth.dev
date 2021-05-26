@@ -1,4 +1,5 @@
 use crate::app::AppState;
+use crate::util::bad_request_response;
 use crate::{
     auth_tokens,
     util::{
@@ -7,6 +8,7 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
+use backend_repo_pg::models::queries::GetProjectQuery;
 use backend_repo_pg::{
     change_sets::UpdateProject,
     filters::GetAllProjectsFilter,
@@ -20,24 +22,45 @@ use backend_repo_pg::{options::PaginationOptions, projects::ProjectRepo};
 use chrono::Utc;
 
 pub async fn get(
-    id: i32,
+    id: String,
+    query: GetProjectQuery,
     claims: Option<Claims>,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let project_repository = ProjectRepo::new(state.repo.clone());
-    let project_result = match project_repository.find_one(id).await {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value_opt) => match value_opt {
-            None => {
-                return Ok(not_found_response("Project"));
+    let project_result = if let Some(true) = query.use_slug {
+        match project_repository.find_one_by_slug(id).await {
+            Err(err) => {
+                return Ok(server_error_response(err));
             }
-            Some(value) => value,
-        },
+            Ok(value_opt) => match value_opt {
+                None => {
+                    return Ok(not_found_response("Project"));
+                }
+                Some(value) => value,
+            },
+        }
+    } else {
+        let id = match id.parse::<i32>() {
+            Ok(v) => v,
+            Err(_) => {
+                return Ok(bad_request_response("Url: Bad Id value"));
+            }
+        };
+        match project_repository.find_one(id).await {
+            Err(err) => {
+                return Ok(server_error_response(err));
+            }
+            Ok(value_opt) => match value_opt {
+                None => {
+                    return Ok(not_found_response("Project"));
+                }
+                Some(value) => value,
+            },
+        }
     };
     if let Some(claims) = claims {
-        if claims.is_admin() == false && project_result.published == false {
+        if claims.is_staff() == false && project_result.published == false {
             return Ok(not_found_response("Post"));
         }
     }
@@ -136,6 +159,7 @@ pub async fn update(
         description: request.description,
         name: request.name,
         published: request.published,
+        slug: request.slug,
     };
     if let Some(technologies_list) = request.technologies {
         let project_result = match project_repository
@@ -169,6 +193,7 @@ pub async fn create(
         cover_image: request.cover_image,
         name: request.name,
         description: request.description,
+        slug: request.slug,
     };
     let project_repository = ProjectRepo::new(state.repo.clone());
     let project_result = match project_repository

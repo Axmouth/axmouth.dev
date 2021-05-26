@@ -32,6 +32,12 @@ pub struct GetAllBlogPostsQuery {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+pub struct GetBlogPostQuery {
+    pub use_slug: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct GetAllProjectsQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
@@ -39,6 +45,12 @@ pub struct GetAllProjectsQuery {
     pub technology_name: Option<String>,
     pub published: Option<bool>,
     pub sort_type: Option<ProjectSortType>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct GetProjectQuery {
+    pub use_slug: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

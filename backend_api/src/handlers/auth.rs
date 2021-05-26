@@ -281,8 +281,6 @@ pub async fn refresh(
         }
     };
 
-    println!("{}", refresh_token);
-
     let id_value: uuid::Uuid = match uuid::Uuid::parse_str(refresh_token.as_str()) {
         Ok(value) => value,
         Err(err) => {

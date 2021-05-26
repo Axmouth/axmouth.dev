@@ -69,6 +69,7 @@ table! {
         published -> Bool,
         author_id -> Int4,
         description -> Nullable<Varchar>,
+        slug -> Varchar,
     }
 }
 
@@ -162,6 +163,7 @@ table! {
         cover_image -> Nullable<Varchar>,
         name -> Varchar,
         published -> Bool,
+        slug -> Varchar,
     }
 }
 

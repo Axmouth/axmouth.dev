@@ -23,10 +23,11 @@ pub struct UpdateBlogPostCommentRequest {
 #[serde(rename_all = "camelCase")]
 pub struct UpdateBlogPostRequest {
     #[validate(length(min = 1, max = 5500))]
-    pub body: String,
+    pub body: Option<String>,
     pub categories: Option<Vec<String>>,
     pub published: Option<bool>,
     pub description: Option<Option<String>>,
+    pub slug: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Validate, Clone, Debug)]
@@ -40,6 +41,7 @@ pub struct UpdateProjectRequest {
     pub cover_image: Option<Option<String>>,
     pub name: Option<String>,
     pub published: Option<bool>,
+    pub slug: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Validate, Clone, Debug)]
@@ -59,6 +61,7 @@ pub struct CreateBlogPostRequest {
     pub body: String,
     pub categories: Vec<String>,
     pub description: Option<String>,
+    pub slug: String,
 }
 
 #[derive(Serialize, Deserialize, Validate, Clone, Debug)]
@@ -71,6 +74,7 @@ pub struct CreateProjectRequest {
     #[validate(url)]
     pub cover_image: Option<String>,
     pub name: String,
+    pub slug: String,
 }
 #[derive(Serialize, Deserialize, Validate, Clone)]
 #[serde(rename_all = "camelCase")]

@@ -19,6 +19,7 @@ pub struct NewBlogPost {
     pub published: bool,
     pub author_id: i32,
     pub description: Option<String>,
+    pub slug: String,
 }
 
 #[derive(Insertable)]
@@ -28,6 +29,7 @@ pub struct NewProject {
     pub description: Option<String>,
     pub cover_image: Option<String>,
     pub name: String,
+    pub slug: String,
 }
 
 #[derive(Insertable)]

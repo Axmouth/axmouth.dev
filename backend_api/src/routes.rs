@@ -80,7 +80,7 @@ use backend_repo_pg::models::{
     queries::{
         GetAllBlogPostCommentsQuery, GetAllBlogPostsQuery, GetAllCategoriesQuery,
         GetAllHomePageLinksQuery, GetAllProjectsQuery, GetAllTechnologiesQuery,
-        GetAllTextBodiesQuery, GetPageViewsQuery,
+        GetAllTextBodiesQuery, GetBlogPostQuery, GetPageViewsQuery, GetProjectQuery,
     },
     responses::BaseResponse,
 };
@@ -136,8 +136,9 @@ pub fn routes(
         .and(warp::query::<GetAllBlogPostCommentsQuery>())
         .and(with_state(state.clone()))
         .and_then(handlers::blog_comments::get_all);
-    let get_blog_post = warp::path!("blog-posts" / i32)
+    let get_blog_post = warp::path!("blog-posts" / String)
         .and(warp::get())
+        .and(warp::query::<GetBlogPostQuery>())
         .and(auth_opt_filter(state.jwt_secret.clone()))
         .and(with_state(state.clone()))
         .and_then(handlers::blog_posts::get);
@@ -164,8 +165,9 @@ pub fn routes(
         .and(auth_opt_filter(state.jwt_secret.clone()))
         .and(with_state(state.clone()))
         .and_then(handlers::blog_posts::get_all);
-    let get_project = warp::path!("projects" / i32)
+    let get_project = warp::path!("projects" / String)
         .and(warp::get())
+        .and(warp::query::<GetProjectQuery>())
         .and(auth_opt_filter(state.jwt_secret.clone()))
         .and(with_state(state.clone()))
         .and_then(handlers::projects::get);

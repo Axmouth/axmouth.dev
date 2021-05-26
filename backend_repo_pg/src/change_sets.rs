@@ -17,6 +17,7 @@ pub struct UpdateBlogPost {
     pub published: Option<bool>,
     pub updated_at: Option<Option<NaiveDateTime>>,
     pub description: Option<Option<String>>,
+    pub slug: Option<String>,
 }
 
 #[derive(AsChangeset, Deserialize, Debug, Clone, Eq, PartialEq)]
@@ -28,6 +29,7 @@ pub struct UpdateProject {
     pub cover_image: Option<Option<String>>,
     pub name: Option<String>,
     pub published: Option<bool>,
+    pub slug: Option<String>,
 }
 
 #[derive(AsChangeset, Deserialize, Debug, Clone, Eq, PartialEq)]

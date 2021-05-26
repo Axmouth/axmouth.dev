@@ -1,5 +1,6 @@
 export class Project {
   id: number;
+  slug: string;
   body: string;
   createdAt: Date;
   updatedAt?: Date;

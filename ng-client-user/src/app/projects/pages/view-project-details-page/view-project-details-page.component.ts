@@ -18,7 +18,7 @@ export class ViewProjectDetailsPageComponent implements OnInit, OnDestroy {
   @Input()
   project: Project;
   projectTechnologiesList: string[] = [];
-  projectId: string;
+  projectSlug: string;
   projectBodyData: any[];
   notFound = false;
   loading = true;
@@ -34,9 +34,9 @@ export class ViewProjectDetailsPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.title.setTitle(`Loading Project | Axmouth's Website`);
     const params = this.route.snapshot.paramMap;
-    this.projectId = params.get('id');
+    this.projectSlug = params.get('id');
     this.projectService
-      .getProject(this.projectId)
+      .getProject(this.projectSlug, { useSlug: true })
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(
         (result) => {

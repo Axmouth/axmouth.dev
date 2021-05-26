@@ -16,8 +16,8 @@ export class ProjectService implements OnDestroy {
 
   constructor(private apiService: RestApiService, private router: Router) {}
 
-  getProject(id: string): Observable<Response<Project>> {
-    return this.apiService.get<Response<Project>>(this.url, id, {}, true, true).pipe(takeUntil(this.ngUnsubscribe));
+  getProject(id: string, query: object): Observable<Response<Project>> {
+    return this.apiService.get<Response<Project>>(this.url, id, query, true, true).pipe(takeUntil(this.ngUnsubscribe));
   }
 
   getAllProjects(query: object = {}): Observable<Response<Project[]>> {

@@ -15,8 +15,8 @@ export class BlogPostService implements OnDestroy {
 
   constructor(private apiService: RestApiService) {}
 
-  getPost(id: string): Observable<Response<BlogPost>> {
-    return this.apiService.get<Response<BlogPost>>(this.url, id, {}, true, true).pipe(takeUntil(this.ngUnsubscribe));
+  getPost(id: string, query: object): Observable<Response<BlogPost>> {
+    return this.apiService.get<Response<BlogPost>>(this.url, id, query, true, true).pipe(takeUntil(this.ngUnsubscribe));
   }
 
   getAllPosts(query: object): Observable<Response<BlogPost[]>> {

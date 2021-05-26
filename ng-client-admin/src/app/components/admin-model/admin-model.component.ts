@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { AdminModel } from '../../models/definitions/admin-model';
-import { RestApiService } from '../../services/rest-api.service';
+import { AdminModel } from 'src/app/models/definitions/admin-model';
+import { RestApiService } from 'src/app/services/rest-api.service';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({
