@@ -1,6 +1,7 @@
 use crate::cookies::CookieBuilder;
 use backend_repo_pg::{
-    errors::PgRepoError, insertables::NewRefreshToken, refresh_tokens::RefreshTokenRepo,
+    admin_logs::AdminLogRepo, errors::PgRepoError, extra::AdminLogAction,
+    insertables::NewRefreshToken, pg_util::Repo, refresh_tokens::RefreshTokenRepo,
 };
 use backend_repo_pg::{
     insertables::NewAdminLog,
@@ -237,13 +238,106 @@ pub async fn create_refresh_token(
     Ok(repo.insert_one(new_token).await?.id)
 }
 
-pub async fn create_admin_log() {
+async fn create_admin_log(
+    object_id: String,
+    user_id: i32,
+    label: String,
+    model: String,
+    action: AdminLogAction,
+    new_data: Option<String>,
+    old_data: Option<String>,
+    base_link: String,
+    repo: Repo,
+) -> Result<(), PgRepoError> {
     let new_admin_log = NewAdminLog {
-        change_message: format!(""),
-        object_id: format!(""),
-        user_id: 0,
-        label: format!(""),
-        model: format!(""),
-        action_flag: 0,
+        object_id,
+        user_id,
+        label,
+        model,
+        action,
+        new_data,
+        old_data,
+        base_link,
     };
+
+    let admin_log_repository = AdminLogRepo::new(repo);
+    admin_log_repository.insert_one(new_admin_log).await?;
+
+    Ok(())
+}
+
+pub async fn create_creation_admin_log(
+    object_id: String,
+    user_id: i32,
+    label: String,
+    model: String,
+    new_data: Option<String>,
+    base_link: String,
+    repo: Repo,
+) -> Result<(), PgRepoError> {
+    create_admin_log(
+        object_id,
+        user_id,
+        label,
+        model,
+        AdminLogAction::Create,
+        new_data,
+        None,
+        base_link,
+        repo,
+    )
+    .await?;
+
+    Ok(())
+}
+
+pub async fn create_update_admin_log(
+    object_id: String,
+    user_id: i32,
+    label: String,
+    model: String,
+    new_data: Option<String>,
+    old_data: Option<String>,
+    base_link: String,
+    repo: Repo,
+) -> Result<(), PgRepoError> {
+    create_admin_log(
+        object_id,
+        user_id,
+        label,
+        model,
+        AdminLogAction::Update,
+        new_data,
+        old_data,
+        base_link,
+        repo,
+    )
+    .await?;
+
+    Ok(())
+}
+
+pub async fn create_deletion_admin_log(
+    object_id: String,
+    user_id: i32,
+    label: String,
+    model: String,
+    old_data: Option<String>,
+    base_link: String,
+    repo: Repo,
+) -> Result<(), PgRepoError> {
+    create_admin_log(
+        object_id,
+        user_id,
+        label,
+        model,
+        AdminLogAction::Delete,
+        None,
+        old_data,
+        base_link,
+        repo,
+    )
+    .await?;
+
+    Ok(())
 }

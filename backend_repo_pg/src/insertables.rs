@@ -1,4 +1,4 @@
-use crate::extra::UserRole;
+use crate::extra::{AdminLogAction, UserRole};
 use crate::schema::*;
 
 use chrono::NaiveDateTime;
@@ -154,12 +154,14 @@ pub struct NewBlogPostCommentFlag {
 #[derive(Insertable)]
 #[table_name = "admin_logs"]
 pub struct NewAdminLog {
-    pub change_message: String,
     pub object_id: String,
     pub user_id: i32,
     pub label: String,
     pub model: String,
-    pub action_flag: i32,
+    pub action: AdminLogAction,
+    pub new_data: Option<String>,
+    pub old_data: Option<String>,
+    pub base_link: String,
 }
 
 #[derive(Insertable)]

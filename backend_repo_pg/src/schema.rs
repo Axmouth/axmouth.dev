@@ -4,13 +4,15 @@ table! {
 
     admin_logs (id) {
         id -> Int4,
-        change_message -> Varchar,
         object_id -> Varchar,
         user_id -> Int4,
         label -> Varchar,
         model -> Varchar,
-        action_flag -> Int4,
         action_time -> Timestamp,
+        action -> Admin_log_action,
+        new_data -> Nullable<Varchar>,
+        old_data -> Nullable<Varchar>,
+        base_link -> Varchar,
     }
 }
 

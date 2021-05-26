@@ -39,6 +39,7 @@ pub mod verify_email_tokens;
 
 pub mod exports {
     // we will use that a bit later
+    pub use super::extra::AdminLogActionType as Admin_log_action;
     pub use super::extra::UserRoleType as User_role;
 }
 

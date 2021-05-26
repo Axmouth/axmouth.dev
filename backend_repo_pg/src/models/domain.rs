@@ -1,4 +1,4 @@
-use crate::extra::UserRole;
+use crate::extra::{AdminLogAction, UserRole};
 use crate::models::db_models;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
@@ -386,26 +386,30 @@ impl BlogPostCommentFlag {
 #[serde(rename_all = "camelCase")]
 pub struct AdminLog {
     pub id: i32,
-    pub change_message: String,
     pub object_id: String,
     pub user_id: i32,
     pub label: String,
     pub model: String,
-    pub action_flag: i32,
     pub action_time: NaiveDateTime,
+    pub action: AdminLogAction,
+    pub new_data: Option<String>,
+    pub old_data: Option<String>,
+    pub base_link: String,
 }
 
 impl AdminLog {
     pub fn from(log: db_models::AdminLog) -> Self {
         Self {
             id: log.id,
-            change_message: log.change_message,
             object_id: log.object_id,
             user_id: log.user_id,
             label: log.label,
             model: log.model,
-            action_flag: log.action_flag,
             action_time: log.action_time,
+            action: log.action,
+            new_data: log.new_data,
+            old_data: log.old_data,
+            base_link: log.base_link,
         }
     }
 }

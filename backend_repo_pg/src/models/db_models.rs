@@ -1,4 +1,4 @@
-use crate::extra::UserRole;
+use crate::extra::{AdminLogAction, UserRole};
 use crate::schema::{
     admin_logs, blog_post_comment_flags, blog_post_comment_ratings, blog_post_comments, blog_posts,
     blog_posts_categories, categories, change_password_tokens, home_page_links,
@@ -244,13 +244,15 @@ pub struct BlogPostCommentFlag {
 #[table_name = "admin_logs"]
 pub struct AdminLog {
     pub id: i32,
-    pub change_message: String,
     pub object_id: String,
     pub user_id: i32,
     pub label: String,
     pub model: String,
-    pub action_flag: i32,
     pub action_time: NaiveDateTime,
+    pub action: AdminLogAction,
+    pub new_data: Option<String>,
+    pub old_data: Option<String>,
+    pub base_link: String,
 }
 
 #[derive(

@@ -13,5 +13,6 @@ ALTER TABLE page_views
 UPDATE page_views 
     SET user_agent = ''
     WHERE user_agent IS NULL;
+
 ALTER TABLE page_views
     ALTER COLUMN user_agent SET NOT NULL;
