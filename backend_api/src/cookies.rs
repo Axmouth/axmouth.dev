@@ -129,6 +129,18 @@ impl CookieBuilder {
         new_builder
     }
 
+    pub fn with_path(&self, path: String) -> Self {
+        let mut new_builder = self.clone();
+        new_builder.path = Some(path);
+        new_builder
+    }
+
+    pub fn without_path(&self) -> Self {
+        let mut new_builder = self.clone();
+        new_builder.path = None;
+        new_builder
+    }
+
     pub fn cookie<T: Reply>(&self, reply: T) -> Result<warp::reply::WithHeader<T>, String> {
         if self.name.is_none() {
             return Err("No cookie name?".to_string());

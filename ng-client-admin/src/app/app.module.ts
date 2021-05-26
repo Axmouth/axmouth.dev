@@ -117,6 +117,9 @@ import { jwtWhitelist } from 'src/environments/environment';
         authEndpointPrefix: `${apiRoot}/auth/`,
         whitelistedDomains: jwtWhitelist,
         blacklistedRoutes: [],
+        jwtTokenKey: 'auth_app_token_admin',
+        loginEndpoint: 'admin-login',
+        logoutEndpoint: 'admin-logout',
         // authScheme: ""
       },
     }),

@@ -1,3 +1,4 @@
+use crate::cookies::CookieBuilder;
 use crate::util::{
     auth_bad_request_response, auth_error_response, auth_ok_response, auth_unauthorized_response,
     bad_request_response, create_refresh_token, login_failed_response, not_found_response,
@@ -51,24 +52,14 @@ pub async fn login(
 
     let jti = uuid::Uuid::new_v4();
 
-    let jwt_token = match user.role {
-        UserRole::Admin => auth_tokens::encode_admin_token(
-            state.jwt_secret.as_str(),
-            user.id,
-            user.role,
-            jti,
-            user.display_name,
-            state.jwt_duration,
-        ),
-        _ => auth_tokens::encode_token(
-            state.jwt_secret.as_str(),
-            user.id,
-            user.role,
-            jti,
-            user.display_name,
-            state.jwt_duration,
-        ),
-    };
+    let jwt_token = auth_tokens::encode_token(
+        state.jwt_secret.as_str(),
+        user.id,
+        user.role,
+        jti,
+        user.display_name,
+        state.jwt_duration,
+    );
     let refresh_token_repository = RefreshTokenRepo::new(state.repo.clone());
     let refresh_token = match create_refresh_token(user.id, jti, refresh_token_repository).await {
         Ok(value) => value,
@@ -76,10 +67,14 @@ pub async fn login(
             return Ok(auth_error_response(err));
         }
     };
+    let refresh_cookie_builder = CookieBuilder::new()
+        .with_name("refresh_token".into())
+        .with_path("/".into())
+        .with_http_only();
     Ok(auth_ok_response(
         jwt_token,
         refresh_token,
-        state.refresh_cookie_builder,
+        refresh_cookie_builder,
     ))
 }
 
@@ -128,10 +123,14 @@ pub async fn admin_login(
             return Ok(auth_error_response(err));
         }
     };
+    let refresh_cookie_builder = CookieBuilder::new()
+        .with_name("refresh_token_admin".into())
+        .with_path("/".into())
+        .with_http_only();
     Ok(auth_ok_response(
         jwt_token,
         refresh_token,
-        state.refresh_cookie_builder,
+        refresh_cookie_builder,
     ))
 }
 
@@ -220,22 +219,74 @@ pub async fn register(
         .email_sender
         .send_email_verification_email(request.email, request.display_name, token)
         .await?;
+
+    let refresh_cookie_builder = CookieBuilder::new()
+        .with_name("refresh_token".into())
+        .with_path("/".into())
+        .with_http_only();
     Ok(auth_ok_response(
         jwt_token,
         refresh_token,
-        state.refresh_cookie_builder,
+        refresh_cookie_builder,
     ))
 }
 
 pub async fn refresh(
     request: RefreshRequest,
-    refresh_token: String,
+    refresh_token: Option<String>,
+    refresh_token_admin: Option<String>,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
+    let jwt_token = request.token;
+    let claims = match decode_token(&state.jwt_secret, &jwt_token) {
+        Ok(value) => value,
+        Err(err) => {
+            return Ok(auth_error_response(err));
+        }
+    };
+
+    if refresh_token.is_none() && refresh_token_admin.is_none() {
+        return Ok(bad_request_response(
+            "Authentication: Missing refresh token, 0",
+        ));
+    }
+
+    let (refresh_token, refresh_cookie_builder) = if claims.is_for_admin_site() {
+        if let Some(token) = refresh_token_admin {
+            (
+                token,
+                CookieBuilder::new()
+                    .with_name("refresh_token_admin".into())
+                    .with_path("/".into())
+                    .with_http_only(),
+            )
+        } else {
+            return Ok(bad_request_response(
+                "Authentication: Missing refresh token, 1",
+            ));
+        }
+    } else {
+        if let Some(token) = refresh_token {
+            (
+                token,
+                CookieBuilder::new()
+                    .with_name("refresh_token".into())
+                    .with_path("/".into())
+                    .with_http_only(),
+            )
+        } else {
+            return Ok(bad_request_response(
+                "Authentication: Missing refresh token, 2",
+            ));
+        }
+    };
+
+    println!("{}", refresh_token);
+
     let id_value: uuid::Uuid = match uuid::Uuid::parse_str(refresh_token.as_str()) {
         Ok(value) => value,
         Err(err) => {
-            return Ok(auth_bad_request_response(err.to_string().as_str()));
+            return Ok(bad_request_response(err.to_string().as_str()));
         }
     };
     let refresh_token_repository = RefreshTokenRepo::new(state.repo.clone());
@@ -251,20 +302,13 @@ pub async fn refresh(
         }
     };
     if token_data.invalidated == true {
-        return Ok(auth_bad_request_response("Invalidated Refresh Token"));
+        return Ok(bad_request_response("Invalidated Refresh Token"));
     }
     if token_data.used == true {
-        return Ok(auth_bad_request_response("Used Refresh Token"));
+        return Ok(bad_request_response("Used Refresh Token"));
     }
-    let jwt_token = request.token;
-    let claims = match decode_token(&state.jwt_secret, &jwt_token) {
-        Ok(value) => value,
-        Err(err) => {
-            return Ok(auth_error_response(err));
-        }
-    };
     if claims.jti() != token_data.jwt_id || claims.user_id() != token_data.user_id {
-        return Ok(auth_bad_request_response("Invalid Auth Token Combination"));
+        return Ok(bad_request_response("Invalid Auth Token Combination"));
     }
     token_data.used = true;
 
@@ -289,7 +333,7 @@ pub async fn refresh(
     Ok(auth_ok_response(
         jwt_token,
         refresh_token,
-        state.refresh_cookie_builder,
+        refresh_cookie_builder,
     ))
 }
 
@@ -331,6 +375,47 @@ pub async fn logout(
     let resp_with_status = warp::reply::with_status(resp_body, StatusCode::NO_CONTENT);
     let resp_with_header =
         warp::reply::with_header(resp_with_status, header::SET_COOKIE, "refresh_token=");
+    return Ok(resp_with_header.into_response());
+}
+
+pub async fn logout_admin(
+    refresh_token: String,
+    state: AppState,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let id_value: uuid::Uuid = match uuid::Uuid::parse_str(refresh_token.as_str()) {
+        Ok(value) => value,
+        Err(err) => {
+            return Ok(auth_bad_request_response(err.to_string().as_str()));
+        }
+    };
+    let refresh_token_repository = RefreshTokenRepo::new(state.repo.clone());
+    let _ = match refresh_token_repository.find_one(id_value.clone()).await {
+        Ok(value_opt) => match value_opt {
+            Some(value) => value,
+            None => {
+                return Ok(auth_unauthorized_response("Invalid Refresh Token"));
+            }
+        },
+        Err(err) => {
+            return Ok(auth_error_response(err));
+        }
+    };
+    match refresh_token_repository.invalidate(id_value).await {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(auth_error_response(err));
+        }
+    }
+    let resp_body = warp::reply::json(&BaseResponse {
+        data: Some(()),
+        success: Some(true),
+        errors: None,
+        messages: None,
+        pagination: None,
+    });
+    let resp_with_status = warp::reply::with_status(resp_body, StatusCode::NO_CONTENT);
+    let resp_with_header =
+        warp::reply::with_header(resp_with_status, header::SET_COOKIE, "refresh_token_admin=");
     return Ok(resp_with_header.into_response());
 }
 

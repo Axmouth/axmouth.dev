@@ -92,6 +92,10 @@ impl Claims {
         self.role == UserRole::Admin && self.aud == AxmouthDotDevAudience::AdminDotAxmouthDotDev
     }
 
+    pub fn is_for_admin_site(&self) -> bool {
+        self.aud == AxmouthDotDevAudience::AdminDotAxmouthDotDev
+    }
+
     pub fn is_verified(&self) -> bool {
         self.role != UserRole::Ghost
     }
