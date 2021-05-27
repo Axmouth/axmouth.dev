@@ -1,5 +1,8 @@
 use crate::app::AppState;
 use crate::util::bad_request_response;
+use crate::util::create_creation_admin_log;
+use crate::util::create_deletion_admin_log;
+use crate::util::create_update_admin_log;
 use crate::{
     auth_tokens,
     util::{
@@ -107,11 +110,11 @@ pub async fn get_all(
 
 pub async fn delete(
     id: i32,
-    _claims: Claims,
+    claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let project_repository = ProjectRepo::new(state.repo.clone());
-    let _ = match project_repository.find_one(id).await {
+    let old_data = match project_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -131,17 +134,34 @@ pub async fn delete(
     if project_result == 0 {
         return Ok(not_found_response("Project"));
     }
+    match create_deletion_admin_log(
+        id.to_string(),
+        claims.user_id(),
+        String::from("Link"),
+        String::from("home_page_links"),
+        &old_data,
+        String::from("/api/v1/links"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
+    };
     Ok(simple_no_content_response(project_result))
 }
 
 pub async fn update(
     id: i32,
-    _claims: Claims,
+    claims: Claims,
     request: UpdateProjectRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let project_repository = ProjectRepo::new(state.repo.clone());
-    let _ = match project_repository.find_one(id).await {
+    let request_copy = request.clone();
+    let old_data = match project_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -161,33 +181,50 @@ pub async fn update(
         published: request.published,
         slug: request.slug,
     };
-    if let Some(technologies_list) = request.technologies {
-        let project_result = match project_repository
-            .update_one_with_technologies(id, updated_project, technologies_list)
+    let project_result = if let Some(technologies_list) = request.technologies {
+        match project_repository
+            .update_one_with_technologies(id, &updated_project, technologies_list)
             .await
         {
             Err(err) => {
                 return Ok(server_error_response(err));
             }
             Ok(value) => value,
-        };
-        Ok(simple_created_response(project_result))
+        }
     } else {
-        let project_result = match project_repository.update_one(id, updated_project).await {
+        match project_repository.update_one(id, &updated_project).await {
             Err(err) => {
                 return Ok(server_error_response(err));
             }
             Ok(value) => value,
-        };
-        Ok(simple_created_response(project_result))
-    }
+        }
+    };
+    match create_update_admin_log(
+        id.to_string(),
+        claims.user_id(),
+        String::from("Project"),
+        String::from("projects"),
+        &request_copy,
+        &old_data,
+        String::from("/api/v1/projects"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
+    };
+    Ok(simple_created_response(project_result))
 }
 
 pub async fn create(
-    _claims: Claims,
+    claims: Claims,
     request: CreateProjectRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
+    let request_copy = request.clone();
     let new_project = NewProject {
         body: request.body,
         cover_image: request.cover_image,
@@ -197,13 +234,29 @@ pub async fn create(
     };
     let project_repository = ProjectRepo::new(state.repo.clone());
     let project_result = match project_repository
-        .insert_one_with_technologies(new_project, request.technologies)
+        .insert_one_with_technologies(&new_project, request.technologies)
         .await
     {
         Err(err) => {
             return Ok(server_error_response(err));
         }
         Ok(value) => value,
+    };
+    match create_creation_admin_log(
+        project_result.id.to_string(),
+        claims.user_id(),
+        String::from("Project"),
+        String::from("projects"),
+        &request_copy,
+        String::from("/api/v1/projects"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
     };
     Ok(simple_created_response(project_result))
 }

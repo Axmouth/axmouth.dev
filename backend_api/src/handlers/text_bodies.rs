@@ -1,4 +1,7 @@
 use crate::app::AppState;
+use crate::util::create_creation_admin_log;
+use crate::util::create_deletion_admin_log;
+use crate::util::create_update_admin_log;
 use crate::{
     auth_tokens,
     util::{
@@ -67,7 +70,7 @@ pub async fn get_all(
 
 pub async fn delete(
     slug: String,
-    _claims: Claims,
+    claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let text_body_repository = TextBodyRepo::new(state.repo.clone());
@@ -91,16 +94,33 @@ pub async fn delete(
     if text_body_result == 0 {
         return Ok(not_found_response("TextBody"));
     }
+    match create_deletion_admin_log(
+        old_entity.id.to_string(),
+        claims.user_id(),
+        String::from("Text Body"),
+        String::from("text_bodies"),
+        &old_entity,
+        String::from("/api/v1/text-bodies"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
+    };
     Ok(simple_no_content_response(text_body_result))
 }
 
 pub async fn update(
     slug: String,
-    _claims: Claims,
+    claims: Claims,
     request: UpdateTextBodyRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let text_body_repository = TextBodyRepo::new(state.repo.clone());
+    let request_copy = request.clone();
     let old_entity = match text_body_repository.find_one_by_slug(slug).await {
         Err(err) => {
             return Ok(server_error_response(err));
@@ -114,13 +134,13 @@ pub async fn update(
     };
     let updated_text_body = UpdateTextBody {
         body: request.body,
-        slug: request.slug,
+        slug: request.slug.clone(),
         title: request.title,
         url_used: request.url_used,
         updated_at: Some(Utc::now().naive_utc()),
     };
     let text_body_result = match text_body_repository
-        .update_one(old_entity.id, updated_text_body)
+        .update_one(old_entity.id, &updated_text_body)
         .await
     {
         Err(err) => {
@@ -128,11 +148,28 @@ pub async fn update(
         }
         Ok(value) => value,
     };
+    match create_update_admin_log(
+        old_entity.id.to_string(),
+        claims.user_id(),
+        String::from("Text Body"),
+        String::from("text_bodies"),
+        &request_copy,
+        &old_entity,
+        String::from("/api/v1/text-bodies"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
+    };
     Ok(simple_created_response(text_body_result))
 }
 
 pub async fn create(
-    _claims: Claims,
+    claims: Claims,
     request: CreateTextBodyRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
@@ -142,12 +179,29 @@ pub async fn create(
         title: request.title,
         url_used: request.url_used,
     };
+    let new_text_body_copy = new_text_body.clone();
     let text_body_repository = TextBodyRepo::new(state.repo.clone());
-    let text_body_result = match text_body_repository.insert_one(new_text_body).await {
+    let text_body_result = match text_body_repository.insert_one(&new_text_body).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
         Ok(value) => value,
+    };
+    match create_creation_admin_log(
+        text_body_result.id.to_string(),
+        claims.user_id(),
+        String::from("Text Body"),
+        String::from("text_bodies"),
+        &new_text_body_copy,
+        String::from("/api/v1/text-bodies"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
     };
     Ok(simple_created_response(text_body_result))
 }

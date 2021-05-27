@@ -18,20 +18,30 @@ impl TechnologyRepo {
         Self { pool: repo.pool }
     }
 
-    pub async fn insert_one(&self, new_comment: NewTechnology) -> Result<usize, PgRepoError> {
+    pub async fn insert_one(&self, new_technology: &NewTechnology) -> Result<i32, PgRepoError> {
         let conn = self.pool.get()?;
-        let query = diesel::insert_into(technologies::table).values(&new_comment);
-        Ok(tokio::task::block_in_place(move || query.execute(&conn))?)
+        let query = diesel::insert_into(technologies::table).values(new_technology);
+        let inserted_technology: db_models::Technology =
+            match tokio::task::block_in_place(move || query.get_result(&conn)).optional()? {
+                None => {
+                    return Err(PgRepoError {
+                        error_message: "Failed to insert".to_string(),
+                        error_type: crate::errors::PgRepoErrorType::Unknown,
+                    })
+                }
+                Some(value) => value,
+            };
+        Ok(inserted_technology.id)
     }
 
     pub async fn update_one(
         &self,
         id_value: i32,
-        updated_comment: UpdateTechnology,
+        updated_tech: &UpdateTechnology,
     ) -> Result<usize, PgRepoError> {
         use crate::schema::technologies::dsl::{id, technologies};
         let conn = self.pool.get()?;
-        let query = diesel::update(technologies.filter(id.eq(id_value))).set(&updated_comment);
+        let query = diesel::update(technologies.filter(id.eq(id_value))).set(updated_tech);
         Ok(tokio::task::block_in_place(move || query.execute(&conn))?)
     }
 

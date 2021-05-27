@@ -1,5 +1,8 @@
 use crate::app::AppState;
 use crate::util::bad_request_response;
+use crate::util::create_creation_admin_log;
+use crate::util::create_deletion_admin_log;
+use crate::util::create_update_admin_log;
 use crate::{
     auth_tokens,
     util::{
@@ -107,11 +110,11 @@ pub async fn get_all(
 
 pub async fn delete(
     id: i32,
-    _claims: Claims,
+    claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let blog_post_repository = BlogPostRepo::new(state.repo.clone());
-    let _ = match blog_post_repository.find_one(id).await {
+    let old_data = match blog_post_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -131,17 +134,33 @@ pub async fn delete(
     if post_result == 0 {
         return Ok(not_found_response("Post"));
     }
+    match create_deletion_admin_log(
+        id.to_string(),
+        claims.user_id(),
+        String::from("Blog Post"),
+        String::from("blog_posts"),
+        &old_data,
+        String::from("/api/v1/blog-posts"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
+    };
     Ok(simple_no_content_response(post_result))
 }
 
 pub async fn update(
     id: i32,
-    _claims: Claims,
+    claims: Claims,
     request: UpdateBlogPostRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let blog_post_repository = BlogPostRepo::new(state.repo.clone());
-    let _ = match blog_post_repository.find_one(id).await {
+    let old_data = match blog_post_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -159,26 +178,42 @@ pub async fn update(
         description: request.description,
         slug: request.slug,
     };
-    if let Some(categories_list) = request.categories {
-        let post_result = match blog_post_repository
-            .update_one_with_categories(id, post_updates, categories_list)
+    let post_result = if let Some(categories_list) = request.categories {
+        match blog_post_repository
+            .update_one_with_categories(id, &post_updates, &categories_list)
             .await
         {
             Err(err) => {
                 return Ok(server_error_response(err));
             }
             Ok(value) => value,
-        };
-        Ok(simple_created_response(post_result))
+        }
     } else {
-        let post_result = match blog_post_repository.update_one(id, post_updates).await {
+        match blog_post_repository.update_one(id, &post_updates).await {
             Err(err) => {
                 return Ok(server_error_response(err));
             }
             Ok(value) => value,
-        };
-        Ok(simple_created_response(post_result))
-    }
+        }
+    };
+    match create_update_admin_log(
+        id.to_string(),
+        claims.user_id(),
+        String::from("Blog Post"),
+        String::from("blog_posts"),
+        &post_updates,
+        &old_data,
+        String::from("/api/v1/blog-posts"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
+    };
+    Ok(simple_created_response(post_result))
 }
 
 pub async fn create(
@@ -194,15 +229,32 @@ pub async fn create(
         description: request.description,
         slug: request.slug,
     };
+    let new_post_copy = new_post.clone();
     let blog_post_repository = BlogPostRepo::new(state.repo.clone());
     let post_result = match blog_post_repository
-        .insert_one_with_categories(new_post, request.categories)
+        .insert_one_with_categories(&new_post, &request.categories)
         .await
     {
         Err(err) => {
             return Ok(server_error_response(err));
         }
         Ok(value) => value,
+    };
+    match create_creation_admin_log(
+        post_result.to_string(),
+        claims.user_id(),
+        String::from("Blog Post"),
+        String::from("blog_posts"),
+        &new_post_copy,
+        String::from("/api/v1/blog-posts"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
     };
     Ok(simple_created_response(post_result))
 }

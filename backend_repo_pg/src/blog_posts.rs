@@ -31,7 +31,7 @@ impl BlogPostRepo {
     async fn update_categories(
         &self,
         inserted_post_id: i32,
-        categories_list: Vec<String>,
+        categories_list: &Vec<String>,
     ) -> Result<(), PgRepoError> {
         use crate::schema::blog_posts_categories::dsl::{
             blog_post_id, blog_posts_categories as blog_posts_categories_dsl, category_id,
@@ -75,9 +75,9 @@ impl BlogPostRepo {
 
     pub async fn insert_one_with_categories(
         &self,
-        new_post: NewBlogPost,
-        categories_list: Vec<String>,
-    ) -> Result<usize, PgRepoError> {
+        new_post: &NewBlogPost,
+        categories_list: &Vec<String>,
+    ) -> Result<i32, PgRepoError> {
         let conn = self.pool.get()?;
         let query = diesel::insert_into(blog_posts::table).values(new_post);
         let inserted_post: db_models::BlogPost =
@@ -94,13 +94,13 @@ impl BlogPostRepo {
             .update_categories(inserted_post.id, categories_list)
             .await?;
 
-        Ok(1)
+        Ok(inserted_post.id)
     }
 
     pub async fn update_one(
         &self,
         id_value: i32,
-        updated_post: UpdateBlogPost,
+        updated_post: &UpdateBlogPost,
     ) -> Result<usize, PgRepoError> {
         use crate::schema::blog_posts::dsl::{blog_posts, id};
         let conn = self.pool.get()?;
@@ -111,8 +111,8 @@ impl BlogPostRepo {
     pub async fn update_one_with_categories(
         &self,
         id_value: i32,
-        updated_post: UpdateBlogPost,
-        categories_list: Vec<String>,
+        updated_post: &UpdateBlogPost,
+        categories_list: &Vec<String>,
     ) -> Result<usize, PgRepoError> {
         let result = self.update_one(id_value, updated_post).await?;
         let _ = self.update_categories(id_value, categories_list).await?;

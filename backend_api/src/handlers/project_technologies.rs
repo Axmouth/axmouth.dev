@@ -1,4 +1,7 @@
 use crate::app::AppState;
+use crate::util::create_creation_admin_log;
+use crate::util::create_deletion_admin_log;
+use crate::util::create_update_admin_log;
 use crate::{
     auth_tokens,
     util::{
@@ -66,11 +69,11 @@ pub async fn get_all(
 
 pub async fn delete(
     id: i32,
-    _claims: Claims,
+    claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let technology_repository = TechnologyRepo::new(state.repo.clone());
-    let _ = match technology_repository.find_one(id).await {
+    let old_data = match technology_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -90,17 +93,34 @@ pub async fn delete(
     if technology_result == 0 {
         return Ok(not_found_response("Technology"));
     }
+    match create_deletion_admin_log(
+        id.to_string(),
+        claims.user_id(),
+        String::from("Project Technology"),
+        String::from("technologies"),
+        &old_data,
+        String::from("/api/v1/technologies"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
+    };
     Ok(simple_no_content_response(technology_result))
 }
 
 pub async fn update(
     id: i32,
-    _claims: Claims,
+    claims: Claims,
     request: UpdateTechnologyRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let technology_repository = TechnologyRepo::new(state.repo.clone());
-    let _ = match technology_repository.find_one(id).await {
+    let request_copy = request.clone();
+    let old_data = match technology_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -113,7 +133,7 @@ pub async fn update(
     };
     let updated_technology = UpdateTechnology { name: request.name };
     let technology_result = match technology_repository
-        .update_one(id, updated_technology)
+        .update_one(id, &updated_technology)
         .await
     {
         Err(err) => {
@@ -121,21 +141,55 @@ pub async fn update(
         }
         Ok(value) => value,
     };
+    match create_update_admin_log(
+        id.to_string(),
+        claims.user_id(),
+        String::from("Project Technology"),
+        String::from("technologies"),
+        &request_copy,
+        &old_data,
+        String::from("/api/v1/technologies"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
+    };
     Ok(simple_created_response(technology_result))
 }
 
 pub async fn create(
-    _claims: Claims,
+    claims: Claims,
     request: CreateTechnologyRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let new_technology = NewTechnology { name: request.name };
+    let new_technology_copy = new_technology.clone();
     let technology_repository = TechnologyRepo::new(state.repo.clone());
-    let technology_result = match technology_repository.insert_one(new_technology).await {
+    let technology_result = match technology_repository.insert_one(&new_technology).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
         Ok(value) => value,
+    };
+    match create_creation_admin_log(
+        technology_result.to_string(),
+        claims.user_id(),
+        String::from("Project Technology"),
+        String::from("technologies"),
+        &new_technology_copy,
+        String::from("/api/v1/technologies"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
     };
     Ok(simple_created_response(technology_result))
 }

@@ -238,17 +238,23 @@ pub async fn create_refresh_token(
     Ok(repo.insert_one(new_token).await?.id)
 }
 
-async fn create_admin_log(
+async fn create_admin_log<T, U>(
     object_id: String,
     user_id: i32,
     label: String,
     model: String,
     action: AdminLogAction,
-    new_data: Option<String>,
-    old_data: Option<String>,
+    new_data: Option<&T>,
+    old_data: Option<&U>,
     base_link: String,
     repo: Repo,
-) -> Result<(), PgRepoError> {
+) -> Result<(), PgRepoError>
+where
+    T: Serialize,
+    U: Serialize,
+{
+    let new_data = new_data.map(|v| serde_json::to_string(v).unwrap_or(String::new()));
+    let old_data = old_data.map(|v| serde_json::to_string(v).unwrap_or(String::new()));
     let new_admin_log = NewAdminLog {
         object_id,
         user_id,
@@ -266,23 +272,26 @@ async fn create_admin_log(
     Ok(())
 }
 
-pub async fn create_creation_admin_log(
+pub async fn create_creation_admin_log<T>(
     object_id: String,
     user_id: i32,
     label: String,
     model: String,
-    new_data: Option<String>,
+    new_data: &T,
     base_link: String,
     repo: Repo,
-) -> Result<(), PgRepoError> {
+) -> Result<(), PgRepoError>
+where
+    T: Serialize,
+{
     create_admin_log(
         object_id,
         user_id,
         label,
         model,
         AdminLogAction::Create,
-        new_data,
-        None,
+        Some(new_data),
+        None as Option<&()>,
         base_link,
         repo,
     )
@@ -291,24 +300,28 @@ pub async fn create_creation_admin_log(
     Ok(())
 }
 
-pub async fn create_update_admin_log(
+pub async fn create_update_admin_log<T, U>(
     object_id: String,
     user_id: i32,
     label: String,
     model: String,
-    new_data: Option<String>,
-    old_data: Option<String>,
+    new_data: &T,
+    old_data: &U,
     base_link: String,
     repo: Repo,
-) -> Result<(), PgRepoError> {
+) -> Result<(), PgRepoError>
+where
+    T: Serialize,
+    U: Serialize,
+{
     create_admin_log(
         object_id,
         user_id,
         label,
         model,
         AdminLogAction::Update,
-        new_data,
-        old_data,
+        Some(new_data),
+        Some(old_data),
         base_link,
         repo,
     )
@@ -317,23 +330,26 @@ pub async fn create_update_admin_log(
     Ok(())
 }
 
-pub async fn create_deletion_admin_log(
+pub async fn create_deletion_admin_log<T>(
     object_id: String,
     user_id: i32,
     label: String,
     model: String,
-    old_data: Option<String>,
+    old_data: &T,
     base_link: String,
     repo: Repo,
-) -> Result<(), PgRepoError> {
+) -> Result<(), PgRepoError>
+where
+    T: Serialize,
+{
     create_admin_log(
         object_id,
         user_id,
         label,
         model,
         AdminLogAction::Delete,
-        None,
-        old_data,
+        None as Option<&()>,
+        Some(old_data),
         base_link,
         repo,
     )

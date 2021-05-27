@@ -1,4 +1,6 @@
 use crate::app::AppState;
+use crate::util::create_deletion_admin_log;
+use crate::util::create_update_admin_log;
 use crate::{
     auth_tokens::Claims,
     util::{
@@ -96,6 +98,24 @@ pub async fn delete(
     if comment_result == 0 {
         return Ok(not_found_response("Comment"));
     }
+    if claims.is_for_admin_site() {
+        match create_deletion_admin_log(
+            id.to_string(),
+            claims.user_id(),
+            String::from("Blog Post Comment"),
+            String::from("blog_post_comments"),
+            &comment,
+            String::from("/api/v1/blog-post-comments"),
+            state.repo.clone(),
+        )
+        .await
+        {
+            Ok(_) => {}
+            Err(err) => {
+                return Ok(server_error_response(err));
+            }
+        };
+    }
     Ok(simple_no_content_response(comment_result))
 }
 
@@ -106,7 +126,8 @@ pub async fn update(
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let blog_comment_repository = BlogPostCommentRepo::new(state.repo.clone());
-    let updated_comment = match blog_comment_repository.find_one(id).await {
+    let request_copy = request.clone();
+    let comment = match blog_comment_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -117,7 +138,7 @@ pub async fn update(
             }
         },
     };
-    if updated_comment.author.id != claims.user_id() || claims.is_admin() == false {
+    if comment.author.id != claims.user_id() || claims.is_admin() == false {
         return Ok(not_found_response("Comment"));
     }
     let comment_updates = UpdateBlogPostComment {
@@ -133,6 +154,25 @@ pub async fn update(
         }
         Ok(value) => value,
     };
+    if claims.is_for_admin_site() {
+        match create_update_admin_log(
+            id.to_string(),
+            claims.user_id(),
+            String::from("Blog Post Comment"),
+            String::from("blog_post_comments"),
+            &request_copy,
+            &comment,
+            String::from("/api/v1/blog-post-comments"),
+            state.repo.clone(),
+        )
+        .await
+        {
+            Ok(_) => {}
+            Err(err) => {
+                return Ok(server_error_response(err));
+            }
+        };
+    }
     Ok(simple_created_response(comment_result))
 }
 

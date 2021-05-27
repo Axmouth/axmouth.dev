@@ -1,4 +1,7 @@
 use crate::app::AppState;
+use crate::util::create_creation_admin_log;
+use crate::util::create_deletion_admin_log;
+use crate::util::create_update_admin_log;
 use crate::{
     auth_tokens,
     util::{
@@ -66,11 +69,11 @@ pub async fn get_all(
 
 pub async fn delete(
     id: i32,
-    _claims: Claims,
+    claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let link_repository = HomePageLinkRepo::new(state.repo.clone());
-    let _ = match link_repository.find_one(id).await {
+    let old_data = match link_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -90,17 +93,34 @@ pub async fn delete(
     if link_result == 0 {
         return Ok(not_found_response("HomePageLink"));
     }
+    match create_deletion_admin_log(
+        id.to_string(),
+        claims.user_id(),
+        String::from("Link"),
+        String::from("home_page_links"),
+        &old_data,
+        String::from("/api/v1/links"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
+    };
     Ok(simple_no_content_response(link_result))
 }
 
 pub async fn update(
     id: i32,
-    _claims: Claims,
+    claims: Claims,
     request: UpdateHomePageLinkRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let link_repository = HomePageLinkRepo::new(state.repo.clone());
-    let _ = match link_repository.find_one(id).await {
+    let request_copy = request.clone();
+    let old_data = match link_repository.find_one(id).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
@@ -116,17 +136,34 @@ pub async fn update(
         image: request.image,
         target: request.target,
     };
-    let link_result = match link_repository.update_one(id, updated_link).await {
+    let link_result = match link_repository.update_one(id, &updated_link).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
         Ok(value) => value,
     };
+    match create_update_admin_log(
+        id.to_string(),
+        claims.user_id(),
+        String::from("Link"),
+        String::from("home_page_links"),
+        &request_copy,
+        &old_data,
+        String::from("/api/v1/links"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
+    };
     Ok(simple_created_response(link_result))
 }
 
 pub async fn create(
-    _claims: Claims,
+    claims: Claims,
     request: CreateHomePageLinkRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
@@ -135,12 +172,29 @@ pub async fn create(
         image: request.image,
         target: request.target,
     };
+    let new_link_copy = new_link.clone();
     let link_repository = HomePageLinkRepo::new(state.repo.clone());
     let link_result = match link_repository.insert_one(new_link).await {
         Err(err) => {
             return Ok(server_error_response(err));
         }
         Ok(value) => value,
+    };
+    match create_creation_admin_log(
+        link_result.to_string(),
+        claims.user_id(),
+        String::from("Link"),
+        String::from("home_page_links"),
+        &new_link_copy,
+        String::from("/api/v1/links"),
+        state.repo.clone(),
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(err) => {
+            return Ok(server_error_response(err));
+        }
     };
     Ok(simple_created_response(link_result))
 }

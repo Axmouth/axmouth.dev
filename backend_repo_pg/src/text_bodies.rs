@@ -20,10 +20,10 @@ impl TextBodyRepo {
 
     pub async fn insert_one(
         &self,
-        new_text_body: NewTextBody,
+        new_text_body: &NewTextBody,
     ) -> Result<domain::TextBody, PgRepoError> {
         let conn = self.pool.get()?;
-        let query = diesel::insert_into(text_bodies::table).values(&new_text_body);
+        let query = diesel::insert_into(text_bodies::table).values(new_text_body);
         let result = tokio::task::block_in_place(move || query.get_result(&conn))?;
         Ok(domain::TextBody::from(result))
     }
@@ -31,11 +31,11 @@ impl TextBodyRepo {
     pub async fn update_one(
         &self,
         id_value: i32,
-        updated_text_body: UpdateTextBody,
+        updated_text_body: &UpdateTextBody,
     ) -> Result<domain::TextBody, PgRepoError> {
         use crate::schema::text_bodies::dsl::{id, text_bodies};
         let conn = self.pool.get()?;
-        let query = diesel::update(text_bodies.filter(id.eq(id_value))).set(&updated_text_body);
+        let query = diesel::update(text_bodies.filter(id.eq(id_value))).set(updated_text_body);
         let result = tokio::task::block_in_place(move || query.get_result(&conn))?;
         Ok(domain::TextBody::from(result))
     }

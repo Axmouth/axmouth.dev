@@ -18,20 +18,30 @@ impl CategoryRepo {
         Self { pool: repo.pool }
     }
 
-    pub async fn insert_one(&self, new_comment: NewCategory) -> Result<usize, PgRepoError> {
+    pub async fn insert_one(&self, new_category: &NewCategory) -> Result<i32, PgRepoError> {
         let conn = self.pool.get()?;
-        let query = diesel::insert_into(categories::table).values(&new_comment);
-        Ok(tokio::task::block_in_place(move || query.execute(&conn))?)
+        let query = diesel::insert_into(categories::table).values(new_category);
+        let inserted_category: db_models::Category =
+            match tokio::task::block_in_place(move || query.get_result(&conn)).optional()? {
+                None => {
+                    return Err(PgRepoError {
+                        error_message: "Failed to insert".to_string(),
+                        error_type: crate::errors::PgRepoErrorType::Unknown,
+                    })
+                }
+                Some(value) => value,
+            };
+        Ok(inserted_category.id)
     }
 
     pub async fn update_one(
         &self,
         id_value: i32,
-        updated_comment: UpdateCategory,
+        updated_category: &UpdateCategory,
     ) -> Result<usize, PgRepoError> {
         use crate::schema::categories::dsl::{categories, id};
         let conn = self.pool.get()?;
-        let query = diesel::update(categories.filter(id.eq(id_value))).set(&updated_comment);
+        let query = diesel::update(categories.filter(id.eq(id_value))).set(updated_category);
         Ok(tokio::task::block_in_place(move || query.execute(&conn))?)
     }
 

@@ -80,11 +80,11 @@ impl ProjectRepo {
 
     pub async fn insert_one_with_technologies(
         &self,
-        new_project: NewProject,
+        new_project: &NewProject,
         technologies_list: Vec<String>,
     ) -> Result<domain::Project, PgRepoError> {
         let conn = self.pool.get()?;
-        let query = diesel::insert_into(projects::table).values(&new_project);
+        let query = diesel::insert_into(projects::table).values(new_project);
         let inserted_project: db_models::Project =
             match tokio::task::block_in_place(move || query.get_result(&conn)).optional()? {
                 None => {
@@ -104,11 +104,11 @@ impl ProjectRepo {
     pub async fn update_one(
         &self,
         id_value: i32,
-        updated_project: UpdateProject,
+        updated_project: &UpdateProject,
     ) -> Result<domain::Project, PgRepoError> {
         use crate::schema::projects::dsl::{id, projects};
         let conn = self.pool.get()?;
-        let query = diesel::update(projects.filter(id.eq(id_value))).set(&updated_project);
+        let query = diesel::update(projects.filter(id.eq(id_value))).set(updated_project);
         let result = tokio::task::block_in_place(move || query.get_result(&conn))?;
         Ok(domain::Project::from(result, vec![]))
     }
@@ -116,7 +116,7 @@ impl ProjectRepo {
     pub async fn update_one_with_technologies(
         &self,
         id_value: i32,
-        updated_project: UpdateProject,
+        updated_project: &UpdateProject,
         technologies_list: Vec<String>,
     ) -> Result<domain::Project, PgRepoError> {
         let result = self.update_one(id_value, updated_project).await?;
