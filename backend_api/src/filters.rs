@@ -183,7 +183,8 @@ pub fn auth_admin_filter(
                             Err(reject::custom(ExpiredAuthentication::new(
                                 "This JWT token is expired".to_string(),
                             )))
-                        } else if claims.is_admin() == false {
+                        } else if claims.is_admin() == false || claims.is_for_admin_site() == false
+                        {
                             Err(reject::custom(InsufficientPriviledge {
                                 err: "You are not authorized to do this".to_string(),
                             }))
