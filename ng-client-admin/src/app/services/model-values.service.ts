@@ -33,6 +33,12 @@ export class ModelValuesService implements OnDestroy {
     return obj;
   }
 
+  getEmmitterObject(id: string): BehaviorSubject<any> | null {
+    const obj = this.fields.get(id) ?? null;
+
+    return obj?.subject ?? null;
+  }
+
   resetFields() {
     this.fields.forEach((field: FieldData, _: string) => {
       field.subject.complete();

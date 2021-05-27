@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { FieldType, AdminModelField } from 'src/app/models/definitions/admin-model-field';
+import { ModelValuesService } from 'src/app/services/model-values.service';
 
 @Component({
   selector: 'app-field-chooser',
@@ -21,7 +22,7 @@ export class FieldChooserComponent implements OnInit {
   isNull = false;
   isSkipped = false;
 
-  constructor() {
+  constructor(private modelValuesService: ModelValuesService) {
     this.contentChange = new EventEmitter();
   }
 
@@ -32,12 +33,17 @@ export class FieldChooserComponent implements OnInit {
     if (this.content === undefined && this.editing === true) {
       this.isSkipped = true;
     }
+
+    this.contentChange.subscribe((c) => {
+      this.modelValuesService.getEmmitterObject(this.fieldOptions.identifier)?.next(c);
+    });
   }
 
   onNullifyChanged(value: boolean) {
     this.isNull = value;
     if (value === true) {
       this.contentChange.emit(null);
+      console.log(this.modelValuesService.getValuesObject());
     } else {
       this.contentChange.emit(this.content);
     }

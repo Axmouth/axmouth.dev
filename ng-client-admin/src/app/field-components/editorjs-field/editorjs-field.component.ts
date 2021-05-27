@@ -46,10 +46,11 @@ export class EditorjsFieldComponent implements OnInit, AfterViewInit {
   constructor(private modelValuesService: ModelValuesService, private uploadService: UploadService) {}
 
   ngOnInit(): void {
-    this.subject = this.modelValuesService.addField(this.fieldOptions.identifier, null);
+    this.subject = this.modelValuesService.addField(this.fieldOptions.identifier, undefined);
     console.log(this.content);
     if (this.content) {
       this.subject.next(this.content);
+      this.contentChange.next(this.content);
     }
   }
 
@@ -58,7 +59,9 @@ export class EditorjsFieldComponent implements OnInit, AfterViewInit {
     const editor = new EditorJS({
       onChange: async (api: API) => {
         const data: OutputData = await this.editor.save();
-        this.subject.next(JSON.stringify(data));
+        const newText = JSON.stringify(data);
+        this.subject.next(newText);
+        this.contentChange.next(newText);
       },
       onReady: async () => {
         editor.render(JSON.parse(this.content ?? defaultData));

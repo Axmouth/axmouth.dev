@@ -25,7 +25,7 @@ export class NameListFieldComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.subject = this.modelValuesService.addField(this.fieldOptions.identifier, null);
+    this.subject = this.modelValuesService.addField(this.fieldOptions.identifier, undefined);
     if (this.content) {
       this.subject.next(this.content);
     }
@@ -48,6 +48,7 @@ export class NameListFieldComponent implements OnInit {
       }
       this.content.push(result);
       this.subject.next(this.content);
+      this.contentChange.next(this.content);
     });
   }
 
@@ -58,6 +59,7 @@ export class NameListFieldComponent implements OnInit {
     for (const selected of this.contentSelected) {
       const index = this.content.indexOf(selected, 0);
       this.content.splice(index, 1);
+      this.contentChange.next(this.content);
     }
   }
 }

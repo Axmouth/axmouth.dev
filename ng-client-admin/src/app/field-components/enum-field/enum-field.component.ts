@@ -22,10 +22,7 @@ export class EnumFieldComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.subject = this.modelValuesService.addField(this.fieldOptions.identifier, null);
-    if (this.content === undefined) {
-      this.content = null;
-    }
+    this.subject = this.modelValuesService.addField(this.fieldOptions.identifier, undefined);
     if (this.content) {
       this.subject.next(this.content);
     }
