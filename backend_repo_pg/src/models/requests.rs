@@ -1,5 +1,5 @@
 use regex::Regex;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 lazy_static! {
     static ref HAS_UPPER_CASE: Regex = Regex::new("[A-Z]").unwrap();
@@ -10,6 +10,15 @@ lazy_static! {
     static ref HAS_NO_SPECIAL_CHAR: Regex =
         Regex::new("^[^!@#$%^&*()_+\\-=\\[\\]{};':\"\\|,.<>/?]+$").unwrap();
     static ref HAS_NO_SPACE_PREFFIX_OR_SUFFIX: Regex = Regex::new("^[^ ]+.*[^ ]+$").unwrap();
+}
+
+// Any value that is present is considered Some value, including null.
+fn deserialize_some<'de, T, D>(deserializer: D) -> Result<Option<T>, D::Error>
+where
+    T: Deserialize<'de>,
+    D: Deserializer<'de>,
+{
+    Deserialize::deserialize(deserializer).map(Some)
 }
 
 #[derive(Serialize, Deserialize, Validate, Clone, Debug)]
@@ -26,6 +35,7 @@ pub struct UpdateBlogPostRequest {
     pub body: Option<String>,
     pub categories: Option<Vec<String>>,
     pub published: Option<bool>,
+    #[serde(default, deserialize_with = "deserialize_some")]
     pub description: Option<Option<String>>,
     pub slug: Option<String>,
 }
@@ -36,8 +46,10 @@ pub struct UpdateProjectRequest {
     #[validate(length(min = 1, max = 5500))]
     pub body: Option<String>,
     pub technologies: Option<Vec<String>>,
+    #[serde(default, deserialize_with = "deserialize_some")]
     pub description: Option<Option<String>>,
     #[validate(url)]
+    #[serde(default, deserialize_with = "deserialize_some")]
     pub cover_image: Option<Option<String>>,
     pub name: Option<String>,
     pub published: Option<bool>,
@@ -209,9 +221,11 @@ pub struct CreateTextBodyRequest {
 #[derive(Serialize, Deserialize, Validate, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateTextBodyRequest {
+    #[serde(default, deserialize_with = "deserialize_some")]
     pub title: Option<Option<String>>,
     pub slug: Option<String>,
     pub body: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_some")]
     pub url_used: Option<Option<String>>,
 }
 
