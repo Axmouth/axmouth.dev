@@ -40,7 +40,11 @@ impl Repo {
     {
         task::block_in_place(move || {
             let conn = self.get_conn()?;
-            let result = conn.pg_conn.transaction(|| f(&conn));
+            let result = conn
+                .pg_conn
+                .build_transaction()
+                .repeatable_read()
+                .run(|| f(&conn));
             Ok(result?)
         })
     }
@@ -49,19 +53,6 @@ impl Repo {
 impl RepoConnection {
     pub fn new(repo: Repo) -> Result<RepoConnection, PgRepoError> {
         repo.get_conn()
-    }
-
-    pub async fn transaction<R, E, Func>(&self, f: Func) -> Result<R, PgRepoError>
-    where
-        R: Send,
-        Func: FnOnce(&RepoConnection) -> QueryResult<R> + Send,
-        E: Into<PgRepoError>,
-    {
-        task::block_in_place(move || {
-            let conn = &self;
-            let result = conn.pg_conn.build_transaction().run(|| f(conn));
-            Ok(result?)
-        })
     }
 }
 
