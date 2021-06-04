@@ -1,62 +1,63 @@
+use crate::filters::GetAllBlogPostCommentsFilter;
 use crate::models::{db_models, domain};
 use crate::options::PaginationOptions;
 use crate::schema::blog_post_comments;
 use crate::{change_sets::UpdateBlogPostComment, insertables::NewBlogPostComment};
 use crate::{errors::PgRepoError, options::BlogPostCommentSortType};
-use crate::{filters::GetAllBlogPostCommentsFilter, pg_util::Repo};
 use diesel::prelude::*;
-use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
-use r2d2::Pool;
+use diesel::{QueryDsl, RunQueryDsl};
 
-#[derive(Clone)]
-pub struct BlogPostCommentRepo {
-    pool: Pool<ConnectionManager<PgConnection>>,
+pub struct BlogPostCommentRepo<'a> {
+    conn: &'a crate::pg_util::RepoConnection,
 }
 
-impl BlogPostCommentRepo {
-    pub fn new(repo: Repo) -> Self {
-        Self { pool: repo.pool }
+impl<'a> BlogPostCommentRepo<'a> {
+    pub fn new(conn: &'a crate::pg_util::RepoConnection) -> Self {
+        Self { conn }
     }
 
-    pub async fn insert_one(&self, new_comment: NewBlogPostComment) -> Result<usize, PgRepoError> {
-        let conn = self.pool.get()?;
+    pub fn insert_one(
+        &self,
+        new_comment: NewBlogPostComment,
+    ) -> Result<usize, diesel::result::Error> {
+        let conn = &self.conn.pg_conn;
         let query = diesel::insert_into(blog_post_comments::table).values(&new_comment);
-        Ok(tokio::task::block_in_place(move || query.execute(&conn))?)
+        Ok(query.execute(conn)?)
     }
 
-    pub async fn update_one(
+    pub fn update_one(
         &self,
         id_value: i32,
         updated_comment: UpdateBlogPostComment,
-    ) -> Result<usize, PgRepoError> {
+    ) -> Result<usize, diesel::result::Error> {
         use crate::schema::blog_post_comments::dsl::{blog_post_comments, id};
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query =
             diesel::update(blog_post_comments.filter(id.eq(id_value))).set(&updated_comment);
-        Ok(tokio::task::block_in_place(move || query.execute(&conn))?)
+        Ok(query.execute(conn)?)
     }
 
-    pub async fn delete_one(&self, id_value: i32) -> Result<usize, PgRepoError> {
+    pub fn delete_one(&self, id_value: i32) -> Result<usize, diesel::result::Error> {
         use crate::schema::blog_post_comments::dsl::{blog_post_comments, id};
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = diesel::delete(blog_post_comments.filter(id.eq(id_value)));
-        Ok(tokio::task::block_in_place(move || query.execute(&conn))?)
+        Ok(query.execute(conn)?)
     }
 
-    pub async fn find_one(
+    pub fn find_one(
         &self,
         id_value: i32,
-    ) -> Result<Option<domain::BlogPostComment>, PgRepoError> {
+    ) -> Result<Option<domain::BlogPostComment>, diesel::result::Error> {
         use crate::schema::blog_post_comments::dsl::{blog_post_comments, id};
         use crate::schema::users::dsl::users;
 
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = blog_post_comments
             .filter(id.eq(id_value))
             .inner_join(users)
             .select((blog_post_comments::all_columns(), users::all_columns()));
         let (blog_post_comment, user): (db_models::BlogPostComment, db_models::User) =
-            match tokio::task::block_in_place(move || query.first(&conn).optional())? {
+            match query.first(conn).optional()? {
                 Some(value) => value,
                 None => return Ok(None),
             };
@@ -64,12 +65,12 @@ impl BlogPostCommentRepo {
         Ok(Some(domain::BlogPostComment::from(blog_post_comment, user)))
     }
 
-    pub async fn find(
+    pub fn find(
         &self,
         filter: GetAllBlogPostCommentsFilter,
         sort: Option<BlogPostCommentSortType>,
         pagination: PaginationOptions,
-    ) -> Result<(Vec<domain::BlogPostComment>, i64), PgRepoError> {
+    ) -> Result<(Vec<domain::BlogPostComment>, i64), diesel::result::Error> {
         use crate::schema::blog_post_comments::dsl::{
             blog_post_comments as blog_post_comments_dsl, post_id,
         };
@@ -114,9 +115,8 @@ impl BlogPostCommentRepo {
             q
         };
 
-        let conn = self.pool.get()?;
-        let results: Vec<(db_models::BlogPostComment, db_models::User, i64)> =
-            tokio::task::block_in_place(move || q.load(&conn))?;
+        let conn = &self.conn.pg_conn;
+        let results: Vec<(db_models::BlogPostComment, db_models::User, i64)> = q.load(conn)?;
 
         let count = match results.get(0) {
             Some((_, _, value)) => *value,

@@ -475,6 +475,21 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
     } else if let Some(e) = err.find::<crate::errors::FileUploadError>() {
         message = format!("File Upload: {}", e.to_string());
         code = StatusCode::INTERNAL_SERVER_ERROR;
+    } else if let Some(e) = err.find::<backend_repo_pg::errors::PgRepoError>() {
+        match e.error_type {
+            backend_repo_pg::errors::PgRepoErrorType::Conflict => {
+                message = format!("Conflict");
+                code = StatusCode::CONFLICT;
+            }
+            backend_repo_pg::errors::PgRepoErrorType::NotFound => {
+                message = format!("Not found");
+                code = StatusCode::NOT_FOUND;
+            }
+            backend_repo_pg::errors::PgRepoErrorType::Unknown => {
+                message = format!("Something went wrong");
+                code = StatusCode::INTERNAL_SERVER_ERROR;
+            }
+        };
     } else if let Some(e) = err.find::<crate::errors::CaptchaError>() {
         message = format!("Captcha: {}", e.to_string());
         code = StatusCode::BAD_REQUEST;

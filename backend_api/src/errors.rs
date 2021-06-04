@@ -1,3 +1,4 @@
+use backend_repo_pg::errors::PgRepoError;
 use warp::reject;
 
 // FileUploadError
@@ -49,7 +50,6 @@ impl ToString for EmailError {
         return self.err.clone();
     }
 }
-
 
 impl From<lettre_email::error::Error> for EmailError {
     fn from(error: lettre_email::error::Error) -> EmailError {

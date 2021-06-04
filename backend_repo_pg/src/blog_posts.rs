@@ -1,3 +1,4 @@
+use crate::filters::GetAllBlogPostsFilter;
 use crate::models::{db_models, domain};
 use crate::options::PaginationOptions;
 use crate::schema::{blog_posts, blog_posts_categories, categories};
@@ -6,58 +7,54 @@ use crate::{
     insertables::{NewBlogPost, NewBlogPostCategory, NewCategory},
 };
 use crate::{errors::PgRepoError, options::BlogPostSortType};
-use crate::{filters::GetAllBlogPostsFilter, pg_util::Repo};
-use diesel::pg::upsert::*;
-use diesel::prelude::*;
-use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
-use r2d2::Pool;
 
-#[derive(Clone)]
-pub struct BlogPostRepo {
-    pool: Pool<ConnectionManager<PgConnection>>,
+use diesel::prelude::*;
+use diesel::{QueryDsl, RunQueryDsl};
+
+pub struct BlogPostRepo<'a> {
+    conn: &'a crate::pg_util::RepoConnection,
 }
 
-impl BlogPostRepo {
-    pub fn new(repo: Repo) -> Self {
-        Self { pool: repo.pool }
+impl<'a> BlogPostRepo<'a> {
+    pub fn new(conn: &'a crate::pg_util::RepoConnection) -> Self {
+        Self { conn }
     }
 
-    pub async fn insert_one(&self, new_post: NewBlogPost) -> Result<usize, PgRepoError> {
-        let conn = self.pool.get()?;
+    pub fn insert_one(&self, new_post: NewBlogPost) -> Result<usize, diesel::result::Error> {
+        let conn = &self.conn.pg_conn;
         let query = diesel::insert_into(blog_posts::table).values(new_post);
-        Ok(tokio::task::block_in_place(move || query.execute(&conn))?)
+        Ok(query.execute(conn)?)
     }
 
-    async fn update_categories(
+    fn update_categories(
         &self,
         inserted_post_id: i32,
         categories_list: &Vec<String>,
-    ) -> Result<(), PgRepoError> {
+    ) -> Result<(), diesel::result::Error> {
         use crate::schema::blog_posts_categories::dsl::{
             blog_post_id, blog_posts_categories as blog_posts_categories_dsl, category_id,
         };
         use crate::schema::categories::dsl::{categories as categories_dsl, name as category_name};
         let query =
             diesel::delete(blog_posts_categories::table).filter(blog_post_id.eq(inserted_post_id));
-        let conn = self.pool.get()?;
-        let _ = tokio::task::block_in_place(move || query.execute(&conn))?;
+        let conn = &self.conn.pg_conn;
+        let _ = query.execute(conn)?;
         let new_categories: Vec<NewCategory> = categories_list
             .clone()
             .into_iter()
             .map(|name| NewCategory { name })
             .collect();
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = diesel::insert_into(categories::table)
             .values(&new_categories)
             .on_conflict_do_nothing();
-        let _ = tokio::task::block_in_place(move || query.execute(&conn))?;
+        let _ = query.execute(conn)?;
         let query = categories_dsl
             .select(categories_dsl::all_columns())
             .into_boxed();
         let query = query.filter(category_name.eq_any(categories_list));
-        let conn = self.pool.get()?;
-        let inserted_categories: Vec<db_models::Category> =
-            tokio::task::block_in_place(move || query.load(&conn))?;
+        let conn = &self.conn.pg_conn;
+        let inserted_categories: Vec<db_models::Category> = query.load(conn)?;
         let new_blog_post_categories: Vec<NewBlogPostCategory> = inserted_categories
             .into_iter()
             .map(|category| NewBlogPostCategory {
@@ -65,61 +62,53 @@ impl BlogPostRepo {
                 blog_post_id: inserted_post_id,
             })
             .collect();
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = diesel::insert_into(blog_posts_categories::table)
             .values(&new_blog_post_categories)
             .on_conflict_do_nothing();
-        let _ = tokio::task::block_in_place(move || query.execute(&conn))?;
+        let _ = query.execute(conn)?;
         Ok(())
     }
 
-    pub async fn insert_one_with_categories(
+    pub fn insert_one_with_categories(
         &self,
         new_post: &NewBlogPost,
         categories_list: &Vec<String>,
-    ) -> Result<i32, PgRepoError> {
-        let conn = self.pool.get()?;
+    ) -> Result<i32, diesel::result::Error> {
+        let conn = &self.conn.pg_conn;
         let query = diesel::insert_into(blog_posts::table).values(new_post);
-        let inserted_post: db_models::BlogPost =
-            match tokio::task::block_in_place(move || query.get_result(&conn)).optional()? {
-                None => {
-                    return Err(PgRepoError {
-                        error_message: "Failed to insert".to_string(),
-                        error_type: crate::errors::PgRepoErrorType::Unknown,
-                    })
-                }
-                Some(value) => value,
-            };
-        let _ = self
-            .update_categories(inserted_post.id, categories_list)
-            .await?;
+        let inserted_post: db_models::BlogPost = match query.get_result(conn).optional()? {
+            None => return Err(diesel::result::Error::__Nonexhaustive),
+            Some(value) => value,
+        };
+        let _ = self.update_categories(inserted_post.id, categories_list)?;
 
         Ok(inserted_post.id)
     }
 
-    pub async fn update_one(
+    pub fn update_one(
         &self,
         id_value: i32,
         updated_post: &UpdateBlogPost,
-    ) -> Result<usize, PgRepoError> {
+    ) -> Result<usize, diesel::result::Error> {
         use crate::schema::blog_posts::dsl::{blog_posts, id};
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = diesel::update(blog_posts.filter(id.eq(id_value))).set(updated_post);
-        Ok(tokio::task::block_in_place(move || query.execute(&conn))?)
+        Ok(query.execute(conn)?)
     }
 
-    pub async fn update_one_with_categories(
+    pub fn update_one_with_categories(
         &self,
         id_value: i32,
         updated_post: &UpdateBlogPost,
         categories_list: &Vec<String>,
-    ) -> Result<usize, PgRepoError> {
-        let result = self.update_one(id_value, updated_post).await?;
-        let _ = self.update_categories(id_value, categories_list).await?;
+    ) -> Result<usize, diesel::result::Error> {
+        let result = self.update_one(id_value, updated_post)?;
+        let _ = self.update_categories(id_value, categories_list)?;
         Ok(result)
     }
 
-    pub async fn delete_one(&self, id_value: i32) -> Result<usize, PgRepoError> {
+    pub fn delete_one(&self, id_value: i32) -> Result<usize, diesel::result::Error> {
         use crate::schema::blog_post_comments::dsl::{
             blog_post_comments as blog_post_comments_dsl,
             post_id as blog_posts_comment_blog_post_id,
@@ -129,23 +118,26 @@ impl BlogPostRepo {
             blog_post_id as blog_posts_categories_blog_post_id,
             blog_posts_categories as blog_posts_categories_dsl,
         };
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = diesel::delete(
             blog_posts_categories_dsl.filter(blog_posts_categories_blog_post_id.eq(id_value)),
         );
-        tokio::task::block_in_place(move || query.execute(&conn))?;
-        let conn = self.pool.get()?;
+        query.execute(conn)?;
+        let conn = &self.conn.pg_conn;
         let query = diesel::delete(
             blog_post_comments_dsl.filter(blog_posts_comment_blog_post_id.eq(id_value)),
         );
-        tokio::task::block_in_place(move || query.execute(&conn))?;
+        query.execute(conn)?;
 
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = diesel::delete(blog_posts.filter(id.eq(id_value)));
-        Ok(tokio::task::block_in_place(move || query.execute(&conn))?)
+        Ok(query.execute(conn)?)
     }
 
-    pub async fn find_one(&self, id_value: i32) -> Result<Option<domain::BlogPost>, PgRepoError> {
+    pub fn find_one(
+        &self,
+        id_value: i32,
+    ) -> Result<Option<domain::BlogPost>, diesel::result::Error> {
         use crate::schema::blog_posts::dsl::{blog_posts as blog_posts_dsl, id as blog_post_id};
         use crate::schema::blog_posts_categories::dsl::{
             blog_post_id as blog_posts_categories_blog_post_id,
@@ -158,7 +150,7 @@ impl BlogPostRepo {
         use crate::schema::users::dsl::id as user_id;
         use crate::schema::users::dsl::users;
 
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
 
         let query = blog_posts_dsl
             .filter(blog_post_id.eq(id_value))
@@ -178,7 +170,7 @@ impl BlogPostRepo {
             db_models::BlogPost,
             db_models::User,
             Vec<Option<String>>,
-        ) = match tokio::task::block_in_place(move || query.first(&conn).optional())? {
+        ) = match query.first(conn).optional()? {
             Some(value) => value,
             None => return Ok(None),
         };
@@ -189,10 +181,10 @@ impl BlogPostRepo {
         )))
     }
 
-    pub async fn find_one_by_slug(
+    pub fn find_one_by_slug(
         &self,
         slug_value: String,
-    ) -> Result<Option<domain::BlogPost>, PgRepoError> {
+    ) -> Result<Option<domain::BlogPost>, diesel::result::Error> {
         use crate::schema::blog_posts::dsl::{
             blog_posts as blog_posts_dsl, id as blog_post_id, slug,
         };
@@ -207,7 +199,7 @@ impl BlogPostRepo {
         use crate::schema::users::dsl::id as user_id;
         use crate::schema::users::dsl::users;
 
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
 
         let query = blog_posts_dsl
             .filter(slug.eq(slug_value))
@@ -227,7 +219,7 @@ impl BlogPostRepo {
             db_models::BlogPost,
             db_models::User,
             Vec<Option<String>>,
-        ) = match tokio::task::block_in_place(move || query.first(&conn).optional())? {
+        ) = match query.first(conn).optional()? {
             Some(value) => value,
             None => return Ok(None),
         };
@@ -238,12 +230,12 @@ impl BlogPostRepo {
         )))
     }
 
-    pub async fn find(
+    pub fn find(
         &self,
         filter: GetAllBlogPostsFilter,
         sort: Option<BlogPostSortType>,
         pagination: PaginationOptions,
-    ) -> Result<(Vec<domain::BlogPost>, i64), PgRepoError> {
+    ) -> Result<(Vec<domain::BlogPost>, i64), diesel::result::Error> {
         use crate::schema::blog_posts::dsl::{
             blog_posts as blog_posts_dsl, id as blog_post_id, published as blog_post_published,
         };
@@ -328,13 +320,13 @@ impl BlogPostRepo {
             q
         };
 
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let post_results: Vec<(
             db_models::BlogPost,
             db_models::User,
             Vec<Option<String>>,
             i64,
-        )> = tokio::task::block_in_place(move || q.load(&conn))?;
+        )> = q.load(conn)?;
 
         let count = match post_results.get(0) {
             Some((_, _, _, value)) => *value,

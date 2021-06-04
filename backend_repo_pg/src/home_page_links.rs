@@ -1,85 +1,76 @@
+use crate::errors::PgRepoError;
 use crate::filters::GetAllHomePageLinksFilter;
 use crate::models::{db_models, domain};
 use crate::options::{HomePageLinkSortType, PaginationOptions};
 use crate::schema::home_page_links;
 use crate::{change_sets::UpdateHomePageLink, insertables::NewHomePageLink};
-use crate::{errors::PgRepoError, pg_util::Repo};
 use diesel::prelude::*;
-use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
-use r2d2::Pool;
+use diesel::{QueryDsl, RunQueryDsl};
 
-#[derive(Clone)]
-pub struct HomePageLinkRepo {
-    pool: Pool<ConnectionManager<PgConnection>>,
+pub struct HomePageLinkRepo<'a> {
+    conn: &'a crate::pg_util::RepoConnection,
 }
 
-impl HomePageLinkRepo {
-    pub fn new(repo: Repo) -> Self {
-        Self { pool: repo.pool }
+impl<'a> HomePageLinkRepo<'a> {
+    pub fn new(conn: &'a crate::pg_util::RepoConnection) -> Self {
+        Self { conn }
     }
 
-    pub async fn insert_one(
+    pub fn insert_one(
         &self,
         new_home_page_link: NewHomePageLink,
-    ) -> Result<i32, PgRepoError> {
-        let conn = self.pool.get()?;
+    ) -> Result<i32, diesel::result::Error> {
+        let conn = &self.conn.pg_conn;
         let query = diesel::insert_into(home_page_links::table).values(&new_home_page_link);
-        let inserted_link: db_models::HomePageLink =
-            match tokio::task::block_in_place(move || query.get_result(&conn)).optional()? {
-                None => {
-                    return Err(PgRepoError {
-                        error_message: "Failed to insert".to_string(),
-                        error_type: crate::errors::PgRepoErrorType::Unknown,
-                    })
-                }
-                Some(value) => value,
-            };
+        let inserted_link: db_models::HomePageLink = match query.get_result(conn).optional()? {
+            None => return Err(diesel::result::Error::__Nonexhaustive),
+            Some(value) => value,
+        };
         Ok(inserted_link.id)
     }
 
-    pub async fn update_one(
+    pub fn update_one(
         &self,
         id_value: i32,
         updated_link: &UpdateHomePageLink,
-    ) -> Result<usize, PgRepoError> {
+    ) -> Result<usize, diesel::result::Error> {
         use crate::schema::home_page_links::dsl::{home_page_links, id};
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = diesel::update(home_page_links.filter(id.eq(id_value))).set(updated_link);
-        Ok(tokio::task::block_in_place(move || query.execute(&conn))?)
+        Ok(query.execute(conn)?)
     }
 
-    pub async fn delete_one(&self, id_value: i32) -> Result<usize, PgRepoError> {
+    pub fn delete_one(&self, id_value: i32) -> Result<usize, diesel::result::Error> {
         use crate::schema::home_page_links::dsl::{home_page_links, id};
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = diesel::delete(home_page_links.filter(id.eq(id_value)));
-        Ok(tokio::task::block_in_place(move || query.execute(&conn))?)
+        Ok(query.execute(conn)?)
     }
 
-    pub async fn find_one(
+    pub fn find_one(
         &self,
         id_value: i32,
-    ) -> Result<Option<domain::HomePageLink>, PgRepoError> {
+    ) -> Result<Option<domain::HomePageLink>, diesel::result::Error> {
         use crate::schema::home_page_links::dsl::{home_page_links, id};
 
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = home_page_links
             .filter(id.eq(id_value))
             .select(home_page_links::all_columns());
-        let home_page_link: db_models::HomePageLink =
-            match tokio::task::block_in_place(move || query.first(&conn).optional())? {
-                Some(value) => value,
-                None => return Ok(None),
-            };
+        let home_page_link: db_models::HomePageLink = match query.first(conn).optional()? {
+            Some(value) => value,
+            None => return Ok(None),
+        };
 
         Ok(Some(domain::HomePageLink::from(home_page_link)))
     }
 
-    pub async fn find(
+    pub fn find(
         &self,
         filter: GetAllHomePageLinksFilter,
         sort: Option<HomePageLinkSortType>,
         pagination: PaginationOptions,
-    ) -> Result<(Vec<domain::HomePageLink>, i64), PgRepoError> {
+    ) -> Result<(Vec<domain::HomePageLink>, i64), diesel::result::Error> {
         use crate::schema::home_page_links::dsl::home_page_links;
         let q = home_page_links
             .select((
@@ -94,9 +85,8 @@ impl HomePageLinkRepo {
             q
         };
 
-        let conn = self.pool.get()?;
-        let results: Vec<(db_models::HomePageLink, i64)> =
-            tokio::task::block_in_place(move || q.load(&conn))?;
+        let conn = &self.conn.pg_conn;
+        let results: Vec<(db_models::HomePageLink, i64)> = q.load(conn)?;
 
         let count = match results.get(0) {
             Some((_, value)) => *value,
