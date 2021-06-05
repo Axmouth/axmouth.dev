@@ -1,79 +1,73 @@
+use crate::errors::PgRepoError;
 use crate::filters::GetAllCategoriesFilter;
 use crate::models::{db_models, domain};
 use crate::options::{CategorySortType, PaginationOptions};
 use crate::schema::categories;
 use crate::{change_sets::UpdateCategory, insertables::NewCategory};
-use crate::{errors::PgRepoError, pg_util::Repo};
 use diesel::prelude::*;
-use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
-use r2d2::Pool;
+use diesel::{QueryDsl, RunQueryDsl};
 
-#[derive(Clone)]
-pub struct CategoryRepo {
-    pool: Pool<ConnectionManager<PgConnection>>,
+pub struct CategoryRepo<'a> {
+    conn: &'a crate::pg_util::RepoConnection,
 }
 
-impl CategoryRepo {
-    pub fn new(repo: Repo) -> Self {
-        Self { pool: repo.pool }
+impl<'a> CategoryRepo<'a> {
+    pub fn new(conn: &'a crate::pg_util::RepoConnection) -> Self {
+        Self { conn }
     }
 
-    pub async fn insert_one(&self, new_category: &NewCategory) -> Result<i32, PgRepoError> {
-        let conn = self.pool.get()?;
+    pub fn insert_one(&self, new_category: &NewCategory) -> Result<i32, diesel::result::Error> {
+        let conn = &self.conn.pg_conn;
         let query = diesel::insert_into(categories::table).values(new_category);
-        let inserted_category: db_models::Category =
-            match tokio::task::block_in_place(move || query.get_result(&conn)).optional()? {
-                None => {
-                    return Err(PgRepoError {
-                        error_message: "Failed to insert".to_string(),
-                        error_type: crate::errors::PgRepoErrorType::Unknown,
-                    })
-                }
-                Some(value) => value,
-            };
+        let inserted_category: db_models::Category = match query.get_result(conn).optional()? {
+            None => return Err(diesel::result::Error::__Nonexhaustive),
+            Some(value) => value,
+        };
         Ok(inserted_category.id)
     }
 
-    pub async fn update_one(
+    pub fn update_one(
         &self,
         id_value: i32,
         updated_category: &UpdateCategory,
-    ) -> Result<usize, PgRepoError> {
+    ) -> Result<usize, diesel::result::Error> {
         use crate::schema::categories::dsl::{categories, id};
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = diesel::update(categories.filter(id.eq(id_value))).set(updated_category);
-        Ok(tokio::task::block_in_place(move || query.execute(&conn))?)
+        Ok(query.execute(conn)?)
     }
 
-    pub async fn delete_one(&self, id_value: i32) -> Result<usize, PgRepoError> {
+    pub fn delete_one(&self, id_value: i32) -> Result<usize, diesel::result::Error> {
         use crate::schema::categories::dsl::{categories, id};
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = diesel::delete(categories.filter(id.eq(id_value)));
-        Ok(tokio::task::block_in_place(move || query.execute(&conn))?)
+        Ok(query.execute(conn)?)
     }
 
-    pub async fn find_one(&self, id_value: i32) -> Result<Option<domain::Category>, PgRepoError> {
+    pub fn find_one(
+        &self,
+        id_value: i32,
+    ) -> Result<Option<domain::Category>, diesel::result::Error> {
         use crate::schema::categories::dsl::{categories, id};
 
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = categories
             .filter(id.eq(id_value))
             .select(categories::all_columns());
-        let category: db_models::Category =
-            match tokio::task::block_in_place(move || query.first(&conn).optional())? {
-                Some(value) => value,
-                None => return Ok(None),
-            };
+        let category: db_models::Category = match query.first(conn).optional()? {
+            Some(value) => value,
+            None => return Ok(None),
+        };
 
         Ok(Some(domain::Category::from(category)))
     }
 
-    pub async fn find(
+    pub fn find(
         &self,
         filter: GetAllCategoriesFilter,
         sort: Option<CategorySortType>,
         pagination: PaginationOptions,
-    ) -> Result<(Vec<domain::Category>, i64), PgRepoError> {
+    ) -> Result<(Vec<domain::Category>, i64), diesel::result::Error> {
         use crate::schema::categories::dsl::categories;
         let q = categories
             .select((
@@ -88,9 +82,8 @@ impl CategoryRepo {
             q
         };
 
-        let conn = self.pool.get()?;
-        let results: Vec<(db_models::Category, i64)> =
-            tokio::task::block_in_place(move || q.load(&conn))?;
+        let conn = &self.conn.pg_conn;
+        let results: Vec<(db_models::Category, i64)> = q.load(conn)?;
 
         let count = match results.get(0) {
             Some((_, value)) => *value,

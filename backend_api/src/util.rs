@@ -223,10 +223,10 @@ pub fn upload_error_response<E: std::error::Error>(err: E) -> warp::reply::Respo
     warp::reply::with_status(resp_body, StatusCode::INTERNAL_SERVER_ERROR).into_response()
 }
 
-pub async fn create_refresh_token(
+pub fn create_refresh_token(
     user_id: i32,
     jwt_id: uuid::Uuid,
-    repo: RefreshTokenRepo,
+    repo: RefreshTokenRepo<'_>,
 ) -> Result<uuid::Uuid, PgRepoError> {
     let new_token = NewRefreshToken {
         jwt_id,
@@ -235,10 +235,10 @@ pub async fn create_refresh_token(
         used: false,
         expires_at: (Utc::now() + Duration::days(30 * 6)).naive_utc(),
     };
-    Ok(repo.insert_one(new_token).await?.id)
+    Ok(repo.insert_one(new_token)?.id)
 }
 
-async fn create_admin_log<T, U>(
+fn create_admin_log<T, U>(
     object_id: String,
     user_id: i32,
     label: String,
@@ -266,13 +266,14 @@ where
         base_link,
     };
 
-    let admin_log_repository = AdminLogRepo::new(repo);
-    admin_log_repository.insert_one(new_admin_log).await?;
+    let conn = repo.get_conn()?;
+    let admin_log_repository = AdminLogRepo::new(&conn);
+    admin_log_repository.insert_one(new_admin_log)?;
 
     Ok(())
 }
 
-pub async fn create_creation_admin_log<T>(
+pub fn create_creation_admin_log<T>(
     object_id: String,
     user_id: i32,
     label: String,
@@ -294,13 +295,12 @@ where
         None as Option<&()>,
         base_link,
         repo,
-    )
-    .await?;
+    )?;
 
     Ok(())
 }
 
-pub async fn create_update_admin_log<T, U>(
+pub fn create_update_admin_log<T, U>(
     object_id: String,
     user_id: i32,
     label: String,
@@ -324,13 +324,12 @@ where
         Some(old_data),
         base_link,
         repo,
-    )
-    .await?;
+    )?;
 
     Ok(())
 }
 
-pub async fn create_deletion_admin_log<T>(
+pub fn create_deletion_admin_log<T>(
     object_id: String,
     user_id: i32,
     label: String,
@@ -352,8 +351,7 @@ where
         Some(old_data),
         base_link,
         repo,
-    )
-    .await?;
+    )?;
 
     Ok(())
 }

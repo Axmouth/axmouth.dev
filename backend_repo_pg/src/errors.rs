@@ -1,6 +1,10 @@
+use diesel::pg::Pg;
+
 #[derive(Debug, Clone)]
 pub enum PgRepoErrorType {
     Unknown,
+    NotFound,
+    Conflict,
 }
 
 #[derive(Debug, Clone)]
@@ -18,9 +22,19 @@ impl std::fmt::Display for PgRepoError {
 
 impl From<diesel::result::Error> for PgRepoError {
     fn from(error: diesel::result::Error) -> PgRepoError {
-        PgRepoError {
-            error_message: error.to_string(),
-            error_type: PgRepoErrorType::Unknown,
+        match error {
+            diesel::result::Error::NotFound => PgRepoError {
+                error_message: error.to_string(),
+                error_type: PgRepoErrorType::NotFound,
+            },
+            diesel::result::Error::DatabaseError(_, _) => PgRepoError {
+                error_message: error.to_string(),
+                error_type: PgRepoErrorType::Conflict,
+            },
+            _ => PgRepoError {
+                error_message: error.to_string(),
+                error_type: PgRepoErrorType::Unknown,
+            },
         }
     }
 }
@@ -33,3 +47,5 @@ impl From<r2d2::Error> for PgRepoError {
         }
     }
 }
+
+impl warp::reject::Reject for PgRepoError {}

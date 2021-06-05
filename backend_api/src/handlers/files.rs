@@ -2,7 +2,7 @@ use crate::{
     app::AppState,
     auth_tokens::Claims,
     errors::FileUploadError,
-    util::{upload_bad_request_response, upload_error_response},
+    util::{server_error_response, upload_bad_request_response, upload_error_response},
 };
 use backend_repo_pg::{
     insertables::NewUploadedImage,
@@ -31,7 +31,6 @@ pub async fn image_upload(
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let form_data = process_multipart(form).await?;
-
     let (field_name, filename_opt, file_data) = match form_data.get(0) {
         None => {
             return Ok(upload_bad_request_response("No file included"));
@@ -70,34 +69,35 @@ pub async fn image_upload(
             )));
         }
     };
+    Ok(state
+        .repo
+        .transaction(|conn| {
+            let new_uploaded_image = NewUploadedImage {
+                extension,
+                height: None,
+                width: None,
+                user_id: 1,
+                used_where: None,
+                url: upload_details.url.clone(),
+                path: upload_details.path.clone(),
+            };
+            let uploaded_images_repository = UploadedImageRepo::new(&conn);
+            match uploaded_images_repository.insert_one(new_uploaded_image) {
+                Ok(_) => {}
+                Err(err) => {
+                    return Ok(upload_error_response(err));
+                }
+            };
 
-    let new_uploaded_image = NewUploadedImage {
-        extension,
-        height: None,
-        width: None,
-        user_id: 1,
-        used_where: None,
-        url: upload_details.url.clone(),
-        path: upload_details.path.clone(),
-    };
-    let uploaded_images_repository = UploadedImageRepo::new(state.repo.clone());
-    match uploaded_images_repository
-        .insert_one(new_uploaded_image)
-        .await
-    {
-        Ok(_) => {}
-        Err(err) => {
-            return Ok(upload_error_response(err));
-        }
-    };
-
-    let resp_body = warp::reply::json(&FileUploadedResponse {
-        success: 1,
-        file: Some(upload_details),
-        errors: None,
-    });
-    let resp_with_status = warp::reply::with_status(resp_body, StatusCode::CREATED);
-    return Ok(resp_with_status.into_response());
+            let resp_body = warp::reply::json(&FileUploadedResponse {
+                success: 1,
+                file: Some(upload_details),
+                errors: None,
+            });
+            let resp_with_status = warp::reply::with_status(resp_body, StatusCode::CREATED);
+            Ok(resp_with_status.into_response())
+        })
+        .await?)
 }
 
 pub async fn process_multipart(

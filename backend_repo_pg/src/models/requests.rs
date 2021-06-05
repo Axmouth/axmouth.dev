@@ -31,12 +31,15 @@ pub struct UpdateBlogPostCommentRequest {
 #[derive(Serialize, Deserialize, Validate, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateBlogPostRequest {
+    #[validate(length(min = 1, max = 200))]
+    pub title: Option<String>,
     #[validate(length(min = 1, max = 5500))]
     pub body: Option<String>,
     pub categories: Option<Vec<String>>,
     pub published: Option<bool>,
     #[serde(default, deserialize_with = "deserialize_some")]
     pub description: Option<Option<String>>,
+    #[validate(length(min = 1, max = 200))]
     pub slug: Option<String>,
 }
 
@@ -51,8 +54,10 @@ pub struct UpdateProjectRequest {
     #[validate(url)]
     #[serde(default, deserialize_with = "deserialize_some")]
     pub cover_image: Option<Option<String>>,
+    #[validate(length(min = 1, max = 200))]
     pub name: Option<String>,
     pub published: Option<bool>,
+    #[validate(length(min = 1, max = 200))]
     pub slug: Option<String>,
 }
 

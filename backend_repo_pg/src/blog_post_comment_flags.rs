@@ -1,53 +1,51 @@
+use crate::errors::PgRepoError;
 use crate::filters::GetAllBlogPostCommentFlagsFilter;
 use crate::insertables::NewBlogPostCommentFlag;
 use crate::models::{db_models, domain};
 use crate::options::{BlogPostCommentFlagSortType, PaginationOptions};
 use crate::schema::blog_post_comment_flags;
-use crate::{errors::PgRepoError, pg_util::Repo};
 use diesel::prelude::*;
-use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
-use r2d2::Pool;
+use diesel::{QueryDsl, RunQueryDsl};
 
-#[derive(Clone)]
-pub struct BlogPostCommentFlagRepo {
-    pool: Pool<ConnectionManager<PgConnection>>,
+pub struct BlogPostCommentFlagRepo<'a> {
+    conn: &'a crate::pg_util::RepoConnection,
 }
 
-impl BlogPostCommentFlagRepo {
-    pub fn new(repo: Repo) -> Self {
-        Self { pool: repo.pool }
+impl<'a> BlogPostCommentFlagRepo<'a> {
+    pub fn new(conn: &'a crate::pg_util::RepoConnection) -> Self {
+        Self { conn }
     }
 
-    pub async fn insert_one(
+    pub fn insert_one(
         &self,
         new_blog_post_comment_flag: NewBlogPostCommentFlag,
-    ) -> Result<domain::BlogPostCommentFlag, PgRepoError> {
-        let conn = self.pool.get()?;
+    ) -> Result<domain::BlogPostCommentFlag, diesel::result::Error> {
+        let conn = &self.conn.pg_conn;
         let query =
             diesel::insert_into(blog_post_comment_flags::table).values(&new_blog_post_comment_flag);
-        let result = tokio::task::block_in_place(move || query.get_result(&conn))?;
+        let result = query.get_result(conn)?;
         Ok(domain::BlogPostCommentFlag::from(result))
     }
 
-    pub async fn delete_one(&self, id_value: i32) -> Result<usize, PgRepoError> {
+    pub fn delete_one(&self, id_value: i32) -> Result<usize, diesel::result::Error> {
         use crate::schema::blog_post_comment_flags::dsl::{blog_post_comment_flags, id};
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = diesel::delete(blog_post_comment_flags.filter(id.eq(id_value)));
-        Ok(query.execute(&conn)?)
+        Ok(query.execute(conn)?)
     }
 
-    pub async fn find_one(
+    pub fn find_one(
         &self,
         id_value: i32,
-    ) -> Result<Option<domain::BlogPostCommentFlag>, PgRepoError> {
+    ) -> Result<Option<domain::BlogPostCommentFlag>, diesel::result::Error> {
         use crate::schema::blog_post_comment_flags::dsl::{blog_post_comment_flags, id};
 
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = blog_post_comment_flags
             .filter(id.eq(id_value))
             .select(blog_post_comment_flags::all_columns());
         let blog_post_comment_flag: db_models::BlogPostCommentFlag =
-            match tokio::task::block_in_place(move || query.first(&conn).optional())? {
+            match query.first(conn).optional()? {
                 Some(value) => value,
                 None => return Ok(None),
             };
@@ -56,12 +54,12 @@ impl BlogPostCommentFlagRepo {
         )))
     }
 
-    pub async fn find(
+    pub fn find(
         &self,
         filter: GetAllBlogPostCommentFlagsFilter,
         sort: Option<BlogPostCommentFlagSortType>,
         pagination: PaginationOptions,
-    ) -> Result<Vec<domain::BlogPostCommentFlag>, PgRepoError> {
+    ) -> Result<Vec<domain::BlogPostCommentFlag>, diesel::result::Error> {
         use crate::schema::blog_post_comment_flags::dsl::blog_post_comment_flags;
         let q = blog_post_comment_flags
             .select(blog_post_comment_flags::all_columns())
@@ -73,9 +71,8 @@ impl BlogPostCommentFlagRepo {
             q
         };
 
-        let conn = self.pool.get()?;
-        let results: Vec<db_models::BlogPostCommentFlag> =
-            tokio::task::block_in_place(move || q.load(&conn))?;
+        let conn = &self.conn.pg_conn;
+        let results: Vec<db_models::BlogPostCommentFlag> = q.load(conn)?;
 
         Ok(results
             .into_iter()
