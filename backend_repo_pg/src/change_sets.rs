@@ -13,6 +13,7 @@ pub struct UpdateBlogPostComment {
 #[derive(AsChangeset, Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[table_name = "blog_posts"]
 pub struct UpdateBlogPost {
+    pub title: Option<String>,
     pub body: Option<String>,
     pub published: Option<bool>,
     pub updated_at: Option<Option<NaiveDateTime>>,

@@ -5,11 +5,12 @@ use crate::util::create_update_admin_log;
 use crate::{
     auth_tokens,
     util::{
-        not_found_response, paginated_ok_response, server_error_response, simple_created_response,
+        not_found_response, paginated_ok_response, simple_created_response,
         simple_no_content_response, simple_ok_response,
     },
 };
 use auth_tokens::Claims;
+use backend_repo_pg::pg_util::get_roll_back_err;
 use backend_repo_pg::{categories::CategoryRepo, options::PaginationOptions};
 use backend_repo_pg::{
     change_sets::UpdateCategory,
@@ -22,49 +23,46 @@ use backend_repo_pg::{
 };
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
-    let category_repository = CategoryRepo::new(state.repo.clone());
-    let category_result = match category_repository.find_one(id).await {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value_opt) => match value_opt {
-            None => {
-                return Ok(not_found_response("Category"));
-            }
-            Some(value) => value,
-        },
-    };
-    Ok(simple_ok_response(category_result))
+    Ok(state
+        .repo
+        .transaction(|conn| {
+            let category_repository = CategoryRepo::new(&conn);
+            let category_result = match category_repository.find_one(id)? {
+                None => {
+                    return Ok(not_found_response("Category"));
+                }
+                Some(value) => value,
+            };
+            Ok(simple_ok_response(category_result))
+        })
+        .await?)
 }
 
 pub async fn get_all(
     query: GetAllCategoriesQuery,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let filter = GetAllCategoriesFilter::from_query(query.clone());
-    let category_repository = CategoryRepo::new(state.repo.clone());
-    let (categories_list, total_results) = match category_repository
-        .find(
-            filter,
-            query.sort_type,
-            PaginationOptions {
-                page: query.page,
-                page_size: query.page_size,
-            },
-        )
-        .await
-    {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value) => value,
-    };
-    Ok(paginated_ok_response(
-        categories_list,
-        query.page,
-        query.page_size,
-        total_results,
-    ))
+    Ok(state
+        .repo
+        .transaction(|conn| {
+            let filter = GetAllCategoriesFilter::from_query(query.clone());
+            let category_repository = CategoryRepo::new(&conn);
+            let (categories_list, total_results) = category_repository.find(
+                filter,
+                query.sort_type,
+                PaginationOptions {
+                    page: query.page,
+                    page_size: query.page_size,
+                },
+            )?;
+            Ok(paginated_ok_response(
+                categories_list,
+                query.page,
+                query.page_size,
+                total_results,
+            ))
+        })
+        .await?)
 }
 
 pub async fn delete(
@@ -72,44 +70,37 @@ pub async fn delete(
     claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let category_repository = CategoryRepo::new(state.repo.clone());
-    let old_data = match category_repository.find_one(id).await {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value_opt) => match value_opt {
-            None => {
+    Ok(state
+        .repo
+        .transaction(|conn| {
+            let category_repository = CategoryRepo::new(&conn);
+            let old_data = match category_repository.find_one(id)? {
+                None => {
+                    return Ok(not_found_response("Category"));
+                }
+                Some(value) => value,
+            };
+            let category_result = category_repository.delete_one(id)?;
+            if category_result == 0 {
                 return Ok(not_found_response("Category"));
             }
-            Some(value) => value,
-        },
-    };
-    let category_result = match category_repository.delete_one(id).await {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value) => value,
-    };
-    if category_result == 0 {
-        return Ok(not_found_response("Category"));
-    }
-    match create_deletion_admin_log(
-        id.to_string(),
-        claims.user_id(),
-        String::from("Blog Post Category"),
-        String::from("categories"),
-        &old_data,
-        String::from("/api/v1/categories"),
-        state.repo.clone(),
-    )
-    .await
-    {
-        Ok(_) => {}
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-    };
-    Ok(simple_no_content_response(category_result))
+            match create_deletion_admin_log(
+                id.to_string(),
+                claims.user_id(),
+                String::from("Blog Post Category"),
+                String::from("categories"),
+                &old_data,
+                String::from("/api/v1/categories"),
+                state.repo.clone(),
+            ) {
+                Ok(_) => {}
+                Err(_) => {
+                    return Err(get_roll_back_err());
+                }
+            };
+            Ok(simple_no_content_response(category_result))
+        })
+        .await?)
 }
 
 pub async fn update(
@@ -118,44 +109,37 @@ pub async fn update(
     request: UpdateCategoryRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let category_repository = CategoryRepo::new(state.repo.clone());
-    let request_copy = request.clone();
-    let old_data = match category_repository.find_one(id).await {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value_opt) => match value_opt {
-            Some(value) => value,
-            None => {
-                return Ok(not_found_response("Link"));
-            }
-        },
-    };
-    let updated_category = UpdateCategory { name: request.name };
-    let category_result = match category_repository.update_one(id, &updated_category).await {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value) => value,
-    };
-    match create_update_admin_log(
-        id.to_string(),
-        claims.user_id(),
-        String::from("Blog Post Category"),
-        String::from("categories"),
-        &request_copy,
-        &old_data,
-        String::from("/api/v1/categories"),
-        state.repo.clone(),
-    )
-    .await
-    {
-        Ok(_) => {}
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-    };
-    Ok(simple_created_response(category_result))
+    Ok(state
+        .repo
+        .transaction(|conn| {
+            let category_repository = CategoryRepo::new(&conn);
+            let request_copy = request.clone();
+            let old_data = match category_repository.find_one(id)? {
+                Some(value) => value,
+                None => {
+                    return Ok(not_found_response("Link"));
+                }
+            };
+            let updated_category = UpdateCategory { name: request.name };
+            let category_result = category_repository.update_one(id, &updated_category)?;
+            match create_update_admin_log(
+                id.to_string(),
+                claims.user_id(),
+                String::from("Blog Post Category"),
+                String::from("categories"),
+                &request_copy,
+                &old_data,
+                String::from("/api/v1/categories"),
+                state.repo.clone(),
+            ) {
+                Ok(_) => {}
+                Err(_) => {
+                    return Err(get_roll_back_err());
+                }
+            };
+            Ok(simple_created_response(category_result))
+        })
+        .await?)
 }
 
 pub async fn create(
@@ -163,30 +147,28 @@ pub async fn create(
     request: CreateCategoryRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let new_category = NewCategory { name: request.name };
-    let new_category_copy = new_category.clone();
-    let category_repository = CategoryRepo::new(state.repo.clone());
-    let category_result = match category_repository.insert_one(&new_category).await {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value) => value,
-    };
-    match create_creation_admin_log(
-        category_result.to_string(),
-        claims.user_id(),
-        String::from("Blog Post Category"),
-        String::from("categories"),
-        &new_category_copy,
-        String::from("/api/v1/categories"),
-        state.repo.clone(),
-    )
-    .await
-    {
-        Ok(_) => {}
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-    };
-    Ok(simple_created_response(category_result))
+    Ok(state
+        .repo
+        .transaction(|conn| {
+            let new_category = NewCategory { name: request.name };
+            let new_category_copy = new_category.clone();
+            let category_repository = CategoryRepo::new(&conn);
+            let category_result = category_repository.insert_one(&new_category)?;
+            match create_creation_admin_log(
+                category_result.to_string(),
+                claims.user_id(),
+                String::from("Blog Post Category"),
+                String::from("categories"),
+                &new_category_copy,
+                String::from("/api/v1/categories"),
+                state.repo.clone(),
+            ) {
+                Ok(_) => {}
+                Err(_) => {
+                    return Err(get_roll_back_err());
+                }
+            };
+            Ok(simple_created_response(category_result))
+        })
+        .await?)
 }

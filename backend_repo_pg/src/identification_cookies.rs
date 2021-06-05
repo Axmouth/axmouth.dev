@@ -1,107 +1,102 @@
+use crate::errors::PgRepoError;
 use crate::filters::GetAllIdentificationCookiesFilter;
 use crate::insertables::NewIdentificationCookie;
 use crate::models::{db_models, domain};
 use crate::options::{IdentificationCookieSortType, PaginationOptions};
 use crate::schema::identification_cookies;
-use crate::{errors::PgRepoError, pg_util::Repo};
 use chrono::Utc;
 use diesel::prelude::*;
-use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
-use r2d2::Pool;
+use diesel::{QueryDsl, RunQueryDsl};
 
-#[derive(Clone)]
-pub struct IdentificationCookieRepo {
-    pool: Pool<ConnectionManager<PgConnection>>,
+pub struct IdentificationCookieRepo<'a> {
+    conn: &'a crate::pg_util::RepoConnection,
 }
 
-impl IdentificationCookieRepo {
-    pub fn new(repo: Repo) -> Self {
-        Self { pool: repo.pool }
+impl<'a> IdentificationCookieRepo<'a> {
+    pub fn new(conn: &'a crate::pg_util::RepoConnection) -> Self {
+        Self { conn }
     }
 
-    pub async fn insert_one(
+    pub fn insert_one(
         &self,
         new_text_body: NewIdentificationCookie,
-    ) -> Result<domain::IdentificationCookie, PgRepoError> {
-        let conn = self.pool.get()?;
+    ) -> Result<domain::IdentificationCookie, diesel::result::Error> {
+        let conn = &self.conn.pg_conn;
         let query = diesel::insert_into(identification_cookies::table).values(&new_text_body);
-        let result = tokio::task::block_in_place(move || query.get_result(&conn))?;
+        let result = query.get_result(conn)?;
         Ok(domain::IdentificationCookie::from(result))
     }
 
-    pub async fn delete_one(&self, id_value: i32) -> Result<usize, PgRepoError> {
+    pub fn delete_one(&self, id_value: i32) -> Result<usize, diesel::result::Error> {
         use crate::schema::identification_cookies::dsl::{id, identification_cookies};
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = diesel::delete(identification_cookies.filter(id.eq(id_value)));
-        Ok(query.execute(&conn)?)
+        Ok(query.execute(conn)?)
     }
 
-    pub async fn find_one(
+    pub fn find_one(
         &self,
         id_value: i32,
-    ) -> Result<Option<domain::IdentificationCookie>, PgRepoError> {
+    ) -> Result<Option<domain::IdentificationCookie>, diesel::result::Error> {
         use crate::schema::identification_cookies::dsl::{id, identification_cookies};
 
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = identification_cookies
             .filter(id.eq(id_value))
             .select(identification_cookies::all_columns());
-        let text_body: db_models::IdentificationCookie =
-            match tokio::task::block_in_place(move || query.first(&conn).optional())? {
-                Some(value) => value,
-                None => return Ok(None),
-            };
+        let text_body: db_models::IdentificationCookie = match query.first(conn).optional()? {
+            Some(value) => value,
+            None => return Ok(None),
+        };
         Ok(Some(domain::IdentificationCookie::from(text_body)))
     }
 
-    pub async fn find_one_by_token(
+    pub fn find_one_by_token(
         &self,
         token_value: String,
-    ) -> Result<Option<domain::IdentificationCookie>, PgRepoError> {
+    ) -> Result<Option<domain::IdentificationCookie>, diesel::result::Error> {
         use crate::schema::identification_cookies::dsl::{
             expires_at, identification_cookies, token,
         };
 
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = identification_cookies
             .filter(expires_at.gt(Utc::now().naive_utc()))
             .filter(token.eq(token_value))
             .select(identification_cookies::all_columns());
-        let text_body: db_models::IdentificationCookie =
-            match tokio::task::block_in_place(move || query.first(&conn).optional())? {
-                Some(value) => value,
-                None => return Ok(None),
-            };
+        let text_body: db_models::IdentificationCookie = match query.first(conn).optional()? {
+            Some(value) => value,
+            None => return Ok(None),
+        };
         Ok(Some(domain::IdentificationCookie::from(text_body)))
     }
 
-    pub async fn find_one_by_hash(
+    pub fn find_one_by_hash(
         &self,
         hash_value: String,
-    ) -> Result<Option<domain::IdentificationCookie>, PgRepoError> {
+    ) -> Result<Option<domain::IdentificationCookie>, diesel::result::Error> {
         use crate::schema::identification_cookies::dsl::{
             expires_at, id_hash, identification_cookies,
         };
 
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = identification_cookies
             .filter(expires_at.gt(Utc::now().naive_utc()))
             .filter(id_hash.eq(hash_value))
             .select(identification_cookies::all_columns());
-        let text_body: db_models::IdentificationCookie =
-            match tokio::task::block_in_place(move || query.first(&conn).optional())? {
-                Some(value) => value,
-                None => return Ok(None),
-            };
+        let text_body: db_models::IdentificationCookie = match query.first(conn).optional()? {
+            Some(value) => value,
+            None => return Ok(None),
+        };
         Ok(Some(domain::IdentificationCookie::from(text_body)))
     }
 
-    pub async fn find(
+    pub fn find(
         &self,
         filter: GetAllIdentificationCookiesFilter,
         sort: Option<IdentificationCookieSortType>,
         pagination: PaginationOptions,
-    ) -> Result<Vec<domain::IdentificationCookie>, PgRepoError> {
+    ) -> Result<Vec<domain::IdentificationCookie>, diesel::result::Error> {
         use crate::schema::identification_cookies::dsl::identification_cookies;
         let q = identification_cookies
             .select(identification_cookies::all_columns())
@@ -113,9 +108,8 @@ impl IdentificationCookieRepo {
             q
         };
 
-        let conn = self.pool.get()?;
-        let results: Vec<db_models::IdentificationCookie> =
-            tokio::task::block_in_place(move || q.load(&conn))?;
+        let conn = &self.conn.pg_conn;
+        let results: Vec<db_models::IdentificationCookie> = q.load(conn)?;
 
         Ok(results
             .into_iter()

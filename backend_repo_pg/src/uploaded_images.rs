@@ -1,64 +1,61 @@
+use crate::errors::PgRepoError;
 use crate::filters::GetAllUploadedImagesFilter;
 use crate::insertables::NewUploadedImage;
 use crate::models::{db_models, domain};
 use crate::options::{PaginationOptions, UploadedImageSortType};
 use crate::schema::uploaded_images;
-use crate::{errors::PgRepoError, pg_util::Repo};
 use diesel::prelude::*;
-use diesel::{r2d2::ConnectionManager, PgConnection, QueryDsl, RunQueryDsl};
-use r2d2::Pool;
+use diesel::{QueryDsl, RunQueryDsl};
 
-#[derive(Clone)]
-pub struct UploadedImageRepo {
-    pool: Pool<ConnectionManager<PgConnection>>,
+pub struct UploadedImageRepo<'a> {
+    conn: &'a crate::pg_util::RepoConnection,
 }
 
-impl UploadedImageRepo {
-    pub fn new(repo: Repo) -> Self {
-        Self { pool: repo.pool }
+impl<'a> UploadedImageRepo<'a> {
+    pub fn new(conn: &'a crate::pg_util::RepoConnection) -> Self {
+        Self { conn }
     }
 
-    pub async fn insert_one(
+    pub fn insert_one(
         &self,
         new_text_body: NewUploadedImage,
-    ) -> Result<domain::UploadedImage, PgRepoError> {
-        let conn = self.pool.get()?;
+    ) -> Result<domain::UploadedImage, diesel::result::Error> {
+        let conn = &self.conn.pg_conn;
         let query = diesel::insert_into(uploaded_images::table).values(&new_text_body);
-        let result = tokio::task::block_in_place(move || query.get_result(&conn))?;
+        let result = query.get_result(conn)?;
         Ok(domain::UploadedImage::from(result))
     }
 
-    pub async fn delete_one(&self, id_value: i32) -> Result<usize, PgRepoError> {
+    pub fn delete_one(&self, id_value: i32) -> Result<usize, diesel::result::Error> {
         use crate::schema::uploaded_images::dsl::{id, uploaded_images};
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = diesel::delete(uploaded_images.filter(id.eq(id_value)));
-        Ok(query.execute(&conn)?)
+        Ok(query.execute(conn)?)
     }
 
-    pub async fn find_one(
+    pub fn find_one(
         &self,
         id_value: i32,
-    ) -> Result<Option<domain::UploadedImage>, PgRepoError> {
+    ) -> Result<Option<domain::UploadedImage>, diesel::result::Error> {
         use crate::schema::uploaded_images::dsl::{id, uploaded_images};
 
-        let conn = self.pool.get()?;
+        let conn = &self.conn.pg_conn;
         let query = uploaded_images
             .filter(id.eq(id_value))
             .select(uploaded_images::all_columns());
-        let text_body: db_models::UploadedImage =
-            match tokio::task::block_in_place(move || query.first(&conn).optional())? {
-                Some(value) => value,
-                None => return Ok(None),
-            };
+        let text_body: db_models::UploadedImage = match query.first(conn).optional()? {
+            Some(value) => value,
+            None => return Ok(None),
+        };
         Ok(Some(domain::UploadedImage::from(text_body)))
     }
 
-    pub async fn find(
+    pub fn find(
         &self,
         filter: GetAllUploadedImagesFilter,
         sort: Option<UploadedImageSortType>,
         pagination: PaginationOptions,
-    ) -> Result<Vec<domain::UploadedImage>, PgRepoError> {
+    ) -> Result<Vec<domain::UploadedImage>, diesel::result::Error> {
         use crate::schema::uploaded_images::dsl::uploaded_images;
         let q = uploaded_images
             .select(uploaded_images::all_columns())
@@ -70,9 +67,8 @@ impl UploadedImageRepo {
             q
         };
 
-        let conn = self.pool.get()?;
-        let results: Vec<db_models::UploadedImage> =
-            tokio::task::block_in_place(move || q.load(&conn))?;
+        let conn = &self.conn.pg_conn;
+        let results: Vec<db_models::UploadedImage> = q.load(conn)?;
 
         Ok(results
             .into_iter()

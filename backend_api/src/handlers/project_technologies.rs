@@ -22,49 +22,56 @@ use backend_repo_pg::{
 use backend_repo_pg::{options::PaginationOptions, technologies::TechnologyRepo};
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
-    let technology_repository = TechnologyRepo::new(state.repo.clone());
-    let technology_result = match technology_repository.find_one(id).await {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value_opt) => match value_opt {
-            None => {
-                return Ok(not_found_response("Technology"));
-            }
-            Some(value) => value,
-        },
-    };
-    Ok(simple_ok_response(technology_result))
+    Ok(state
+        .repo
+        .transaction(|conn| {
+            let technology_repository = TechnologyRepo::new(&conn);
+            let technology_result = match technology_repository.find_one(id) {
+                Err(err) => {
+                    return Ok(server_error_response(err));
+                }
+                Ok(value_opt) => match value_opt {
+                    None => {
+                        return Ok(not_found_response("Technology"));
+                    }
+                    Some(value) => value,
+                },
+            };
+            Ok(simple_ok_response(technology_result))
+        })
+        .await?)
 }
 
 pub async fn get_all(
     query: GetAllTechnologiesQuery,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let filter = GetAllTechnologiesFilter::from_query(query.clone());
-    let technology_repository = TechnologyRepo::new(state.repo.clone());
-    let (technologies_list, total_results) = match technology_repository
-        .find(
-            filter,
-            query.sort_type,
-            PaginationOptions {
-                page: query.page,
-                page_size: query.page_size,
-            },
-        )
-        .await
-    {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value) => value,
-    };
-    Ok(paginated_ok_response(
-        technologies_list,
-        query.page,
-        query.page_size,
-        total_results,
-    ))
+    Ok(state
+        .repo
+        .transaction(|conn| {
+            let filter = GetAllTechnologiesFilter::from_query(query.clone());
+            let technology_repository = TechnologyRepo::new(&conn);
+            let (technologies_list, total_results) = match technology_repository.find(
+                filter,
+                query.sort_type,
+                PaginationOptions {
+                    page: query.page,
+                    page_size: query.page_size,
+                },
+            ) {
+                Err(err) => {
+                    return Ok(server_error_response(err));
+                }
+                Ok(value) => value,
+            };
+            Ok(paginated_ok_response(
+                technologies_list,
+                query.page,
+                query.page_size,
+                total_results,
+            ))
+        })
+        .await?)
 }
 
 pub async fn delete(
@@ -72,44 +79,47 @@ pub async fn delete(
     claims: Claims,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let technology_repository = TechnologyRepo::new(state.repo.clone());
-    let old_data = match technology_repository.find_one(id).await {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value_opt) => match value_opt {
-            None => {
+    Ok(state
+        .repo
+        .transaction(|conn| {
+            let technology_repository = TechnologyRepo::new(&conn);
+            let old_data = match technology_repository.find_one(id) {
+                Err(err) => {
+                    return Ok(server_error_response(err));
+                }
+                Ok(value_opt) => match value_opt {
+                    None => {
+                        return Ok(not_found_response("Technology"));
+                    }
+                    Some(value) => value,
+                },
+            };
+            let technology_result = match technology_repository.delete_one(id) {
+                Err(err) => {
+                    return Ok(server_error_response(err));
+                }
+                Ok(value) => value,
+            };
+            if technology_result == 0 {
                 return Ok(not_found_response("Technology"));
             }
-            Some(value) => value,
-        },
-    };
-    let technology_result = match technology_repository.delete_one(id).await {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value) => value,
-    };
-    if technology_result == 0 {
-        return Ok(not_found_response("Technology"));
-    }
-    match create_deletion_admin_log(
-        id.to_string(),
-        claims.user_id(),
-        String::from("Project Technology"),
-        String::from("technologies"),
-        &old_data,
-        String::from("/api/v1/technologies"),
-        state.repo.clone(),
-    )
-    .await
-    {
-        Ok(_) => {}
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-    };
-    Ok(simple_no_content_response(technology_result))
+            match create_deletion_admin_log(
+                id.to_string(),
+                claims.user_id(),
+                String::from("Project Technology"),
+                String::from("technologies"),
+                &old_data,
+                String::from("/api/v1/technologies"),
+                state.repo.clone(),
+            ) {
+                Ok(_) => {}
+                Err(err) => {
+                    return Ok(server_error_response(err));
+                }
+            };
+            Ok(simple_no_content_response(technology_result))
+        })
+        .await?)
 }
 
 pub async fn update(
@@ -118,47 +128,48 @@ pub async fn update(
     request: UpdateTechnologyRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let technology_repository = TechnologyRepo::new(state.repo.clone());
-    let request_copy = request.clone();
-    let old_data = match technology_repository.find_one(id).await {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value_opt) => match value_opt {
-            Some(value) => value,
-            None => {
-                return Ok(not_found_response("Link"));
-            }
-        },
-    };
-    let updated_technology = UpdateTechnology { name: request.name };
-    let technology_result = match technology_repository
-        .update_one(id, &updated_technology)
-        .await
-    {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value) => value,
-    };
-    match create_update_admin_log(
-        id.to_string(),
-        claims.user_id(),
-        String::from("Project Technology"),
-        String::from("technologies"),
-        &request_copy,
-        &old_data,
-        String::from("/api/v1/technologies"),
-        state.repo.clone(),
-    )
-    .await
-    {
-        Ok(_) => {}
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-    };
-    Ok(simple_created_response(technology_result))
+    Ok(state
+        .repo
+        .transaction(|conn| {
+            let technology_repository = TechnologyRepo::new(&conn);
+            let request_copy = request.clone();
+            let old_data = match technology_repository.find_one(id) {
+                Err(err) => {
+                    return Ok(server_error_response(err));
+                }
+                Ok(value_opt) => match value_opt {
+                    Some(value) => value,
+                    None => {
+                        return Ok(not_found_response("Link"));
+                    }
+                },
+            };
+            let updated_technology = UpdateTechnology { name: request.name };
+            let technology_result = match technology_repository.update_one(id, &updated_technology)
+            {
+                Err(err) => {
+                    return Ok(server_error_response(err));
+                }
+                Ok(value) => value,
+            };
+            match create_update_admin_log(
+                id.to_string(),
+                claims.user_id(),
+                String::from("Project Technology"),
+                String::from("technologies"),
+                &request_copy,
+                &old_data,
+                String::from("/api/v1/technologies"),
+                state.repo.clone(),
+            ) {
+                Ok(_) => {}
+                Err(err) => {
+                    return Ok(server_error_response(err));
+                }
+            };
+            Ok(simple_created_response(technology_result))
+        })
+        .await?)
 }
 
 pub async fn create(
@@ -166,30 +177,33 @@ pub async fn create(
     request: CreateTechnologyRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let new_technology = NewTechnology { name: request.name };
-    let new_technology_copy = new_technology.clone();
-    let technology_repository = TechnologyRepo::new(state.repo.clone());
-    let technology_result = match technology_repository.insert_one(&new_technology).await {
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-        Ok(value) => value,
-    };
-    match create_creation_admin_log(
-        technology_result.to_string(),
-        claims.user_id(),
-        String::from("Project Technology"),
-        String::from("technologies"),
-        &new_technology_copy,
-        String::from("/api/v1/technologies"),
-        state.repo.clone(),
-    )
-    .await
-    {
-        Ok(_) => {}
-        Err(err) => {
-            return Ok(server_error_response(err));
-        }
-    };
-    Ok(simple_created_response(technology_result))
+    Ok(state
+        .repo
+        .transaction(|conn| {
+            let new_technology = NewTechnology { name: request.name };
+            let new_technology_copy = new_technology.clone();
+            let technology_repository = TechnologyRepo::new(&conn);
+            let technology_result = match technology_repository.insert_one(&new_technology) {
+                Err(err) => {
+                    return Ok(server_error_response(err));
+                }
+                Ok(value) => value,
+            };
+            match create_creation_admin_log(
+                technology_result.to_string(),
+                claims.user_id(),
+                String::from("Project Technology"),
+                String::from("technologies"),
+                &new_technology_copy,
+                String::from("/api/v1/technologies"),
+                state.repo.clone(),
+            ) {
+                Ok(_) => {}
+                Err(err) => {
+                    return Ok(server_error_response(err));
+                }
+            };
+            Ok(simple_created_response(technology_result))
+        })
+        .await?)
 }

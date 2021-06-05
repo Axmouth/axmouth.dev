@@ -23,6 +23,7 @@ validator_derive = "0.13"
 rust-argon2 = "0.8"
 lazy_static = "1.4"
 regex = "1.4"
+warp = "0.3"
 
 
 [target.x86_64-pc-windows-msvc.pq]

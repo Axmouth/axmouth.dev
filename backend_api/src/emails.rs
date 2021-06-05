@@ -47,7 +47,7 @@ impl EmailSender {
 }
 
 impl EmailSender {
-    pub async fn send_email(
+    pub fn send_email(
         &self,
         email: SendableEmail,
     ) -> Result<lettre::smtp::response::Response, EmailError> {
@@ -69,10 +69,10 @@ impl EmailSender {
         }
         let mut mailer = mailer.transport();
         // Send the email
-        Ok(block_in_place(|| mailer.send(email))?)
+        Ok(mailer.send(email)?)
     }
 
-    pub async fn send_contact_email(
+    pub fn send_contact_email(
         &self,
         from_email: String,
         subject: String,
@@ -92,11 +92,11 @@ impl EmailSender {
             .alternative(body_html, body_text)
             .build()?;
 
-        let _ = self.send_email(email.into()).await?;
+        let _ = self.send_email(email.into())?;
         Ok(())
     }
 
-    pub async fn send_email_verification_email(
+    pub fn send_email_verification_email(
         &self,
         user_email: String,
         username: String,
@@ -114,11 +114,11 @@ impl EmailSender {
             )
             .build()?;
 
-        let _ = self.send_email(email.into()).await?;
+        let _ = self.send_email(email.into())?;
         Ok(())
     }
 
-    pub async fn send_reset_password_email(
+    pub fn send_reset_password_email(
         &self,
         user_email: String,
         username: String,
@@ -139,7 +139,7 @@ impl EmailSender {
             )
             .build()?;
 
-        let _ = self.send_email(email.into()).await?;
+        let _ = self.send_email(email.into())?;
         Ok(())
     }
 

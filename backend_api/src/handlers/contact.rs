@@ -4,6 +4,7 @@ use crate::{
     util::{simple_created_response, simple_error_response},
 };
 use backend_repo_pg::models::requests::SendContactEmailRequest;
+use tokio::task::block_in_place;
 use warp::hyper::{Body, Client, Method, Request};
 
 pub async fn contact_email(
@@ -33,9 +34,10 @@ pub async fn contact_email(
         )));
     }
 
-    state
-        .email_sender
-        .send_contact_email(request.from_email, request.subject, request.body)
-        .await?;
+    block_in_place(|| {
+        state
+            .email_sender
+            .send_contact_email(request.from_email, request.subject, request.body)
+    })?;
     Ok(simple_created_response(1))
 }
