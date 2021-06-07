@@ -11,9 +11,11 @@ import { ViewAdminCategoryComponent } from './admin-dashboard/components/view-ad
 import { ViewAdminModelComponent } from './admin-dashboard/components/view-admin-model/view-admin-model.component';
 import { ViewEntityComponent } from './admin-dashboard/components/view-entity/view-entity.component';
 import { CreateEntityComponent } from './admin-dashboard/components/create-entity/create-entity.component';
+import { AdminLogDetailsComponent } from './components/pages/admin-log-details/admin-log-details.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full', canActivate: [AuthGuard] },
+  { path: 'admin-logs/:adminLogId', component: AdminLogDetailsComponent, canActivate: [AuthGuard] },
   {
     path: '',
     loadChildren: () => import('./admin-dashboard/admin-dashboard.module').then((m) => m.AdminDashboardModule),

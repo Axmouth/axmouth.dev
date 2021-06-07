@@ -1,6 +1,9 @@
 <div [ngSwitch]="adminLog.action">
-  <div *ngSwitchCase="'Create'">Created a {{ adminLog.label }}, {{ adminLog.actionTime | date: 'medium' }}</div>
-  <div *ngSwitchCase="'Update'">Updated a {{ adminLog.label }}, {{ adminLog.actionTime | date: 'medium' }}</div>
-  <div *ngSwitchCase="'Delete'">Deleted a {{ adminLog.label }}, {{ adminLog.actionTime | date: 'medium' }}</div>
-  <div *ngSwitchDefault>Derp</div>
+  <a href="/admin-logs/{{ adminLog.id }}" routerLink="/admin-logs/{{ adminLog.id }}">
+    <div *ngSwitchCase="'Create'">Created a {{ adminLog.label }}, {{ adminLog.actionTime | date: 'medium' }}</div>
+    <div *ngSwitchCase="'Update'">Updated a {{ adminLog.label }}, {{ adminLog.actionTime | date: 'medium' }}</div>
+    <div *ngSwitchCase="'Delete'">Deleted a {{ adminLog.label }}, {{ adminLog.actionTime | date: 'medium' }}</div>
+    <div *ngSwitchDefault>Derp</div>
+    ({{ adminLog.user.displayName }})
+  </a>
 </div>

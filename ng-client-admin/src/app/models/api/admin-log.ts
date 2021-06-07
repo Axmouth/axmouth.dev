@@ -1,7 +1,9 @@
+import { User } from './user';
+
 export class AdminLog {
   id: number;
   objectId: string;
-  userId: number;
+  user: User;
   label: string;
   model: string;
   actionTime: string;

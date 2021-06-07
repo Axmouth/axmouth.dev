@@ -1,4 +1,3 @@
-use crate::errors::PgRepoError;
 use crate::filters::GetAllAdminLogsFilter;
 use crate::insertables::NewAdminLog;
 use crate::models::{db_models, domain};
@@ -20,10 +19,15 @@ impl<'a> AdminLogRepo<'a> {
         &self,
         new_admin_log: NewAdminLog,
     ) -> Result<domain::AdminLog, diesel::result::Error> {
+        use crate::schema::users::dsl::{id as user_id, users as users_dsl};
         let conn = &self.conn.pg_conn;
         let query = diesel::insert_into(admin_logs::table).values(&new_admin_log);
-        let result = query.get_result(conn)?;
-        Ok(domain::AdminLog::from(result))
+        let log: db_models::AdminLog = query.get_result(conn)?;
+        let query = users_dsl
+            .filter(user_id.eq(log.user_id))
+            .select(users_dsl::all_columns());
+        let user = query.get_result(conn)?;
+        Ok(domain::AdminLog::from(log, user))
     }
 
     pub fn delete_one(&self, id_value: i32) -> Result<usize, diesel::result::Error> {
@@ -38,16 +42,19 @@ impl<'a> AdminLogRepo<'a> {
         id_value: i32,
     ) -> Result<Option<domain::AdminLog>, diesel::result::Error> {
         use crate::schema::admin_logs::dsl::{admin_logs, id};
+        use crate::schema::users::dsl::users as users_dsl;
 
         let conn = &self.conn.pg_conn;
         let query = admin_logs
+            .inner_join(users_dsl)
             .filter(id.eq(id_value))
-            .select(admin_logs::all_columns());
-        let admin_log: db_models::AdminLog = match query.first(conn).optional()? {
-            Some(value) => value,
-            None => return Ok(None),
-        };
-        Ok(Some(domain::AdminLog::from(admin_log)))
+            .select((admin_logs::all_columns(), users_dsl::all_columns()));
+        let (admin_log, user): (db_models::AdminLog, db_models::User) =
+            match query.first(conn).optional()? {
+                Some(value) => value,
+                None => return Ok(None),
+            };
+        Ok(Some(domain::AdminLog::from(admin_log, user)))
     }
 
     pub fn find(
@@ -57,8 +64,10 @@ impl<'a> AdminLogRepo<'a> {
         pagination: PaginationOptions,
     ) -> Result<Vec<domain::AdminLog>, diesel::result::Error> {
         use crate::schema::admin_logs::dsl::admin_logs as admin_logs_dsl;
+        use crate::schema::users::dsl::users as users_dsl;
         let q = admin_logs_dsl
-            .select(admin_logs_dsl::all_columns())
+            .inner_join(users_dsl)
+            .select((admin_logs_dsl::all_columns(), users_dsl::all_columns()))
             .into_boxed();
 
         let q = if let (Some(page), Some(page_size)) = (pagination.page, pagination.page_size) {
@@ -77,11 +86,11 @@ impl<'a> AdminLogRepo<'a> {
         };
 
         let conn = &self.conn.pg_conn;
-        let results: Vec<db_models::AdminLog> = q.load(conn)?;
+        let results: Vec<(db_models::AdminLog, db_models::User)> = q.load(conn)?;
 
         Ok(results
             .into_iter()
-            .map(|admin_log| domain::AdminLog::from(admin_log))
+            .map(|(admin_log, user)| domain::AdminLog::from(admin_log, user))
             .collect::<Vec<_>>())
     }
 }
