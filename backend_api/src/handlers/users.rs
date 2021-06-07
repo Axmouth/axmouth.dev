@@ -1,10 +1,8 @@
 use crate::{
     app::AppState,
-    util::{not_found_response, server_error_response, simple_ok_response},
+    util::{not_found_response, simple_ok_response},
 };
 use backend_repo_pg::{models::responses::GetUserProfileResponse, users::UserRepo};
-
-// pub type Response = std::result::Result<warp::reply::Json, warp::Rejection>;
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
     Ok(state

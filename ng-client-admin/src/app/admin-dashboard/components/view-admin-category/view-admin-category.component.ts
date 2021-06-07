@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { AdminCategory } from 'src/app/models/definitions/admin-category';
-import { AdminCategoryService } from '../../services/admin-category.service';
+import { AdminCategory } from 'src/app/admin-dashboard/definitions/admin-category';
+import { AdminCategoryService } from 'src/app/admin-dashboard/services/admin-category.service';
 import { ActivatedRoute } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 

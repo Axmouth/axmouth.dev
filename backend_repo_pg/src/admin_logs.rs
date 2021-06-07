@@ -56,11 +56,22 @@ impl<'a> AdminLogRepo<'a> {
         sort: Option<AdminLogSortType>,
         pagination: PaginationOptions,
     ) -> Result<Vec<domain::AdminLog>, diesel::result::Error> {
-        use crate::schema::admin_logs::dsl::admin_logs;
-        let q = admin_logs.select(admin_logs::all_columns()).into_boxed();
+        use crate::schema::admin_logs::dsl::admin_logs as admin_logs_dsl;
+        let q = admin_logs_dsl
+            .select(admin_logs_dsl::all_columns())
+            .into_boxed();
 
         let q = if let (Some(page), Some(page_size)) = (pagination.page, pagination.page_size) {
             q.offset((page - 1) * page_size).limit(page_size)
+        } else {
+            q
+        };
+
+        let q = if let Some(sort_type) = sort {
+            match sort_type {
+                AdminLogSortType::ActionTimeAsc => q.order(admin_logs::action_time.asc()),
+                AdminLogSortType::ActionTimeDesc => q.order(admin_logs::action_time.desc()),
+            }
         } else {
             q
         };

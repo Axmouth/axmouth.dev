@@ -78,9 +78,10 @@ use crate::filters::{auth_admin_filter, auth_filter, auth_opt_filter, validated_
 use crate::handlers;
 use backend_repo_pg::models::{
     queries::{
-        GetAllBlogPostCommentsQuery, GetAllBlogPostsQuery, GetAllCategoriesQuery,
-        GetAllHomePageLinksQuery, GetAllProjectsQuery, GetAllTechnologiesQuery,
-        GetAllTextBodiesQuery, GetBlogPostQuery, GetPageViewsQuery, GetProjectQuery,
+        GetAllAdminLogsQuery, GetAllBlogPostCommentsQuery, GetAllBlogPostsQuery,
+        GetAllCategoriesQuery, GetAllHomePageLinksQuery, GetAllProjectsQuery,
+        GetAllTechnologiesQuery, GetAllTextBodiesQuery, GetBlogPostQuery, GetPageViewsQuery,
+        GetProjectQuery,
     },
     responses::BaseResponse,
 };
@@ -94,6 +95,17 @@ pub fn routes(
         .and(with_state(state.clone()))
         .and_then(handlers::health::health);
 
+    let get_all_admin_logs = warp::path!("admin-logs")
+        .and(warp::get())
+        .and(auth_admin_filter(state.jwt_secret.clone()))
+        .and(warp::query::<GetAllAdminLogsQuery>())
+        .and(with_state(state.clone()))
+        .and_then(handlers::admin_logs::get_all);
+    let get_admin_log = warp::path!("admin-logs" / i32)
+        .and(warp::get())
+        .and(auth_admin_filter(state.jwt_secret.clone()))
+        .and(with_state(state.clone()))
+        .and_then(handlers::admin_logs::get);
     let create_page_view = warp::path!("page-views")
         .and(warp::post())
         .and(warp::header::optional::<String>(
@@ -385,6 +397,8 @@ pub fn routes(
     let files_get = warp::path("static").and(warp::fs::dir(state.static_file_dir));
 
     let handlers = balanced_or_tree!(
+        get_admin_log,
+        get_all_admin_logs,
         create_page_view,
         get_blog_post,
         create_blog_post,

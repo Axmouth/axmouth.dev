@@ -1,4 +1,15 @@
 <br />
 <h1 align="center">Site Administration</h1>
 <br /><br />
-<app-admin-category *ngFor="let category of categories" [category]="category"></app-admin-category>
+
+<div flex fxLayout="row">
+  <div fxFlex.gt-sm="65" fxFlex.lt-md="100">
+    <app-admin-category *ngFor="let category of categories" [category]="category"></app-admin-category>
+  </div>
+  <div fxFlex.gt-sm="30" fxFlex.lt-md="95" fxFlexOffset.gt-sm="5" fxFlexOffset.lt-md="5">
+    <div *ngFor="let log of adminLogs">
+      <app-admin-log-preview [adminLog]="log"></app-admin-log-preview>
+      <hr />
+    </div>
+  </div>
+</div>

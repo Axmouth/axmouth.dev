@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { AdminCategory } from '../models/definitions/admin-category';
-import { categoryList } from '../models/definitions/admin-config';
-import { AdminModel } from 'src/app//models/definitions/admin-model';
-import { FieldType } from '../models/definitions/admin-model-field';
+import { AdminCategory } from 'src/app/admin-dashboard/definitions/admin-category';
+import { categoryList } from 'src/app/admin-dashboard/definitions/admin-config';
+import { AdminModel } from 'src/app/admin-dashboard/definitions/admin-model';
+import { FieldType } from 'src/app/admin-dashboard/definitions/admin-model-field';
 
 @Injectable({
   providedIn: 'root',

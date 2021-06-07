@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { AdminModelField } from 'src/app/models/definitions/admin-model-field';
+import { AdminModelField } from 'src/app/admin-dashboard/definitions/admin-model-field';
 
 @Component({
   selector: 'app-markdown-field',

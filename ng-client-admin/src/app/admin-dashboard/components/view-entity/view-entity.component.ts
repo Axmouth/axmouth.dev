@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { AdminModel } from 'src/app/models/definitions/admin-model';
-import { AdminModelService } from 'src/app/services/admin-model.service';
+import { AdminModel } from 'src/app/admin-dashboard/definitions/admin-model';
+import { AdminModelService } from 'src/app/admin-dashboard/services/admin-model.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { RestApiService } from 'src/app/services/rest-api.service';
-import { ModelValuesService } from '../../services/model-values.service';
+import { RestApiService } from 'src/app/admin-dashboard/services/rest-api.service';
+import { ModelValuesService } from 'src/app/admin-dashboard/services/model-values.service';
 import { Title } from '@angular/platform-browser';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';

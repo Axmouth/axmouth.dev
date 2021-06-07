@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { AdminModelField } from 'src/app/models/definitions/admin-model-field';
-import { ModelValuesService } from '../../services/model-values.service';
+import { AdminModelField } from 'src/app/admin-dashboard/definitions/admin-model-field';
+import { ModelValuesService } from 'src/app/admin-dashboard/services/model-values.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AddToListDialogComponent } from '../add-to-list-dialog/add-to-list-dialog.component';
 import { BehaviorSubject } from 'rxjs';

@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { AdminModel } from 'src/app/models/definitions/admin-model';
-import { AdminModelService } from 'src/app/services/admin-model.service';
+import { AdminModel } from 'src/app/admin-dashboard/definitions/admin-model';
+import { AdminModelService } from 'src/app/admin-dashboard/services/admin-model.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ModelValuesService } from '../../services/model-values.service';
+import { ModelValuesService } from 'src/app/admin-dashboard/services/model-values.service';
 import { Title } from '@angular/platform-browser';
 
 @Component({

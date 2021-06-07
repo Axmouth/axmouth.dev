@@ -1,8 +1,8 @@
 import { Component, OnInit, Input, Output, EventEmitter, ElementRef, ViewChild } from '@angular/core';
-import { AdminModelField } from 'src/app/models/definitions/admin-model-field';
+import { AdminModelField } from 'src/app/admin-dashboard/definitions/admin-model-field';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ModelValuesService } from 'src/app/services/model-values.service';
-import { UploadService } from '../../services/upload.service';
+import { ModelValuesService } from 'src/app/admin-dashboard/services/model-values.service';
+import { UploadService } from 'src/app/admin-dashboard/services/upload.service';
 import { apiRoot } from 'src/environments/environment';
 
 @Component({

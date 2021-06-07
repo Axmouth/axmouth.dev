@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { AdminCategory } from 'src/app/models/definitions/admin-category';
+import { AdminCategory } from 'src/app/admin-dashboard/definitions/admin-category';
 
 @Component({
   selector: 'app-admin-category',

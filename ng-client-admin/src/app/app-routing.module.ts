@@ -6,22 +6,18 @@ import { AuthGuard } from '../auth/guards/auth.guard';
 import { GuestGuard } from '../auth/guards/guest.guard';
 import { LogoutPageComponent } from './components/logout-page/logout-page.component';
 import { HomeComponent } from './components/home/home.component';
-import { NotFoundPageComponent } from './components/not-found-page/not-found-page.component';
-import { ViewAdminCategoryComponent } from './components/view-admin-category/view-admin-category.component';
-import { ViewAdminModelComponent } from './components/view-admin-model/view-admin-model.component';
-import { ViewEntityComponent } from './components/view-entity/view-entity.component';
-import { CreateEntityComponent } from './components/create-entity/create-entity.component';
+import { NotFoundPageComponent } from './admin-dashboard/components/not-found-page/not-found-page.component';
+import { ViewAdminCategoryComponent } from './admin-dashboard/components/view-admin-category/view-admin-category.component';
+import { ViewAdminModelComponent } from './admin-dashboard/components/view-admin-model/view-admin-model.component';
+import { ViewEntityComponent } from './admin-dashboard/components/view-entity/view-entity.component';
+import { CreateEntityComponent } from './admin-dashboard/components/create-entity/create-entity.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full', canActivate: [AuthGuard] },
-  { path: 'categories/:categoryName', component: ViewAdminCategoryComponent, canActivate: [AuthGuard] },
-  { path: 'categories/:categoryName/models/:modelName', component: ViewAdminModelComponent, canActivate: [AuthGuard] },
   {
-    path: 'categories/:categoryName/models/:modelName/add',
-    component: CreateEntityComponent,
-    canActivate: [AuthGuard],
+    path: '',
+    loadChildren: () => import('./admin-dashboard/admin-dashboard.module').then((m) => m.AdminDashboardModule),
   },
-  { path: 'categories/:categoryName/models/:modelName/:id', component: ViewEntityComponent, canActivate: [AuthGuard] },
   { path: 'login', component: LoginPageComponent, canActivate: [GuestGuard] },
   { path: 'logout', component: LogoutPageComponent, canActivate: [AuthGuard] },
   { path: '**', component: NotFoundPageComponent, pathMatch: 'full' },
@@ -30,9 +26,9 @@ const routes: Routes = [
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, {
-    initialNavigation: 'enabled',
-    relativeLinkResolution: 'legacy'
-}),
+      initialNavigation: 'enabled',
+      relativeLinkResolution: 'legacy',
+    }),
   ],
   exports: [RouterModule],
 })

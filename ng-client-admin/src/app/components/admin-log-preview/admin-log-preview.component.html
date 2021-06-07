@@ -1,0 +1,6 @@
+<div [ngSwitch]="adminLog.action">
+  <div *ngSwitchCase="'Create'">Created a {{ adminLog.label }}, {{ adminLog.actionTime | date: 'medium' }}</div>
+  <div *ngSwitchCase="'Update'">Updated a {{ adminLog.label }}, {{ adminLog.actionTime | date: 'medium' }}</div>
+  <div *ngSwitchCase="'Delete'">Deleted a {{ adminLog.label }}, {{ adminLog.actionTime | date: 'medium' }}</div>
+  <div *ngSwitchDefault>Derp</div>
+</div>

@@ -9,7 +9,7 @@ import {
   ElementRef,
   ViewContainerRef,
 } from '@angular/core';
-import { AdminModelField } from 'src/app/models/definitions/admin-model-field';
+import { AdminModelField } from 'src/app/admin-dashboard/definitions/admin-model-field';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import EditorJS from '@editorjs/editorjs';
 import Header from '@editorjs/header';

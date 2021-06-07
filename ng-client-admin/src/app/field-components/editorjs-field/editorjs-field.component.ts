@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, Input, Output, EventEmitter } from '@angular/core';
-import { AdminModelField } from 'src/app/models/definitions/admin-model-field';
+import { AdminModelField } from 'src/app/admin-dashboard/definitions/admin-model-field';
 import { of, BehaviorSubject } from 'rxjs';
 import EditorJS, { API, OutputData } from '@editorjs/editorjs';
 import * as Header from '@editorjs/header';
@@ -20,9 +20,9 @@ import * as Table from '@editorjs/table';
 import * as Personality from '@editorjs/personality';
 import * as Marker from '@editorjs/marker';
 import * as Code from '@editorjs/code';
-import { ModelValuesService } from '../../services/model-values.service';
+import { ModelValuesService } from 'src/app/admin-dashboard/services/model-values.service';
 import { apiRoot } from 'src/environments/environment';
-import { UploadService } from '../../services/upload.service';
+import { UploadService } from 'src/app/admin-dashboard/services/upload.service';
 
 const defaultData = '{"time":1597135214246,"blocks":[],"version":"2.18.0"}';
 

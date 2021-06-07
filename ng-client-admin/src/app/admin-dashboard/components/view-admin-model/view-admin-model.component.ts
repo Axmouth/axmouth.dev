@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { AdminModel } from '../../models/definitions/admin-model';
-import { AdminModelService } from '../../services/admin-model.service';
+import { AdminModel } from 'src/app/admin-dashboard/definitions/admin-model';
+import { AdminModelService } from 'src/app/admin-dashboard/services/admin-model.service';
 import { ActivatedRoute } from '@angular/router';
 import { RestApiService } from '../../services/rest-api.service';
 import { Title } from '@angular/platform-browser';

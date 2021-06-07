@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { AdminModelField } from 'src/app/models/definitions/admin-model-field';
+import { AdminModelField } from 'src/app/admin-dashboard/definitions/admin-model-field';
 import { BehaviorSubject } from 'rxjs';
-import { ModelValuesService } from 'src/app/services/model-values.service';
+import { ModelValuesService } from 'src/app/admin-dashboard/services/model-values.service';
 
 @Component({
   selector: 'app-boolean-field',
