@@ -36,6 +36,13 @@ export class AdminLogDetailsComponent implements OnInit, OnDestroy {
       });
   }
 
+  onRevertClick() {
+    if (this.adminLog.action === 'Create') {
+    } else if (this.adminLog.action === 'Update') {
+    } else if (this.adminLog.action === 'Delete') {
+    }
+  }
+
   ngOnDestroy(): void {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();

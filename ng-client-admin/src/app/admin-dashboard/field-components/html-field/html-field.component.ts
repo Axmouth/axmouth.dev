@@ -31,7 +31,7 @@ import * as Personality from '@editorjs/personality';
 import * as Marker from '@editorjs/marker';
 import * as Code from '@editorjs/code';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { AuthService } from '../../../auth/services/auth.service';
+import { AuthService } from 'src/auth/services/auth.service';
 import { of } from 'rxjs';
 
 @Component({

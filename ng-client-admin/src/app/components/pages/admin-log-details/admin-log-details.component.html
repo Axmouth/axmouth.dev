@@ -1,37 +1,50 @@
+<a mat-button color="accent" href="/admin-logs" routerLink="/admin-logs"
+  ><mat-icon aria-hidden="false" aria-label="Example home icon">keyboard_backspace</mat-icon>
+  Admin Logs List
+</a>
+<hr />
+
 <ng-container [ngSwitch]="adminLog.action">
-  <a href="/admin-logs/{{ adminLog.id }}" routerLink="/admin-logs/{{ adminLog.id }}">
-    <ng-container *ngSwitchCase="'Create'">
-      <mat-icon aria-hidden="false" aria-label="Example home icon" class="creation-icon">add</mat-icon> Created a
-      {{ adminLog.label }} ({{ adminLog.user.displayName }}) <br />
-      {{ adminLog.actionTime | date: 'medium' }}
-    </ng-container>
-    <ng-container *ngSwitchCase="'Update'">
-      <mat-icon aria-hidden="false" aria-label="Example home icon" class="update-icon">edit</mat-icon> Updated a
-      {{ adminLog.label }} ({{ adminLog.user.displayName }}) <br />
-      {{ adminLog.actionTime | date: 'medium' }}
-    </ng-container>
-    <ng-container *ngSwitchCase="'Delete'">
-      <mat-icon aria-hidden="false" aria-label="Example home icon" class="deletion-icon">clear</mat-icon> Deleted a
-      {{ adminLog.label }} ({{ adminLog.user.displayName }}) <br />
-      {{ adminLog.actionTime | date: 'medium' }}
-    </ng-container>
-    <ng-container *ngSwitchDefault>Derp</ng-container>
-  </a>
+  <ng-container *ngSwitchCase="'Create'">
+    <mat-icon aria-hidden="false" aria-label="Example home icon" class="creation-icon">add</mat-icon>
+    <b>{{ adminLog.user.displayName }}</b> created a {{ adminLog.label }} <br />
+    {{ adminLog.actionTime | date: 'medium' }}
+  </ng-container>
+  <ng-container *ngSwitchCase="'Update'">
+    <mat-icon aria-hidden="false" aria-label="Example home icon" class="update-icon">edit</mat-icon>
+    <b>{{ adminLog.user.displayName }}</b> updated a {{ adminLog.label }} <br />
+    {{ adminLog.actionTime | date: 'medium' }}
+  </ng-container>
+  <ng-container *ngSwitchCase="'Delete'">
+    <mat-icon aria-hidden="false" aria-label="Example home icon" class="deletion-icon">clear</mat-icon>
+    <b>{{ adminLog.user.displayName }}</b> deleted a {{ adminLog.label }} <br />
+    {{ adminLog.actionTime | date: 'medium' }}
+  </ng-container>
+  <ng-container *ngSwitchDefault>Derp</ng-container>
 </ng-container>
 
-<br />
-<br />
 <hr />
-<br />
 <ng-container *ngIf="adminLog.action !== 'Delete'">
   <h2>New Data:</h2>
   {{ adminLog.newData }}
-  <br />
-  <br />
   <hr />
-  <br />
 </ng-container>
 <ng-container *ngIf="adminLog.action !== 'Create'">
   <h2>Old Data:</h2>
   {{ adminLog.oldData }}
+</ng-container>
+
+<hr />
+
+<ng-container [ngSwitch]="adminLog.action">
+  <ng-container *ngSwitchCase="'Create'">
+    <button mat-raised-button color="warn" (click)="onRevertClick()">Revert (Delete)</button>
+  </ng-container>
+  <ng-container *ngSwitchCase="'Update'">
+    <button mat-raised-button color="warn" (click)="onRevertClick()">Revert (Patch previous data)</button>
+  </ng-container>
+  <ng-container *ngSwitchCase="'Delete'">
+    <button mat-raised-button color="warn" (click)="onRevertClick()">Revert (Recreate)</button>
+  </ng-container>
+  <ng-container *ngSwitchDefault>Derp</ng-container>
 </ng-container>
