@@ -1,11 +1,14 @@
 use serde::{Deserialize, Serialize};
 
-use crate::options::{
-    AdminLogSortType, BlogPostCommentFlagSortType, BlogPostCommentRatingSortType,
-    BlogPostCommentSortType, BlogPostSortType, CategorySortType, ChangePasswordTokenSortType,
-    HomePageLinkSortType, IdentificationCookieSortType, PageViewSortType, ProjectSortType,
-    RefreshTokenSortType, TechnologySortType, TextBodySortType, UploadedImageSortType,
-    UserSortType, VerifyEmailTokenSortType,
+use crate::{
+    extra::AdminLogAction,
+    options::{
+        AdminLogSortType, BlogPostCommentFlagSortType, BlogPostCommentRatingSortType,
+        BlogPostCommentSortType, BlogPostSortType, CategorySortType, ChangePasswordTokenSortType,
+        HomePageLinkSortType, IdentificationCookieSortType, PageViewSortType, ProjectSortType,
+        RefreshTokenSortType, TechnologySortType, TextBodySortType, UploadedImageSortType,
+        UserSortType, VerifyEmailTokenSortType,
+    },
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -137,6 +140,7 @@ pub struct GetAllAdminLogsQuery {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
     pub sort_type: Option<AdminLogSortType>,
+    pub action: Option<AdminLogAction>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

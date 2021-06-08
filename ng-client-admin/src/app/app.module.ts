@@ -16,6 +16,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSelectModule } from '@angular/material/select';
 import { FlexLayoutModule } from '@angular/flex-layout';
 
 import { AppComponent } from './app.component';
@@ -119,6 +121,8 @@ import { AdminLogDetailsComponent } from './components/pages/admin-log-details/a
     MatListModule,
     MatProgressSpinnerModule,
     MatExpansionModule,
+    MatPaginatorModule,
+    MatSelectModule,
     AuthModule.forRoot({
       config: {
         authEndpointPrefix: `${apiRoot}/auth/`,

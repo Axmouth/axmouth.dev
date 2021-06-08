@@ -27,7 +27,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.title.setTitle(`Index | Axmouth's Website Admin Site`);
     this.categories = this.categoryService.getAll();
     this.adminLogService
-      .getAll({ sortType: 'ActionTimeDesc' })
+      .getAll({ sortType: 'ActionTimeDesc', pageSize: 10, page: 1 })
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe((res) => {
         this.adminLogs = res.data;

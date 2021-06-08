@@ -1,10 +1,13 @@
-use crate::models::queries::{
-    GetAllAdminLogsQuery, GetAllBlogPostCommentFlagsQuery, GetAllBlogPostCommentRatingsQuery,
-    GetAllBlogPostCommentsQuery, GetAllBlogPostsQuery, GetAllCategoriesQuery,
-    GetAllChangePasswordTokensQuery, GetAllHomePageLinksQuery, GetAllIdentificationCookiesQuery,
-    GetAllPageViewsQuery, GetAllProjectsQuery, GetAllRefreshTokensQuery, GetAllTechnologiesQuery,
-    GetAllTextBodiesQuery, GetAllUploadedImagesQuery, GetAllUsersQuery,
-    GetAllVerifyEmailTokensQuery,
+use crate::{
+    extra::AdminLogAction,
+    models::queries::{
+        GetAllAdminLogsQuery, GetAllBlogPostCommentFlagsQuery, GetAllBlogPostCommentRatingsQuery,
+        GetAllBlogPostCommentsQuery, GetAllBlogPostsQuery, GetAllCategoriesQuery,
+        GetAllChangePasswordTokensQuery, GetAllHomePageLinksQuery,
+        GetAllIdentificationCookiesQuery, GetAllPageViewsQuery, GetAllProjectsQuery,
+        GetAllRefreshTokensQuery, GetAllTechnologiesQuery, GetAllTextBodiesQuery,
+        GetAllUploadedImagesQuery, GetAllUsersQuery, GetAllVerifyEmailTokensQuery,
+    },
 };
 use serde::{Deserialize, Serialize};
 
@@ -148,11 +151,15 @@ impl GetAllBlogPostCommentFlagsFilter {
 }
 
 #[derive(Clone, Debug)]
-pub struct GetAllAdminLogsFilter {}
+pub struct GetAllAdminLogsFilter {
+    pub action: Option<AdminLogAction>,
+}
 
 impl GetAllAdminLogsFilter {
     pub fn from_query(query: GetAllAdminLogsQuery) -> Self {
-        Self {}
+        Self {
+            action: query.action,
+        }
     }
 }
 

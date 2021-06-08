@@ -62,16 +62,28 @@ impl<'a> AdminLogRepo<'a> {
         filter: GetAllAdminLogsFilter,
         sort: Option<AdminLogSortType>,
         pagination: PaginationOptions,
-    ) -> Result<Vec<domain::AdminLog>, diesel::result::Error> {
-        use crate::schema::admin_logs::dsl::admin_logs as admin_logs_dsl;
+    ) -> Result<(Vec<domain::AdminLog>, i64), diesel::result::Error> {
+        use crate::schema::admin_logs::dsl::{
+            action as admin_logs_action, admin_logs as admin_logs_dsl,
+        };
         use crate::schema::users::dsl::users as users_dsl;
         let q = admin_logs_dsl
             .inner_join(users_dsl)
-            .select((admin_logs_dsl::all_columns(), users_dsl::all_columns()))
+            .select((
+                admin_logs_dsl::all_columns(),
+                users_dsl::all_columns(),
+                diesel::dsl::sql::<diesel::sql_types::BigInt>("Count(*) Over()"),
+            ))
             .into_boxed();
 
         let q = if let (Some(page), Some(page_size)) = (pagination.page, pagination.page_size) {
             q.offset((page - 1) * page_size).limit(page_size)
+        } else {
+            q
+        };
+
+        let q = if let Some(action) = filter.action {
+            q.filter(admin_logs_action.eq(action))
         } else {
             q
         };
@@ -86,11 +98,19 @@ impl<'a> AdminLogRepo<'a> {
         };
 
         let conn = &self.conn.pg_conn;
-        let results: Vec<(db_models::AdminLog, db_models::User)> = q.load(conn)?;
+        let results: Vec<(db_models::AdminLog, db_models::User, i64)> = q.load(conn)?;
 
-        Ok(results
-            .into_iter()
-            .map(|(admin_log, user)| domain::AdminLog::from(admin_log, user))
-            .collect::<Vec<_>>())
+        let count = match results.get(0) {
+            Some((_, _, value)) => *value,
+            None => 0,
+        };
+
+        Ok((
+            results
+                .into_iter()
+                .map(|(admin_log, user, _)| domain::AdminLog::from(admin_log, user))
+                .collect::<Vec<_>>(),
+            count,
+        ))
     }
 }

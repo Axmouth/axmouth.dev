@@ -13,8 +13,4 @@ export class AdminLog {
   baseLink: string;
 }
 
-export enum AdminLogAction {
-  Create,
-  Update,
-  Delete,
-}
+export type AdminLogAction = 'Create' | 'Update' | 'Delete';

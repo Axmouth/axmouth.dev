@@ -1,1 +1,53 @@
-<p>admin-logs works!</p>
+<div fxFlex.gt-sm="100" fxFlex.lt-md="100" flex fxLayout="row wrap">
+  <div fxFlex.gt-sm="90" fxFlex.lt-md="90">
+    <h3>Admin Logs :</h3>
+  </div>
+  <div fxFlex.gt-sm="45" fxFlex.lt-md="90">
+    <mat-paginator
+      [length]="resultNumber"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[5, 10, 25, 100]"
+      [showFirstLastButtons]="true"
+      [pageIndex]="page - 1"
+      (page)="handlePageEvent($event)"
+    >
+    </mat-paginator>
+  </div>
+  <div fxFlex.gt-sm="20" fxFlex.lt-md="90" fxFlexOffset.lt-md="10" fxFlexOffset.gt-sm="15">
+    <mat-form-field appearance="fill">
+      <mat-label>Action</mat-label>
+      <mat-select (valueChange)="actionValueChange($event)" [value]="actionType">
+        <mat-option>All</mat-option>
+        <mat-option value="Create">Create</mat-option>
+        <mat-option value="Update">Update</mat-option>
+        <mat-option value="Delete">Delete</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div fxFlex.gt-sm="20" fxFlex.lt-md="90" fxFlexOffset.lt-md="10">
+    <mat-form-field appearance="fill">
+      <mat-label>Sort</mat-label>
+      <mat-select (valueChange)="sortValueChange($event)" [value]="sortType">
+        <mat-option value="ActionTimeDesc">Action Time Descending</mat-option>
+        <mat-option value="ActionTimeAsc">Action Time Ascending</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div fxFlex.gt-sm="100" fxFlex.lt-md="85" fxFlexOffset.lt-md="15" flex fxLayout="column wrap">
+    <div flex fxLayout="row wrap" *ngFor="let log of adminLogs">
+      <app-admin-log-preview [adminLog]="log" fxFlex.gt-sm="45" fxFlex.lt-md="90"></app-admin-log-preview>
+      <div fxFlex.gt-sm="45" fxFlex.lt-md="45"></div>
+    </div>
+  </div>
+  <div fxFlex.gt-sm="45" fxFlex.lt-md="90">
+    <mat-paginator
+      [length]="resultNumber"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[5, 10, 25, 100]"
+      [showFirstLastButtons]="true"
+      [pageIndex]="page - 1"
+      (page)="handlePageEvent($event)"
+    >
+    </mat-paginator>
+  </div>
+</div>

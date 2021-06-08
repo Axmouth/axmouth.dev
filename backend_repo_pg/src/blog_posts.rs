@@ -303,6 +303,7 @@ impl<'a> BlogPostRepo<'a> {
         } else {
             q
         };
+
         let q = if let Some(sort_type) = sort {
             match sort_type {
                 BlogPostSortType::CreatedAtAsc => q.order(blog_posts::created_at.asc()),

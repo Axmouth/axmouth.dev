@@ -21,10 +21,9 @@
         >
           {{ model.name }}
           <a
-            href=""
             mat-icon-button
             color="basic"
-            aria-label="Example icon button with an edit icon"
+            aria-label="List"
             href="/categories/{{ category?.name }}/models/{{ model.name }}"
             routerLink="/categories/{{ category?.name }}/models/{{ model.name }}"
           >
@@ -32,7 +31,7 @@
           ><a
             mat-icon-button
             color="accent"
-            aria-label="Example icon button with a plus icon"
+            aria-label="Create new"
             href="/categories/{{ category?.name }}/models/{{ model.name }}/add"
             routerLink="/categories/{{ category?.name }}/models/{{ model.name }}/add"
           >

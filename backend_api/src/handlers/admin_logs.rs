@@ -1,7 +1,7 @@
 use crate::{
     app::AppState,
     auth_tokens::Claims,
-    util::{not_found_response, simple_ok_response},
+    util::{not_found_response, paginated_ok_response, simple_ok_response},
 };
 use backend_repo_pg::{
     admin_logs::AdminLogRepo, filters::GetAllAdminLogsFilter,
@@ -34,7 +34,7 @@ pub async fn get_all(
         .transaction(|conn| {
             let filter = GetAllAdminLogsFilter::from_query(query.clone());
             let admin_log_repository = AdminLogRepo::new(&conn);
-            let admin_logs = admin_log_repository.find(
+            let (admin_logs, total_results) = admin_log_repository.find(
                 filter,
                 query.sort_type,
                 PaginationOptions {
@@ -42,7 +42,12 @@ pub async fn get_all(
                     page_size: query.page_size,
                 },
             )?;
-            Ok(simple_ok_response(admin_logs))
+            Ok(paginated_ok_response(
+                admin_logs,
+                query.page,
+                query.page_size,
+                total_results,
+            ))
         })
         .await?)
 }
