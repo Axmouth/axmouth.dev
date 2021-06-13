@@ -85,6 +85,16 @@ export class RestApiService {
     );
   }
 
+  patchUpdate<T>(baseUrl: string, id: string, body: any, queryParams: any): Observable<T> {
+    const url = `${baseUrl}/${id}`;
+
+    return this.authService.isAuthenticatedOrRefresh().pipe(
+      concatMap(() => {
+        return this.baseApiRequest<T>(url, queryParams, 'patch', body);
+      }),
+    );
+  }
+
   delete<T>(baseUrl: string, id: string, queryParams: any): Observable<T> {
     const url = `${baseUrl}/${id}`;
 

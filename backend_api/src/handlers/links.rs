@@ -90,7 +90,7 @@ pub async fn delete(
                 String::from("Link"),
                 String::from("home_page_links"),
                 &old_data,
-                String::from("/api/v1/links"),
+                String::from("/links"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}
@@ -133,7 +133,7 @@ pub async fn update(
                 String::from("home_page_links"),
                 &request_copy,
                 &old_data,
-                String::from("/api/v1/links"),
+                String::from("/links"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}
@@ -168,7 +168,7 @@ pub async fn create(
                 String::from("Link"),
                 String::from("home_page_links"),
                 &new_link_copy,
-                String::from("/api/v1/links"),
+                String::from("/links"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}

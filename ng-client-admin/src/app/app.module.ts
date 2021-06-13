@@ -36,7 +36,11 @@ import { jwtWhitelist } from 'src/environments/environment';
 import { AdminDashboardModule } from './admin-dashboard/admin-dashboard.module';
 import { AdminLogPreviewComponent } from './components/admin-log-preview/admin-log-preview.component';
 import { AdminLogsComponent } from './components/pages/admin-logs/admin-logs.component';
-import { AdminLogDetailsComponent } from './components/pages/admin-log-details/admin-log-details.component';
+import {
+  AdminLogDetailsComponent,
+  ExampleDialogComponent,
+} from './components/pages/admin-log-details/admin-log-details.component';
+import { WarningDialogComponent } from './components/warning-dialog/warning-dialog.component';
 
 @NgModule({
   declarations: [
@@ -49,6 +53,8 @@ import { AdminLogDetailsComponent } from './components/pages/admin-log-details/a
     AdminLogPreviewComponent,
     AdminLogsComponent,
     AdminLogDetailsComponent,
+    WarningDialogComponent,
+    ExampleDialogComponent,
   ],
   imports: [
     AdminDashboardModule,
@@ -59,6 +65,9 @@ import { AdminLogDetailsComponent } from './components/pages/admin-log-details/a
     ReactiveFormsModule,
     HttpClientModule,
     FlexLayoutModule,
+    MatCardModule,
+    MatButtonModule,
+    MatButtonToggleModule,
     MatDialogModule,
     MatToolbarModule,
     MatCheckboxModule,
@@ -66,11 +75,8 @@ import { AdminLogDetailsComponent } from './components/pages/admin-log-details/a
     MatSliderModule,
     MatMenuModule,
     MatIconModule,
-    MatButtonModule,
-    MatButtonToggleModule,
     MatProgressBarModule,
     MatDividerModule,
-    MatCardModule,
     MatListModule,
     MatProgressSpinnerModule,
     MatExpansionModule,

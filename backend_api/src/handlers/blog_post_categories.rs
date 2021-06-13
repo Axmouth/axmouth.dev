@@ -90,7 +90,7 @@ pub async fn delete(
                 String::from("Blog Post Category"),
                 String::from("categories"),
                 &old_data,
-                String::from("/api/v1/categories"),
+                String::from("/categories"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}
@@ -129,7 +129,7 @@ pub async fn update(
                 String::from("categories"),
                 &request_copy,
                 &old_data,
-                String::from("/api/v1/categories"),
+                String::from("/categories"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}
@@ -160,7 +160,7 @@ pub async fn create(
                 String::from("Blog Post Category"),
                 String::from("categories"),
                 &new_category_copy,
-                String::from("/api/v1/categories"),
+                String::from("/categories"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}

@@ -8,6 +8,7 @@ const blogPostModel: AdminModel = {
   idField: 'id',
   displayField: 'title',
   endpoint: `${apiRoot}/blog-posts`,
+  modelId: 'blog_posts',
   fields: [
     {
       name: 'Title',
@@ -65,6 +66,7 @@ const blogPostCommentModel: AdminModel = {
   idField: 'id',
   displayField: 'body',
   endpoint: `${apiRoot}/blog-post-comments`,
+  modelId: 'blog_post_comments',
   fields: [
     {
       name: 'Body',
@@ -82,6 +84,7 @@ const userModel: AdminModel = {
   idField: 'id',
   displayField: 'displayName',
   endpoint: `${apiRoot}/users`,
+  modelId: 'users',
   fields: [
     {
       name: 'Display Name',
@@ -123,6 +126,7 @@ const linkModel: AdminModel = {
   idField: 'id',
   displayField: 'name',
   endpoint: `${apiRoot}/links`,
+  modelId: 'home_page_links',
   fields: [
     {
       name: 'Name',
@@ -156,6 +160,7 @@ const textBodyModel: AdminModel = {
   idField: 'slug',
   displayField: 'slug',
   endpoint: `${apiRoot}/text-bodies`,
+  modelId: 'text_bodies',
   fields: [
     {
       name: 'Title',
@@ -197,6 +202,7 @@ const categoryModel: AdminModel = {
   idField: 'id',
   displayField: 'name',
   endpoint: `${apiRoot}/categories`,
+  modelId: 'categories',
   fields: [
     {
       name: 'Name',
@@ -214,6 +220,7 @@ const projectModel: AdminModel = {
   idField: 'id',
   displayField: 'name',
   endpoint: `${apiRoot}/projects`,
+  modelId: 'projects',
   fields: [
     {
       name: 'Name',
@@ -279,6 +286,7 @@ const technologyModel: AdminModel = {
   idField: 'id',
   displayField: 'name',
   endpoint: `${apiRoot}/technologies`,
+  modelId: 'technologies',
   fields: [
     {
       name: 'Name',

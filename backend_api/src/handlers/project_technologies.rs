@@ -109,7 +109,7 @@ pub async fn delete(
                 String::from("Project Technology"),
                 String::from("technologies"),
                 &old_data,
-                String::from("/api/v1/technologies"),
+                String::from("/technologies"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}
@@ -159,7 +159,7 @@ pub async fn update(
                 String::from("technologies"),
                 &request_copy,
                 &old_data,
-                String::from("/api/v1/technologies"),
+                String::from("/technologies"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}
@@ -195,7 +195,7 @@ pub async fn create(
                 String::from("Project Technology"),
                 String::from("technologies"),
                 &new_technology_copy,
-                String::from("/api/v1/technologies"),
+                String::from("/technologies"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}

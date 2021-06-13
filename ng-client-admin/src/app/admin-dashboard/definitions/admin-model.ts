@@ -6,4 +6,5 @@ export class AdminModel {
   name: string;
   endpoint: string;
   fields: AdminModelField[];
+  modelId: string;
 }

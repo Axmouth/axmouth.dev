@@ -4,47 +4,70 @@
 </a>
 <hr />
 
-<ng-container [ngSwitch]="adminLog.action">
+<ng-container [ngSwitch]="adminLog?.action">
   <ng-container *ngSwitchCase="'Create'">
     <mat-icon aria-hidden="false" aria-label="Example home icon" class="creation-icon">add</mat-icon>
-    <b>{{ adminLog.user.displayName }}</b> created a {{ adminLog.label }} <br />
-    {{ adminLog.actionTime | date: 'medium' }}
+    <b>{{ adminLog?.user.displayName }}</b> created a {{ adminLog?.label }} <br />
+    {{ adminLog?.actionTime | date: 'medium' }}
   </ng-container>
   <ng-container *ngSwitchCase="'Update'">
     <mat-icon aria-hidden="false" aria-label="Example home icon" class="update-icon">edit</mat-icon>
-    <b>{{ adminLog.user.displayName }}</b> updated a {{ adminLog.label }} <br />
-    {{ adminLog.actionTime | date: 'medium' }}
+    <b>{{ adminLog?.user.displayName }}</b> updated a {{ adminLog?.label }} <br />
+    {{ adminLog?.actionTime | date: 'medium' }}
   </ng-container>
   <ng-container *ngSwitchCase="'Delete'">
     <mat-icon aria-hidden="false" aria-label="Example home icon" class="deletion-icon">clear</mat-icon>
-    <b>{{ adminLog.user.displayName }}</b> deleted a {{ adminLog.label }} <br />
-    {{ adminLog.actionTime | date: 'medium' }}
+    <b>{{ adminLog?.user.displayName }}</b> deleted a {{ adminLog?.label }} <br />
+    {{ adminLog?.actionTime | date: 'medium' }}
   </ng-container>
   <ng-container *ngSwitchDefault>Derp</ng-container>
 </ng-container>
+<hr />
+
+<mat-checkbox class="example-margin" [(ngModel)]="viewEditorMode">View in Editor Mode</mat-checkbox>
 
 <hr />
-<ng-container *ngIf="adminLog.action !== 'Delete'">
+<ng-container *ngIf="adminLog?.action !== 'Delete'">
   <h2>New Data:</h2>
-  {{ adminLog.newData }}
-  <hr />
+  <ng-container *ngIf="viewEditorMode === false"> {{ adminLog?.newData }}</ng-container>
+  <ng-container *ngIf="viewEditorMode">
+    <div *ngFor="let field of model?.fields">
+      <app-field-chooser
+        [fieldOptions]="field"
+        [content]="newData[field.identifier]"
+        [creating]="false"
+        [editing]="true"
+      ></app-field-chooser>
+      <mat-divider></mat-divider>
+    </div>
+  </ng-container>
 </ng-container>
-<ng-container *ngIf="adminLog.action !== 'Create'">
+<ng-container *ngIf="adminLog?.action !== 'Create'">
   <h2>Old Data:</h2>
-  {{ adminLog.oldData }}
+  <ng-container *ngIf="viewEditorMode === false"> {{ adminLog?.oldData }}</ng-container>
+  <ng-container *ngIf="viewEditorMode">
+    <div *ngFor="let field of model?.fields">
+      <app-field-chooser
+        [fieldOptions]="field"
+        [content]="oldData[field.identifier]"
+        [creating]="false"
+        [editing]="true"
+      ></app-field-chooser>
+      <mat-divider></mat-divider></div
+  ></ng-container>
 </ng-container>
 
 <hr />
+<br />
 
-<ng-container [ngSwitch]="adminLog.action">
-  <ng-container *ngSwitchCase="'Create'">
-    <button mat-raised-button color="warn" (click)="onRevertClick()">Revert (Delete)</button>
+<div flex fxLayout="row wrap">
+  <ng-container *ngIf="adminLog?.action !== 'Create'">
+    <button mat-raised-button color="warn" (click)="onRecreateClick()" fxFlex.lt-md="90">Recreate from old data</button>
   </ng-container>
-  <ng-container *ngSwitchCase="'Update'">
-    <button mat-raised-button color="warn" (click)="onRevertClick()">Revert (Patch previous data)</button>
+  <ng-container *ngIf="adminLog?.action !== 'Delete'">
+    <button mat-raised-button color="warn" (click)="onDeleteClick()" fxFlex.lt-md="90">Delete</button>
   </ng-container>
-  <ng-container *ngSwitchCase="'Delete'">
-    <button mat-raised-button color="warn" (click)="onRevertClick()">Revert (Recreate)</button>
+  <ng-container *ngIf="adminLog?.action !== 'Create'">
+    <button mat-raised-button color="warn" (click)="onRevertUpdateClick()" fxFlex.lt-md="90">Revert to old Data</button>
   </ng-container>
-  <ng-container *ngSwitchDefault>Derp</ng-container>
-</ng-container>
+</div>
