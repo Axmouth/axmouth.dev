@@ -135,3 +135,52 @@ impl ToString for ExpiredAuthentication {
         return self.err.clone();
     }
 }
+
+#[derive(Debug)]
+pub struct GeolocError {
+    err_message: String,
+}
+
+impl reject::Reject for GeolocError {}
+
+impl GeolocError {
+    pub fn get_err(&self) -> String {
+        self.err_message.clone()
+    }
+
+    pub fn new<D: std::fmt::Display>(err: D) -> Self {
+        GeolocError {
+            err_message: err.to_string(),
+        }
+    }
+}
+
+impl ToString for GeolocError {
+    fn to_string(&self) -> String {
+        return self.err_message.clone();
+    }
+}
+
+impl From<warp::http::Error> for GeolocError {
+    fn from(error: warp::http::Error) -> GeolocError {
+        GeolocError {
+            err_message: error.to_string(),
+        }
+    }
+}
+
+impl From<warp::hyper::Error> for GeolocError {
+    fn from(error: warp::hyper::Error) -> GeolocError {
+        GeolocError {
+            err_message: error.to_string(),
+        }
+    }
+}
+
+impl From<serde_json::Error> for GeolocError {
+    fn from(error: serde_json::Error) -> GeolocError {
+        GeolocError {
+            err_message: error.to_string(),
+        }
+    }
+}

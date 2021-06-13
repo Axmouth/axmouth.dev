@@ -67,3 +67,13 @@ pub struct HealthResponse {
     pub api_up: bool,
     pub api_response_time: Option<String>,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct GeolocationDbResponse {
+    pub country_code: String,
+    pub country_name: String,
+    pub city: String,
+    pub postal: String,
+    pub latitude: String,
+    pub state: String,
+}
