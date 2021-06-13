@@ -5,9 +5,7 @@ use crate::errors::GeolocError;
 use crate::util::bad_request_response;
 use crate::{
     auth_tokens,
-    util::{
-        not_found_response, server_error_response, simple_created_response, simple_ok_response,
-    },
+    util::{server_error_response, simple_created_response, simple_ok_response},
 };
 use auth_tokens::Claims;
 use backend_repo_pg::models::responses::GeolocationDbResponse;
@@ -28,7 +26,7 @@ use warp::hyper::body::HttpBody;
 use warp::hyper::client::connect::dns::GaiResolver;
 use warp::hyper::client::HttpConnector;
 use warp::hyper::Response;
-use warp::hyper::{Body, Client, Method, Request};
+use warp::hyper::{Body, Client};
 use warp::Reply;
 
 pub async fn get(
@@ -70,9 +68,7 @@ pub async fn create(
         "https://geolocation-db.com/json/{}",
         addr.map(|a| a.ip().to_string()).unwrap_or(String::from(""))
     );
-    let geoloc_uri = geoloc_url
-        .parse()
-        .map_err(|err| GeolocError::new("Failed to parse Uri"))?;
+    let geoloc_uri = geoloc_url.parse().map_err(|err| GeolocError::new(err))?;
 
     let client: Client<HttpsConnector<HttpConnector<GaiResolver>>, Body> =
         Client::builder().build(https);
@@ -127,7 +123,7 @@ pub async fn create(
                 let hash_string = format!(
                     "{}{}{}",
                     latitude.unwrap_or(200.),
-                    latitude.unwrap_or(200.),
+                    longitude.unwrap_or(200.),
                     addr.map(|a| a.ip().to_string()).unwrap_or(String::from(""))
                 );
                 hasher.update(hash_string);
@@ -177,8 +173,8 @@ pub async fn create(
                 page_url: request.page_url,
                 registered: claims.is_some(),
                 user_agent,
-                latitude: latitude,
-                longitude: latitude,
+                latitude,
+                longitude,
                 country_code: country_code,
             };
             let pages_views_repository = PageViewRepo::new(&conn);
