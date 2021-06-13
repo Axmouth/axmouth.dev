@@ -1,0 +1,46 @@
+<mat-card class="example-card">
+  <mat-card-header>
+    <mat-card-title>
+      <a
+        mat-stroked-button
+        color="primary"
+        href="/categories/{{ category?.name }}"
+        routerLink="/categories/{{ category?.name }}"
+        >{{ category?.name }}</a
+      >
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content
+    ><mat-selection-list [multiple]="false">
+      <mat-list-option *ngFor="let model of category.models">
+        <mat-icon mat-list-icon>settings</mat-icon>
+        <a
+          href="/categories/{{ category?.name }}/models/{{ model.name }}"
+          routerLink="/categories/{{ category?.name }}/models/{{ model.name }}"
+          mat-line
+        >
+          {{ model.name }}
+          <a
+            mat-icon-button
+            color="basic"
+            aria-label="List"
+            href="/categories/{{ category?.name }}/models/{{ model.name }}"
+            routerLink="/categories/{{ category?.name }}/models/{{ model.name }}"
+          >
+            <mat-icon>list</mat-icon> </a
+          ><a
+            mat-icon-button
+            color="accent"
+            aria-label="Create new"
+            href="/categories/{{ category?.name }}/models/{{ model.name }}/add"
+            routerLink="/categories/{{ category?.name }}/models/{{ model.name }}/add"
+          >
+            <mat-icon>add</mat-icon>
+          </a>
+        </a>
+      </mat-list-option>
+      <mat-divider></mat-divider>
+    </mat-selection-list>
+  </mat-card-content>
+  <mat-card-actions> </mat-card-actions>
+</mat-card>

@@ -1,5 +1,5 @@
 export class Pagination {
   page: number;
-  totalPages: number;
+  totalResults: number;
   pageSize: number;
 }

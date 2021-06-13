@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { Router, Event, NavigationStart, NavigationError, NavigationEnd } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
@@ -21,9 +21,6 @@ interface LocationResponse {
 
 interface CreatePageViewRequest {
   pageUrl: string;
-  latitude: string;
-  longitude: string;
-  countryCode: string;
 }
 
 @Injectable({
@@ -32,8 +29,6 @@ interface CreatePageViewRequest {
 export class PageViewService implements OnDestroy {
   url = `${apiRoot}/page-views`;
   ngUnsubscribe = new Subject<void>();
-  location: LocationResponse | null = null;
-  locFetch = new Subject<void>();
 
   constructor(
     private apiService: RestApiService,
@@ -42,12 +37,6 @@ export class PageViewService implements OnDestroy {
     @Inject(PLATFORM_ID) private platform: object,
   ) {
     if (isPlatformBrowser(this.platform)) {
-      http.get<LocationResponse>('https://geolocation-db.com/json/').subscribe((result) => {
-        this.location = result;
-        console.log(result);
-        this.locFetch.next();
-      });
-
       router.events.pipe(takeUntil(this.ngUnsubscribe)).subscribe((event: Event) => {
         if (event instanceof NavigationStart) {
           // do something on start activity
@@ -57,26 +46,9 @@ export class PageViewService implements OnDestroy {
           console.error(event.error);
         } else if (event instanceof NavigationEnd) {
           // do something on end activity
-          console.log('nav end');
-          console.log(event.url);
-          console.log(event.urlAfterRedirects);
-          if (this.location === null) {
-            this.locFetch.pipe(take(1)).subscribe(() => {
-              this.registerPageView({
-                pageUrl: event.url,
-                latitude: this.location.latitude,
-                longitude: this.location.longitude,
-                countryCode: this.location.country_code,
-              });
-            });
-          } else {
-            this.registerPageView({
-              pageUrl: event.url,
-              latitude: this.location.latitude,
-              longitude: this.location.longitude,
-              countryCode: this.location.country_code,
-            });
-          }
+          this.registerPageView({
+            pageUrl: event.url,
+          });
         }
       });
     }

@@ -95,7 +95,7 @@ pub async fn delete(
                     String::from("Blog Post Comment"),
                     String::from("blog_post_comments"),
                     &comment,
-                    String::from("/api/v1/blog-post-comments"),
+                    String::from("/blog-post-comments"),
                     state.repo.clone(),
                 ) {
                     Ok(_) => {}
@@ -142,7 +142,7 @@ pub async fn update(
                     String::from("blog_post_comments"),
                     &request_copy,
                     &comment,
-                    String::from("/api/v1/blog-post-comments"),
+                    String::from("/blog-post-comments"),
                     state.repo.clone(),
                 ) {
                     Ok(_) => {}

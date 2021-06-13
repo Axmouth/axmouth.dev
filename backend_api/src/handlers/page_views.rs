@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 
 use crate::app::AppState;
+use crate::errors::GeolocError;
 use crate::util::bad_request_response;
 use crate::{
     auth_tokens,
@@ -9,6 +10,7 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
+use backend_repo_pg::models::responses::GeolocationDbResponse;
 use backend_repo_pg::{
     identification_cookies::IdentificationCookieRepo, models::requests::CreatePageViewRequest,
     page_views::PageViewRepo,
@@ -18,9 +20,15 @@ use backend_repo_pg::{
     models::queries::GetPageViewsQuery,
 };
 use chrono::{Duration, Utc};
+use hyper_tls::HttpsConnector;
 use rand::{distributions::Alphanumeric, Rng};
 use sha2::{Digest, Sha512};
 use urlencoding::decode;
+use warp::hyper::body::HttpBody;
+use warp::hyper::client::connect::dns::GaiResolver;
+use warp::hyper::client::HttpConnector;
+use warp::hyper::Response;
+use warp::hyper::{Body, Client, Method, Request};
 use warp::Reply;
 
 pub async fn get(
@@ -57,6 +65,41 @@ pub async fn create(
     request: CreatePageViewRequest,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
+    let https = hyper_tls::HttpsConnector::new();
+    let geoloc_url = format!(
+        "https://geolocation-db.com/json/{}",
+        addr.map(|a| a.ip().to_string()).unwrap_or(String::from(""))
+    );
+    let geoloc_uri = geoloc_url
+        .parse()
+        .map_err(|err| GeolocError::new("Failed to parse Uri"))?;
+
+    let client: Client<HttpsConnector<HttpConnector<GaiResolver>>, Body> =
+        Client::builder().build(https);
+    let resp: Response<Body> = client
+        .get(geoloc_uri)
+        .await
+        .map_err(|err| GeolocError::from(err))?;
+
+    let body: Vec<u8> = match resp.into_body().data().await {
+        Some(Ok(v)) => v.to_vec(),
+        _ => {
+            return Ok(server_error_response(GeolocError::new(
+                "Failed to read Geoloc Response",
+            )));
+        }
+    };
+    let geoloc: GeolocationDbResponse =
+        serde_json::from_slice(&body).map_err(|err| GeolocError::from(err))?;
+
+    let latitude: Option<f64> = geoloc.latitude.parse().ok();
+    let longitude: Option<f64> = geoloc.latitude.parse().ok();
+    let country_code: Option<String> = if geoloc.country_code.is_empty() {
+        None
+    } else {
+        Some(geoloc.country_code)
+    };
+
     Ok(state
         .repo
         .transaction(|conn| {
@@ -83,8 +126,8 @@ pub async fn create(
                 let mut hasher = Sha512::new();
                 let hash_string = format!(
                     "{}{}{}",
-                    request.latitude.unwrap_or(200.),
-                    request.longitude.unwrap_or(200.),
+                    latitude.unwrap_or(200.),
+                    latitude.unwrap_or(200.),
                     addr.map(|a| a.ip().to_string()).unwrap_or(String::from(""))
                 );
                 hasher.update(hash_string);
@@ -134,9 +177,9 @@ pub async fn create(
                 page_url: request.page_url,
                 registered: claims.is_some(),
                 user_agent,
-                latitude: request.latitude,
-                longitude: request.longitude,
-                country_code: request.country_code,
+                latitude: latitude,
+                longitude: latitude,
+                country_code: country_code,
             };
             let pages_views_repository = PageViewRepo::new(&conn);
             let view_insert_result = match pages_views_repository.insert_one(new_view) {

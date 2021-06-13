@@ -391,7 +391,7 @@ impl BlogPostCommentFlag {
 pub struct AdminLog {
     pub id: i32,
     pub object_id: String,
-    pub user_id: i32,
+    pub user: User,
     pub label: String,
     pub model: String,
     pub action_time: NaiveDateTime,
@@ -402,11 +402,13 @@ pub struct AdminLog {
 }
 
 impl AdminLog {
-    pub fn from(log: db_models::AdminLog) -> Self {
+    pub fn from(log: db_models::AdminLog, user: db_models::User) -> Self {
+        let mut user = User::from(user);
+        user.email = None;
         Self {
             id: log.id,
             object_id: log.object_id,
-            user_id: log.user_id,
+            user,
             label: log.label,
             model: log.model,
             action_time: log.action_time,

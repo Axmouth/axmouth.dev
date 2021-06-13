@@ -92,8 +92,8 @@ pub enum BlogPostCommentFlagSortType {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub enum AdminLogSortType {
-    CreatedAtAsc,
-    CreatedAtDesc,
+    ActionTimeAsc,
+    ActionTimeDesc,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]

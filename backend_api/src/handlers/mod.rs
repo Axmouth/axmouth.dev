@@ -1,3 +1,4 @@
+pub mod admin_logs;
 pub mod auth;
 pub mod blog_comments;
 pub mod blog_post_categories;

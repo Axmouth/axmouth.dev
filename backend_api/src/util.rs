@@ -70,7 +70,7 @@ pub fn success_response<T: Serialize>(data: T, status: StatusCode) -> warp::repl
     warp::reply::with_status(resp_body, status).into_response()
 }
 
-pub fn server_error_response<E: std::error::Error>(err: E) -> warp::reply::Response {
+pub fn server_error_response<E: ToString>(err: E) -> warp::reply::Response {
     let resp_body = warp::reply::json(&BaseResponse::<()> {
         data: None,
         messages: None,

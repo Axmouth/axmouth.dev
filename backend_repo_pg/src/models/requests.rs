@@ -238,9 +238,6 @@ pub struct UpdateTextBodyRequest {
 #[serde(rename_all = "camelCase")]
 pub struct CreatePageViewRequest {
     pub page_url: String,
-    pub latitude: Option<f64>,
-    pub longitude: Option<f64>,
-    pub country_code: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Validate, Clone)]

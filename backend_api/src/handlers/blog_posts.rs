@@ -126,7 +126,7 @@ pub async fn delete(
                 String::from("Blog Post"),
                 String::from("blog_posts"),
                 &old_data,
-                String::from("/api/v1/blog-posts"),
+                String::from("/blog-posts"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}
@@ -179,7 +179,7 @@ pub async fn update(
                 String::from("blog_posts"),
                 &post_updates,
                 &old_data,
-                String::from("/api/v1/blog-posts"),
+                String::from("/blog-posts"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}
@@ -218,7 +218,7 @@ pub async fn create(
                 String::from("Blog Post"),
                 String::from("blog_posts"),
                 &new_post_copy,
-                String::from("/api/v1/blog-posts"),
+                String::from("/blog-posts"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}

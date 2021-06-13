@@ -1,4 +1,3 @@
-use crate::errors::PgRepoError;
 use crate::filters::GetAllUsersFilter;
 use crate::models::{db_models, domain};
 use crate::options::{PaginationOptions, UserSortType};

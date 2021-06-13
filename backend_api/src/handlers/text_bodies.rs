@@ -91,7 +91,7 @@ pub async fn delete(
                 String::from("Text Body"),
                 String::from("text_bodies"),
                 &old_entity,
-                String::from("/api/v1/text-bodies"),
+                String::from("/text-bodies"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}
@@ -137,7 +137,7 @@ pub async fn update(
                 String::from("text_bodies"),
                 &request_copy,
                 &old_entity,
-                String::from("/api/v1/text-bodies"),
+                String::from("/text-bodies"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}
@@ -173,7 +173,7 @@ pub async fn create(
                 String::from("Text Body"),
                 String::from("text_bodies"),
                 &new_text_body_copy,
-                String::from("/api/v1/text-bodies"),
+                String::from("/text-bodies"),
                 state.repo.clone(),
             ) {
                 Ok(_) => {}

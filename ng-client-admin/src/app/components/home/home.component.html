@@ -1,4 +1,31 @@
 <br />
 <h1 align="center">Site Administration</h1>
 <br /><br />
-<app-admin-category *ngFor="let category of categories" [category]="category"></app-admin-category>
+
+<div flex fxLayout="row wrap" fxLayoutGap="2em">
+  <div fxFlex.gt-sm="65" fxFlex.lt-md="95">
+    <app-admin-category *ngFor="let category of categories" [category]="category"></app-admin-category>
+  </div>
+  <div fxFlex.gt-sm="30" fxFlex.lt-md="95" fxFlexOffset="2em" flex fxLayout="column">
+    <div fxFlexOffset="2em">
+      <h3>Recent Logs :</h3>
+    </div>
+    <div fxFlexOffset="2em" *ngFor="let log of adminLogs">
+      <app-admin-log-preview [adminLog]="log" fxFlexOffset="1em"></app-admin-log-preview>
+    </div>
+    <div flex fxLayout="row" fxFlexOffset="5em">
+      <a
+        mat-stroked-button
+        color="primary"
+        aria-label="See more Admin Logs"
+        href="/admin-logs"
+        routerLink="/admin-logs"
+        fxFlex.gt-sm="30"
+        fxFlex.lt-md="60"
+        fxFlexOffset.gt-sm="20"
+        fxFlexOffset.lt-md="20"
+        >See more Logs
+      </a>
+    </div>
+  </div>
+</div>

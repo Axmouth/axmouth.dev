@@ -1,0 +1,20 @@
+<ng-container [ngSwitch]="adminLog.action">
+  <a href="/admin-logs/{{ adminLog.id }}" routerLink="/admin-logs/{{ adminLog.id }}">
+    <ng-container *ngSwitchCase="'Create'">
+      <mat-icon aria-hidden="false" aria-label="Example home icon" class="creation-icon">add</mat-icon>
+      <b>{{ adminLog.user.displayName }}</b> created a {{ adminLog.label }} <br />
+      {{ adminLog.actionTime | date: 'medium' }}
+    </ng-container>
+    <ng-container *ngSwitchCase="'Update'">
+      <mat-icon aria-hidden="false" aria-label="Example home icon" class="update-icon">edit</mat-icon>
+      <b>{{ adminLog.user.displayName }}</b> updated a {{ adminLog.label }} <br />
+      {{ adminLog.actionTime | date: 'medium' }}
+    </ng-container>
+    <ng-container *ngSwitchCase="'Delete'">
+      <mat-icon aria-hidden="false" aria-label="Example home icon" class="deletion-icon">clear</mat-icon>
+      <b>{{ adminLog.user.displayName }}</b> deleted a {{ adminLog.label }} <br />
+      {{ adminLog.actionTime | date: 'medium' }}
+    </ng-container>
+    <ng-container *ngSwitchDefault>Derp</ng-container>
+  </a>
+</ng-container>
