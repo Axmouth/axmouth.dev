@@ -80,8 +80,8 @@ use backend_repo_pg::models::{
     queries::{
         GetAllAdminLogsQuery, GetAllBlogPostCommentsQuery, GetAllBlogPostsQuery,
         GetAllCategoriesQuery, GetAllHomePageLinksQuery, GetAllProjectsQuery,
-        GetAllTechnologiesQuery, GetAllTextBodiesQuery, GetBlogPostQuery, GetPageViewsQuery,
-        GetProjectQuery,
+        GetAllSearchItemsQuery, GetAllTechnologiesQuery, GetAllTextBodiesQuery, GetBlogPostQuery,
+        GetPageViewsQuery, GetProjectQuery,
     },
     responses::BaseResponse,
 };
@@ -94,6 +94,11 @@ pub fn routes(
         .and(warp::get())
         .and(with_state(state.clone()))
         .and_then(handlers::health::health);
+    let search = warp::path!("search")
+        .and(warp::get())
+        .and(warp::query::<GetAllSearchItemsQuery>())
+        .and(with_state(state.clone()))
+        .and_then(handlers::search::get_all);
 
     let get_all_admin_logs = warp::path!("admin-logs")
         .and(warp::get())
@@ -451,6 +456,7 @@ pub fn routes(
         image_upload_editorjs,
         image_upload,
         health_route,
+        search,
         get_pages_views,
     );
 

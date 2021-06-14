@@ -114,6 +114,9 @@ pub enum ChangePasswordTokenSortType {
     CreatedAtDesc,
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub enum SearchItemsSortType {}
+
 pub struct PaginationOptions {
     pub page: Option<i64>,
     pub page_size: Option<i64>,

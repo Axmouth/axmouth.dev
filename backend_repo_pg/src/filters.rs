@@ -5,8 +5,9 @@ use crate::{
         GetAllBlogPostCommentsQuery, GetAllBlogPostsQuery, GetAllCategoriesQuery,
         GetAllChangePasswordTokensQuery, GetAllHomePageLinksQuery,
         GetAllIdentificationCookiesQuery, GetAllPageViewsQuery, GetAllProjectsQuery,
-        GetAllRefreshTokensQuery, GetAllTechnologiesQuery, GetAllTextBodiesQuery,
-        GetAllUploadedImagesQuery, GetAllUsersQuery, GetAllVerifyEmailTokensQuery,
+        GetAllRefreshTokensQuery, GetAllSearchItemsQuery, GetAllTechnologiesQuery,
+        GetAllTextBodiesQuery, GetAllUploadedImagesQuery, GetAllUsersQuery,
+        GetAllVerifyEmailTokensQuery,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -196,5 +197,18 @@ pub struct GetAllChangePasswordTokensFilter {}
 impl GetAllChangePasswordTokensFilter {
     pub fn from_query(query: GetAllChangePasswordTokensQuery) -> Self {
         Self {}
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct GetAllSearchItemsFilter {
+    pub search_text: Option<String>,
+}
+
+impl GetAllSearchItemsFilter {
+    pub fn from_query(query: GetAllSearchItemsQuery) -> Self {
+        Self {
+            search_text: query.search_text,
+        }
     }
 }

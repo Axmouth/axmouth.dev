@@ -31,6 +31,8 @@ pub mod pg_util;
 pub mod projects;
 pub mod refresh_tokens;
 pub mod schema;
+pub mod schema_extra;
+pub mod search_items;
 pub mod technologies;
 pub mod text_bodies;
 pub mod uploaded_images;
@@ -40,7 +42,9 @@ pub mod verify_email_tokens;
 pub mod exports {
     // we will use that a bit later
     pub use super::extra::AdminLogActionType as Admin_log_action;
+    pub use super::extra::SearchItemTypeType as Search_item_type;
     pub use super::extra::UserRoleType as User_role;
+    pub use diesel_full_text_search::TsVector as Tsvector;
 }
 
 #[cfg(test)]

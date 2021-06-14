@@ -174,3 +174,11 @@ pub struct GetAllChangePasswordTokensQuery {
     pub page_size: Option<i64>,
     pub sort_type: Option<ChangePasswordTokenSortType>,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct GetAllSearchItemsQuery {
+    pub page: Option<i64>,
+    pub page_size: Option<i64>,
+    pub search_text: Option<String>,
+}

@@ -40,7 +40,6 @@ export class PageViewService implements OnDestroy {
       router.events.pipe(takeUntil(this.ngUnsubscribe)).subscribe((event: Event) => {
         if (event instanceof NavigationStart) {
           // do something on start activity
-          console.log('nav start');
         } else if (event instanceof NavigationError) {
           // Handle error
           console.error(event.error);

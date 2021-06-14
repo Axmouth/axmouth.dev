@@ -1,10 +1,11 @@
-use crate::extra::{AdminLogAction, UserRole};
+use crate::extra::{AdminLogAction, SearchItemType, UserRole};
 use crate::schema::{
     admin_logs, blog_post_comment_flags, blog_post_comment_ratings, blog_post_comments, blog_posts,
     blog_posts_categories, categories, change_password_tokens, home_page_links,
     identification_cookies, page_views, projects, projects_technologies, refresh_tokens,
     technologies, text_bodies, uploaded_images, users, verify_email_tokens,
 };
+use crate::schema_extra::search_items;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
@@ -270,4 +271,16 @@ pub struct ChangePasswordToken {
     pub used: bool,
     pub created_at: NaiveDateTime,
     pub expires_at: NaiveDateTime,
+}
+
+#[derive(
+    Queryable, Serialize, Deserialize, Debug, Clone, PartialEq, Identifiable, Associations,
+)]
+#[table_name = "search_items"]
+pub struct SearchItem {
+    pub id: String,
+    pub title: String,
+    pub description: String,
+    pub item_type: SearchItemType,
+    pub link: String,
 }
