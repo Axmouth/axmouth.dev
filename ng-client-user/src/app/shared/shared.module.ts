@@ -9,6 +9,9 @@ import { SafePipe } from './pipes/safe.pipe';
 import { HighlightModule, HIGHLIGHT_OPTIONS } from 'ngx-highlightjs';
 import { HCaptchaDirective } from './directives/h-captcha.directive';
 import { PageViewService } from './services/page-view.service';
+import { SearchSideWidgetComponent } from './components/search-side-widget/search-side-widget.component';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
@@ -17,9 +20,16 @@ import { PageViewService } from './services/page-view.service';
     EditorJsRendererComponent,
     SafePipe,
     HCaptchaDirective,
+    SearchSideWidgetComponent,
   ],
-  imports: [CommonModule, HighlightModule],
-  exports: [NotFoundPageComponent, LinksSideWidgetComponent, EditorJsRendererComponent, HCaptchaDirective],
+  imports: [CommonModule, HighlightModule, ReactiveFormsModule, FormsModule, NgbModule],
+  exports: [
+    NotFoundPageComponent,
+    LinksSideWidgetComponent,
+    SearchSideWidgetComponent,
+    EditorJsRendererComponent,
+    HCaptchaDirective,
+  ],
   providers: [
     SafePipe,
     HCaptchaDirective,

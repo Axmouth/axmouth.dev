@@ -1,5 +1,5 @@
 use crate::{
-    extra::AdminLogAction,
+    extra::{AdminLogAction, SearchItemType},
     models::queries::{
         GetAllAdminLogsQuery, GetAllBlogPostCommentFlagsQuery, GetAllBlogPostCommentRatingsQuery,
         GetAllBlogPostCommentsQuery, GetAllBlogPostsQuery, GetAllCategoriesQuery,
@@ -203,12 +203,14 @@ impl GetAllChangePasswordTokensFilter {
 #[derive(Clone, Debug)]
 pub struct GetAllSearchItemsFilter {
     pub search_text: Option<String>,
+    pub r#type: Option<SearchItemType>,
 }
 
 impl GetAllSearchItemsFilter {
     pub fn from_query(query: GetAllSearchItemsQuery) -> Self {
         Self {
             search_text: query.search_text,
+            r#type: query.r#type,
         }
     }
 }

@@ -1,7 +1,7 @@
 use crate::filters::GetAllSearchItemsFilter;
 use crate::models::{db_models, domain};
 use crate::options::{PaginationOptions, SearchItemsSortType};
-use diesel::{QueryDsl, RunQueryDsl};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use diesel_full_text_search::{plainto_tsquery, TsVectorExtensions};
 
 pub struct SearchItemRepo<'a> {
@@ -20,17 +20,33 @@ impl<'a> SearchItemRepo<'a> {
         pagination: PaginationOptions,
     ) -> Result<(Vec<domain::SearchItem>, i64), diesel::result::Error> {
         use crate::schema_extra::search_items::dsl::{
-            description, id, item_type, link, search_items as search_items_dsl, search_vec, title,
+            created_at, description, id, image, item_type, link, search_items as search_items_dsl,
+            search_vec, title, updated_at,
         };
         let q = search_items_dsl
             .select((
-                (id, title, description, item_type, link),
+                (
+                    id,
+                    title,
+                    created_at,
+                    updated_at,
+                    image,
+                    description,
+                    item_type,
+                    link,
+                ),
                 diesel::dsl::sql::<diesel::sql_types::BigInt>("count(*) over()"),
             ))
             .into_boxed();
 
         let q = if let Some(search_text) = filter.search_text {
             q.filter(search_vec.matches(plainto_tsquery(search_text)))
+        } else {
+            q
+        };
+
+        let q = if let Some(r#type) = filter.r#type {
+            q.filter(item_type.eq(r#type))
         } else {
             q
         };

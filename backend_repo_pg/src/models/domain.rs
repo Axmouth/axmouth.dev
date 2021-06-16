@@ -450,6 +450,9 @@ impl ChangePasswordToken {
 #[serde(rename_all = "camelCase")]
 pub struct SearchItem {
     pub title: String,
+    pub created_at: Option<NaiveDateTime>,
+    pub updated_at: Option<NaiveDateTime>,
+    pub image: Option<String>,
     pub description: String,
     pub item_type: SearchItemType,
     pub link: String,
@@ -459,6 +462,9 @@ impl SearchItem {
     pub fn from(search_item: db_models::SearchItem) -> Self {
         Self {
             title: search_item.title,
+            created_at: search_item.created_at,
+            updated_at: search_item.updated_at,
+            image: search_item.image,
             description: search_item.description,
             item_type: search_item.item_type,
             link: search_item.link,

@@ -107,6 +107,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "lazy_static",
+ "log",
  "r2d2",
  "rand 0.8.3",
  "regex",

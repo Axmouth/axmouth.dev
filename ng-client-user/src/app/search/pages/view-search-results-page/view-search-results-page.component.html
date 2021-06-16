@@ -1,0 +1,61 @@
+<h1>Search : {{ searchText }}</h1>
+<h5>Showing {{ searchItemList.length }} out of {{ resultNumber }} Entries</h5>
+<div class="col-md-4">
+  <label for="sort-type">Filter Items: &nbsp;</label>
+  <select id="sort-type" class="custom-select col-md-6 col-6" (change)="onPageChange()" [(ngModel)]="type">
+    <option [ngValue]="undefined">All</option>
+    <option value="Project">Projects</option>
+    <option value="BlogPost">Blog Posts</option>
+    <option value="Page">Pages</option>
+    <option value="ExternalLink">External Links</option>
+  </select>
+</div>
+<br />
+<form
+  id="searchform"
+  accept-charset="utf-8"
+  [formGroup]="searchForm"
+  (ngSubmit)="onSearchSubmit()"
+  (keyup.enter)="onSearchSubmit()"
+>
+  <div class="input-group">
+    <input
+      type="text"
+      name="searchText"
+      formControlName="searchText"
+      class="form-control"
+      placeholder="Search for..."
+      id="searchbox"
+    />
+    <span class="input-group-btn ml-5">
+      <button class="btn btn-outline-primary" type="submit">Go!</button>
+    </span>
+  </div>
+</form>
+<hr />
+<app-search-result-preview
+  [searchItem]="searchItem"
+  *ngFor="let searchItem of searchItemList"
+></app-search-result-preview>
+
+<div class="row">
+  <div class="ml-3 col-md-12">
+    <ngb-pagination
+      [collectionSize]="resultNumber"
+      [(page)]="page"
+      [boundaryLinks]="false"
+      [maxSize]="4"
+      [pageSize]="pageSize"
+      (pageChange)="onPageChange()"
+      class=""
+    ></ngb-pagination>
+  </div>
+  <div class="col-md-4">
+    <label for="page-size">Items / Page: &nbsp;</label>
+    <select id="page-size" class="custom-select col-md-6 col-6" (change)="onPageChange()" [(ngModel)]="pageSize">
+      <option value="5">5</option>
+      <option value="10">10</option>
+      <option value="25">25</option>
+    </select>
+  </div>
+</div>

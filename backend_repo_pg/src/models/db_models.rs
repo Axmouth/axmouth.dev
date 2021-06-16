@@ -280,6 +280,9 @@ pub struct ChangePasswordToken {
 pub struct SearchItem {
     pub id: String,
     pub title: String,
+    pub created_at: Option<NaiveDateTime>,
+    pub updated_at: Option<NaiveDateTime>,
+    pub image: Option<String>,
     pub description: String,
     pub item_type: SearchItemType,
     pub link: String,

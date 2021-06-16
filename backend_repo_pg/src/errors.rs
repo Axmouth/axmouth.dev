@@ -1,4 +1,4 @@
-use diesel::pg::Pg;
+use log::error;
 
 #[derive(Debug, Clone)]
 pub enum PgRepoErrorType {
@@ -22,6 +22,8 @@ impl std::fmt::Display for PgRepoError {
 
 impl From<diesel::result::Error> for PgRepoError {
     fn from(error: diesel::result::Error) -> PgRepoError {
+        error!("{}", error);
+        println!("{}", error);
         match error {
             diesel::result::Error::NotFound => PgRepoError {
                 error_message: error.to_string(),

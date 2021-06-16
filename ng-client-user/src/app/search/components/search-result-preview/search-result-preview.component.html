@@ -1,0 +1,22 @@
+<div class="row ml-2">
+  <div>
+    <h2>
+      <a href="{{ searchItem.link }}" routerLink="{{ searchItem.link }}">{{ searchItem.title }}</a>
+    </h2>
+
+    <p>{{ typeLabels[searchItem.itemType] }}</p>
+    <small *ngIf="searchItem.createdAt">
+      Added on : {{ searchItem.createdAt | date: 'mediumDate' }}
+      <br />
+      <ng-container *ngIf="searchItem.updatedAt">
+        Updated on : {{ searchItem.updatedAt | date: 'mediumDate' }}
+      </ng-container>
+    </small>
+    <p *ngIf="searchItem.description">
+      {{ searchItem.description }}
+    </p>
+  </div>
+  <img [src]="searchItem.image" class="cover-image" *ngIf="searchItem.image" />
+</div>
+
+<hr />

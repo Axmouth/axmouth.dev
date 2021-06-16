@@ -31,6 +31,7 @@ pub enum SearchItemType {
     Project,
     BlogPost,
     Page,
+    ExternalLink,
 }
 
 #[derive(SqlType)]
@@ -71,6 +72,7 @@ impl<Db: Backend> ToSql<SearchItemTypeType, Db> for SearchItemType {
             SearchItemType::Project => out.write_all(b"Project")?,
             SearchItemType::BlogPost => out.write_all(b"Blog Post")?,
             SearchItemType::Page => out.write_all(b"Page")?,
+            SearchItemType::ExternalLink => out.write_all(b"External Link")?,
         }
         Ok(IsNull::No)
     }
@@ -108,6 +110,7 @@ impl FromSql<SearchItemTypeType, Pg> for SearchItemType {
             b"Project" => Ok(SearchItemType::Project),
             b"Blog Post" => Ok(SearchItemType::BlogPost),
             b"Page" => Ok(SearchItemType::Page),
+            b"External Link" => Ok(SearchItemType::ExternalLink),
             _ => Err("Unrecognized enum variant".into()),
         }
     }
