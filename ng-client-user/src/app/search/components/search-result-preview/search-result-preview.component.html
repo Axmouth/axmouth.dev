@@ -1,10 +1,20 @@
 <div class="row ml-2">
   <div>
     <h2>
-      <a href="{{ searchItem.link }}" routerLink="{{ searchItem.link }}">{{ searchItem.title }}</a>
+      <a
+        href="{{ searchItem.link }}"
+        routerLink="{{ searchItem.link }}"
+        *ngIf="searchItem.itemType !== 'ExternalLink'"
+        >{{ searchItem.title }}</a
+      >
+      <a href="{{ searchItem.link }}" target="_blank" *ngIf="searchItem.itemType === 'ExternalLink'">{{
+        searchItem.title
+      }}</a>
     </h2>
 
-    <p>{{ typeLabels[searchItem.itemType] }}</p>
+    <p>
+      <b>{{ typeLabels[searchItem.itemType] }}</b>
+    </p>
     <small *ngIf="searchItem.createdAt">
       Added on : {{ searchItem.createdAt | date: 'mediumDate' }}
       <br />
@@ -13,7 +23,9 @@
       </ng-container>
     </small>
     <p *ngIf="searchItem.description">
-      {{ searchItem.description }}
+      <i>
+        <ng-container *ngIf="searchItem.itemType === 'ExternalLink'">My </ng-container> {{ searchItem.description }}
+      </i>
     </p>
   </div>
   <img [src]="searchItem.image" class="cover-image" *ngIf="searchItem.image" />
