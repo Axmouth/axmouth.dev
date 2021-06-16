@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 diesel = { version = "1.4", features = ["chrono", "postgres", "r2d2", "uuidv07", "serde_json", "uuid"] }
 diesel_migrations = "1.4"
+diesel_full_text_search = "1.0"
 r2d2 = "0.8"
 tokio = { version = "1.1", features = ["rt-multi-thread", "time", "fs", "macros"] }
 dotenv = "0.15"
@@ -17,6 +18,7 @@ serde_derive = "1"
 uuid = { version = "0.8", features = ["serde", "v4"] }
 rand = "0.8"
 env_logger = "0.8"
+log = "0.4"
 chrono = { version = "0.4", features = ["serde"] }
 validator = "0.13"
 validator_derive = "0.13"

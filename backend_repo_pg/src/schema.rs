@@ -197,6 +197,20 @@ table! {
     use diesel::sql_types::*;
     use crate::exports::*;
 
+    static_pages (id) {
+        id -> Varchar,
+        title -> Varchar,
+        description -> Varchar,
+        search_vec -> Tsvector,
+        item_type -> Search_item_type,
+        link -> Varchar,
+    }
+}
+
+table! {
+    use diesel::sql_types::*;
+    use crate::exports::*;
+
     technologies (id) {
         id -> Int4,
         name -> Varchar,
@@ -299,6 +313,7 @@ allow_tables_to_appear_in_same_query!(
     projects,
     projects_technologies,
     refresh_tokens,
+    static_pages,
     technologies,
     text_bodies,
     uploaded_images,

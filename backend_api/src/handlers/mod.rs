@@ -10,5 +10,6 @@ pub mod links;
 pub mod page_views;
 pub mod project_technologies;
 pub mod projects;
+pub mod search;
 pub mod text_bodies;
 pub mod users;

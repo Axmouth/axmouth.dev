@@ -25,6 +25,19 @@ pub enum UserRole {
 #[postgres(type_name = "user_role")]
 pub struct UserRoleType;
 
+#[derive(Deserialize, Serialize, Debug, Clone, Eq, PartialEq, FromSqlRow, AsExpression)]
+#[sql_type = "SearchItemTypeType"]
+pub enum SearchItemType {
+    Project,
+    BlogPost,
+    Page,
+    ExternalLink,
+}
+
+#[derive(SqlType)]
+#[postgres(type_name = "search_item_type")]
+pub struct SearchItemTypeType;
+
 use std::io::Write;
 
 use diesel::backend::Backend;
@@ -53,6 +66,18 @@ impl<Db: Backend> ToSql<AdminLogActionType, Db> for AdminLogAction {
     }
 }
 
+impl<Db: Backend> ToSql<SearchItemTypeType, Db> for SearchItemType {
+    fn to_sql<W: Write>(&self, out: &mut Output<W, Db>) -> serialize::Result {
+        match *self {
+            SearchItemType::Project => out.write_all(b"Project")?,
+            SearchItemType::BlogPost => out.write_all(b"Blog Post")?,
+            SearchItemType::Page => out.write_all(b"Page")?,
+            SearchItemType::ExternalLink => out.write_all(b"External Link")?,
+        }
+        Ok(IsNull::No)
+    }
+}
+
 use diesel::deserialize::{self, FromSql};
 use diesel::pg::Pg;
 
@@ -74,6 +99,18 @@ impl FromSql<AdminLogActionType, Pg> for AdminLogAction {
             b"Create" => Ok(AdminLogAction::Create),
             b"Update" => Ok(AdminLogAction::Update),
             b"Delete" => Ok(AdminLogAction::Delete),
+            _ => Err("Unrecognized enum variant".into()),
+        }
+    }
+}
+
+impl FromSql<SearchItemTypeType, Pg> for SearchItemType {
+    fn from_sql(bytes: Option<&<Pg as Backend>::RawValue>) -> deserialize::Result<Self> {
+        match not_none!(bytes) {
+            b"Project" => Ok(SearchItemType::Project),
+            b"Blog Post" => Ok(SearchItemType::BlogPost),
+            b"Page" => Ok(SearchItemType::Page),
+            b"External Link" => Ok(SearchItemType::ExternalLink),
             _ => Err("Unrecognized enum variant".into()),
         }
     }
