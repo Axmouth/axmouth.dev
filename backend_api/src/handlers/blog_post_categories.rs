@@ -10,7 +10,8 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::pg_util::get_roll_back_err;
+use backend_repo_pg::errors::PgRepoError;
+use backend_repo_pg::pg_util::{get_roll_back_err, RepoConnection};
 use backend_repo_pg::{categories::CategoryRepo, options::PaginationOptions};
 use backend_repo_pg::{
     change_sets::UpdateCategory,
@@ -21,48 +22,50 @@ use backend_repo_pg::{
         requests::{CreateCategoryRequest, UpdateCategoryRequest},
     },
 };
+use tokio::task::block_in_place;
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let category_repository = CategoryRepo::new(&conn);
-            let category_result = match category_repository.find_one(id)? {
-                None => {
-                    return Ok(not_found_response("Category"));
-                }
-                Some(value) => value,
-            };
-            Ok(simple_ok_response(category_result))
-        })
-        .await?)
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let category_repository = CategoryRepo::new(&conn);
+        let category_result = match category_repository
+            .find_one(id)
+            .map_err::<PgRepoError, _>(|e| e.into())?
+        {
+            None => {
+                return Ok(not_found_response("Category"));
+            }
+            Some(value) => value,
+        };
+        Ok(simple_ok_response(category_result))
+    })
 }
 
 pub async fn get_all(
     query: GetAllCategoriesQuery,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let filter = GetAllCategoriesFilter::from_query(query.clone());
-            let category_repository = CategoryRepo::new(&conn);
-            let (categories_list, total_results) = category_repository.find(
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let filter = GetAllCategoriesFilter::from_query(query.clone());
+        let category_repository = CategoryRepo::new(&conn);
+        let (categories_list, total_results) = category_repository
+            .find(
                 filter,
                 query.sort_type,
                 PaginationOptions {
                     page: query.page,
                     page_size: query.page_size,
                 },
-            )?;
-            Ok(paginated_ok_response(
-                categories_list,
-                query.page,
-                query.page_size,
-                total_results,
-            ))
-        })
-        .await?)
+            )
+            .map_err::<PgRepoError, _>(|e| e.into())?;
+        Ok(paginated_ok_response(
+            categories_list,
+            query.page,
+            query.page_size,
+            total_results,
+        ))
+    })
 }
 
 pub async fn delete(

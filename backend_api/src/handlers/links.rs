@@ -10,7 +10,8 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::pg_util::get_roll_back_err;
+use backend_repo_pg::errors::PgRepoError;
+use backend_repo_pg::pg_util::{get_roll_back_err, RepoConnection};
 use backend_repo_pg::{
     change_sets::UpdateHomePageLink,
     filters::GetAllHomePageLinksFilter,
@@ -21,21 +22,23 @@ use backend_repo_pg::{
     },
 };
 use backend_repo_pg::{home_page_links::HomePageLinkRepo, options::PaginationOptions};
+use tokio::task::block_in_place;
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let link_repository = HomePageLinkRepo::new(&conn);
-            let link_result = match link_repository.find_one(id)? {
-                None => {
-                    return Ok(not_found_response("HomePageLink"));
-                }
-                Some(value) => value,
-            };
-            Ok(simple_ok_response(link_result))
-        })
-        .await?)
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let link_repository = HomePageLinkRepo::new(&conn);
+        let link_result = match link_repository
+            .find_one(id)
+            .map_err::<PgRepoError, _>(|e| e.into())?
+        {
+            None => {
+                return Ok(not_found_response("HomePageLink"));
+            }
+            Some(value) => value,
+        };
+        Ok(simple_ok_response(link_result))
+    })
 }
 
 pub async fn get_all(
@@ -43,26 +46,26 @@ pub async fn get_all(
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let filter = GetAllHomePageLinksFilter::from_query(query.clone());
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let link_repository = HomePageLinkRepo::new(&conn);
-            let (links_list, total_results) = link_repository.find(
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let link_repository = HomePageLinkRepo::new(&conn);
+        let (links_list, total_results) = link_repository
+            .find(
                 filter,
                 query.sort_type,
                 PaginationOptions {
                     page: query.page,
                     page_size: query.page_size,
                 },
-            )?;
-            Ok(paginated_ok_response(
-                links_list,
-                query.page,
-                query.page_size,
-                total_results,
-            ))
-        })
-        .await?)
+            )
+            .map_err::<PgRepoError, _>(|e| e.into())?;
+        Ok(paginated_ok_response(
+            links_list,
+            query.page,
+            query.page_size,
+            total_results,
+        ))
+    })
 }
 
 pub async fn delete(

@@ -9,6 +9,7 @@ use crate::{
 };
 use auth_tokens::Claims;
 use backend_repo_pg::models::responses::GeolocationDbResponse;
+use backend_repo_pg::pg_util::RepoConnection;
 use backend_repo_pg::{
     identification_cookies::IdentificationCookieRepo, models::requests::CreatePageViewRequest,
     page_views::PageViewRepo,
@@ -21,6 +22,7 @@ use chrono::{Duration, Utc};
 use hyper_tls::HttpsConnector;
 use rand::{distributions::Alphanumeric, Rng};
 use sha2::{Digest, Sha512};
+use tokio::task::block_in_place;
 use urlencoding::decode;
 use warp::hyper::body::HttpBody;
 use warp::hyper::client::connect::dns::GaiResolver;
@@ -34,25 +36,23 @@ pub async fn get(
     query: GetPageViewsQuery,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let url = match decode(&url) {
-                Err(err) => {
-                    return Ok(bad_request_response(&err.to_string()));
-                }
-                Ok(value_opt) => value_opt,
-            };
-            let pages_views_repository = PageViewRepo::new(&conn);
-            let page_views_result = match pages_views_repository.count_by_url(url) {
-                Err(err) => {
-                    return Ok(server_error_response(err));
-                }
-                Ok(val) => val,
-            };
-            Ok(simple_ok_response(page_views_result))
-        })
-        .await?)
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let url = match decode(&url) {
+            Err(err) => {
+                return Ok(bad_request_response(&err.to_string()));
+            }
+            Ok(value_opt) => value_opt,
+        };
+        let pages_views_repository = PageViewRepo::new(&conn);
+        let page_views_result = match pages_views_repository.count_by_url(url) {
+            Err(err) => {
+                return Ok(server_error_response(err));
+            }
+            Ok(val) => val,
+        };
+        Ok(simple_ok_response(page_views_result))
+    })
 }
 
 pub async fn create(
