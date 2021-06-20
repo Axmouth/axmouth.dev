@@ -22,10 +22,16 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { AdminDashboardRoutingModule } from './admin-dashboard-routing.module';
 import { ViewAdminModelComponent } from './components/view-admin-model/view-admin-model.component';
 import { ViewAdminCategoryComponent } from './components/view-admin-category/view-admin-category.component';
-import { ViewEntityComponent } from './components/view-entity/view-entity.component';
+import {
+  ExampleDialogComponent as ExampleDialogComponent1,
+  ViewEntityComponent,
+} from './components/view-entity/view-entity.component';
 import { AdminModelComponent } from './components/admin-model/admin-model.component';
 import { AdminCategoryComponent } from './components/admin-category/admin-category.component';
-import { CreateEntityComponent } from './components/create-entity/create-entity.component';
+import {
+  CreateEntityComponent,
+  ExampleDialogComponent as ExampleDialogComponent2,
+} from './components/create-entity/create-entity.component';
 import { TitleFieldComponent } from './field-components/title-field/title-field.component';
 import { TextFieldComponent } from './field-components/text-field/text-field.component';
 import { IntegerFieldComponent } from './field-components/integer-field/integer-field.component';
@@ -45,6 +51,7 @@ import { BooleanFieldComponent } from './field-components/boolean-field/boolean-
 import { EnumFieldComponent } from './field-components/enum-field/enum-field.component';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
+import { WarningDialogComponent } from './components/warning-dialog/warning-dialog.component';
 
 @NgModule({
   declarations: [
@@ -71,6 +78,9 @@ import { MatSelectModule } from '@angular/material/select';
     AddToListDialogComponent,
     BooleanFieldComponent,
     EnumFieldComponent,
+    WarningDialogComponent,
+    ExampleDialogComponent1,
+    ExampleDialogComponent2,
   ],
   imports: [
     AdminDashboardRoutingModule,

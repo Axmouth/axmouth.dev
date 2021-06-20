@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 import { AdminModel } from 'src/app/admin-dashboard/definitions/admin-model';
 import { AdminModelService } from 'src/app/admin-dashboard/services/admin-model.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -8,6 +8,7 @@ import { Title } from '@angular/platform-browser';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-view-entity',
@@ -32,6 +33,7 @@ export class ViewEntityComponent implements OnInit, OnDestroy {
     private apiService: RestApiService,
     private modelValueService: ModelValuesService,
     private title: Title,
+    public dialog: MatDialog,
     private snackBar: MatSnackBar,
   ) {}
 
@@ -55,42 +57,86 @@ export class ViewEntityComponent implements OnInit, OnDestroy {
   }
 
   onSaveClick() {
-    console.log(this.model.endpoint);
-    console.log(this.id);
-    this.modelValueService
-      .sendUpdateRequest(this.model.endpoint, this.id)
-      .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe(
-        (response) => {
-          this.snackBar.open(`Changes to ${this.modelName} saved successfully!`, `❌`, { duration: 3000 });
+    this.dialog.open(ExampleDialogComponent, {
+      data: {
+        title: 'Revert warning',
+        body: 'Are you sure you want to save the changes to this object?',
+        okText: 'Ok',
+        cancelText: 'Cancel',
+        okClicked: () => {
+          this.modelValueService
+            .sendUpdateRequest(this.model.endpoint, this.id)
+            .pipe(takeUntil(this.ngUnsubscribe))
+            .subscribe(
+              (response) => {
+                this.snackBar.open(`Changes to ${this.modelName} saved successfully!`, `❌`, { duration: 3000 });
+              },
+              (err) => {
+                console.log(err);
+                this.snackBar.open(`Failed to save changes to ${this.modelName}..`, `❌`, { duration: 3000 });
+              },
+            );
         },
-        (err) => {
-          console.log(err);
-          this.snackBar.open(`Failed to save changes to ${this.modelName}..`, `❌`, { duration: 3000 });
-        },
-      );
+      },
+    });
   }
 
   onRemoveClick() {
-    console.log(this.model.endpoint);
-    console.log(this.id);
-    this.apiService
-      .delete(this.model.endpoint, this.id, {})
-      .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe(
-        (response) => {
-          this.router.navigate(['categories', this.categoryName, 'models', this.modelName]);
-          this.snackBar.open(`Removed from ${this.modelName} successfully!`, `❌`, { duration: 3000 });
+    this.dialog.open(ExampleDialogComponent, {
+      data: {
+        title: 'Delete warning',
+        body: 'Are you sure you want to delete this object?',
+        okText: 'Ok',
+        cancelText: 'Cancel',
+        okClicked: () => {
+          this.apiService
+            .delete(this.model.endpoint, this.id, {})
+            .pipe(takeUntil(this.ngUnsubscribe))
+            .subscribe(
+              (response) => {
+                this.router.navigate(['categories', this.categoryName, 'models', this.modelName]);
+                this.snackBar.open(`Removed from ${this.modelName} successfully!`, `❌`, { duration: 3000 });
+              },
+              (err) => {
+                console.log(err);
+                this.snackBar.open(`Failed to remove from ${this.modelName}..`, `❌`, { duration: 3000 });
+              },
+            );
         },
-        (err) => {
-          console.log(err);
-          this.snackBar.open(`Failed to remove from ${this.modelName}..`, `❌`, { duration: 3000 });
-        },
-      );
+      },
+    });
   }
 
   ngOnDestroy(): void {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
+  }
+}
+
+export interface DialogData<T> {
+  title: string;
+  body: string;
+  okText: string;
+  cancelText: string;
+  okClicked: () => void;
+}
+
+@Component({
+  selector: 'app-example-dialog',
+  templateUrl: '../warning-dialog/warning-dialog.component.html',
+})
+export class ExampleDialogComponent {
+  constructor(
+    public dialogRef: MatDialogRef<ExampleDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: DialogData<void>,
+  ) {}
+
+  onCancelClick(): void {
+    this.dialogRef.close();
+  }
+
+  onOkClick(): void {
+    this.dialogRef.close();
+    this.data.okClicked();
   }
 }

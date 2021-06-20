@@ -1,5 +1,6 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -32,6 +33,7 @@ export class AdminLogDetailsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private title: Title,
     public dialog: MatDialog,
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
@@ -69,7 +71,15 @@ export class AdminLogDetailsComponent implements OnInit, OnDestroy {
           this.apiService
             .create(`${root}${this.adminLog.baseLink}`, JSON.parse(this.adminLog.oldData), {})
             .pipe(takeUntil(this.ngUnsubscribe))
-            .subscribe();
+            .subscribe(
+              (res) => {
+                this.snackBar.open(`Changes to ${this.adminLog.model} saved successfully!`, `❌`, { duration: 3000 });
+              },
+              (err) => {
+                console.log(err);
+                this.snackBar.open(`Failed to save changes to ${this.adminLog.model}..`, `❌`, { duration: 3000 });
+              },
+            );
         },
       },
     });
@@ -87,7 +97,15 @@ export class AdminLogDetailsComponent implements OnInit, OnDestroy {
           this.apiService
             .delete(`${root}${this.adminLog.baseLink}`, this.adminLog.objectId, {})
             .pipe(takeUntil(this.ngUnsubscribe))
-            .subscribe();
+            .subscribe(
+              (res) => {
+                this.snackBar.open(`Changes to ${this.adminLog.model} saved successfully!`, `❌`, { duration: 3000 });
+              },
+              (err) => {
+                console.log(err);
+                this.snackBar.open(`Failed to save changes to ${this.adminLog.model}..`, `❌`, { duration: 3000 });
+              },
+            );
         },
       },
     });
@@ -110,7 +128,15 @@ export class AdminLogDetailsComponent implements OnInit, OnDestroy {
               {},
             )
             .pipe(takeUntil(this.ngUnsubscribe))
-            .subscribe();
+            .subscribe(
+              (res) => {
+                this.snackBar.open(`Changes to ${this.adminLog.model} saved successfully!`, `❌`, { duration: 3000 });
+              },
+              (err) => {
+                console.log(err);
+                this.snackBar.open(`Failed to save changes to ${this.adminLog.model}..`, `❌`, { duration: 3000 });
+              },
+            );
         },
       },
     });
