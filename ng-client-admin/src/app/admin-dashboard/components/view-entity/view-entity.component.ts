@@ -7,6 +7,7 @@ import { ModelValuesService } from 'src/app/admin-dashboard/services/model-value
 import { Title } from '@angular/platform-browser';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-view-entity',
@@ -31,6 +32,7 @@ export class ViewEntityComponent implements OnInit, OnDestroy {
     private apiService: RestApiService,
     private modelValueService: ModelValuesService,
     private title: Title,
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
@@ -58,7 +60,15 @@ export class ViewEntityComponent implements OnInit, OnDestroy {
     this.modelValueService
       .sendUpdateRequest(this.model.endpoint, this.id)
       .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe((response) => {});
+      .subscribe(
+        (response) => {
+          this.snackBar.open(`Changes to ${this.modelName} saved successfully!`, `❌`, { duration: 3000 });
+        },
+        (err) => {
+          console.log(err);
+          this.snackBar.open(`Failed to save changes to ${this.modelName}..`, `❌`, { duration: 3000 });
+        },
+      );
   }
 
   onRemoveClick() {
@@ -67,9 +77,16 @@ export class ViewEntityComponent implements OnInit, OnDestroy {
     this.apiService
       .delete(this.model.endpoint, this.id, {})
       .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe((response) => {
-        this.router.navigate(['categories', this.categoryName, 'models', this.modelName]);
-      });
+      .subscribe(
+        (response) => {
+          this.router.navigate(['categories', this.categoryName, 'models', this.modelName]);
+          this.snackBar.open(`Removed from ${this.modelName} successfully!`, `❌`, { duration: 3000 });
+        },
+        (err) => {
+          console.log(err);
+          this.snackBar.open(`Failed to remove from ${this.modelName}..`, `❌`, { duration: 3000 });
+        },
+      );
   }
 
   ngOnDestroy(): void {

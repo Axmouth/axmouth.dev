@@ -18,6 +18,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FlexLayoutModule } from '@angular/flex-layout';
 
 import { AppComponent } from './app.component';
@@ -81,6 +82,7 @@ import { WarningDialogComponent } from './components/warning-dialog/warning-dial
     MatProgressSpinnerModule,
     MatExpansionModule,
     MatPaginatorModule,
+    MatSnackBarModule,
     MatSelectModule,
     AuthModule.forRoot({
       config: {

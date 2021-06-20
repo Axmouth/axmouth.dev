@@ -4,6 +4,7 @@ import { AdminModelService } from 'src/app/admin-dashboard/services/admin-model.
 import { ActivatedRoute, Router } from '@angular/router';
 import { ModelValuesService } from 'src/app/admin-dashboard/services/model-values.service';
 import { Title } from '@angular/platform-browser';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-create-entity',
@@ -21,6 +22,7 @@ export class CreateEntityComponent implements OnInit {
     private router: Router,
     private modelValuesService: ModelValuesService,
     private title: Title,
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
@@ -32,8 +34,15 @@ export class CreateEntityComponent implements OnInit {
   }
 
   onSaveClick() {
-    this.modelValuesService.sendCreateRequest(this.model.endpoint).subscribe((response) => {
-      this.router.navigate(['categories', this.categoryName, 'models', this.modelName]);
-    });
+    this.modelValuesService.sendCreateRequest(this.model.endpoint).subscribe(
+      (response) => {
+        this.router.navigate(['categories', this.categoryName, 'models', this.modelName, { duration: 3000 }]);
+        this.snackBar.open(`Successfully added to ${this.modelName}!`, `❌`);
+      },
+      (err) => {
+        console.log(err);
+        this.snackBar.open(`Failed to add to ${this.modelName}..`, `❌`, { duration: 3000 });
+      },
+    );
   }
 }

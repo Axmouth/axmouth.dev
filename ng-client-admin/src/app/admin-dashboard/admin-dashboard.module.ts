@@ -16,6 +16,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { AdminDashboardRoutingModule } from './admin-dashboard-routing.module';
@@ -95,6 +96,7 @@ import { MatSelectModule } from '@angular/material/select';
     MatExpansionModule,
     MatPaginatorModule,
     MatSelectModule,
+    MatSnackBarModule,
   ],
   exports: [
     AdminModelComponent,
