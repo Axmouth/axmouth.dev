@@ -10,6 +10,8 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
+use backend_repo_pg::errors::PgRepoError;
+use backend_repo_pg::pg_util::RepoConnection;
 use backend_repo_pg::{
     change_sets::UpdateTechnology,
     filters::GetAllTechnologiesFilter,
@@ -20,58 +22,50 @@ use backend_repo_pg::{
     },
 };
 use backend_repo_pg::{options::PaginationOptions, technologies::TechnologyRepo};
+use tokio::task::block_in_place;
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let technology_repository = TechnologyRepo::new(&conn);
-            let technology_result = match technology_repository.find_one(id) {
-                Err(err) => {
-                    return Ok(server_error_response(err));
-                }
-                Ok(value_opt) => match value_opt {
-                    None => {
-                        return Ok(not_found_response("Technology"));
-                    }
-                    Some(value) => value,
-                },
-            };
-            Ok(simple_ok_response(technology_result))
-        })
-        .await?)
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let technology_repository = TechnologyRepo::new(&conn);
+        let technology_result = match technology_repository
+            .find_one(id)
+            .map_err::<PgRepoError, _>(|e| e.into())?
+        {
+            None => {
+                return Ok(not_found_response("Technology"));
+            }
+            Some(value) => value,
+        };
+        Ok(simple_ok_response(technology_result))
+    })
 }
 
 pub async fn get_all(
     query: GetAllTechnologiesQuery,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let filter = GetAllTechnologiesFilter::from_query(query.clone());
-            let technology_repository = TechnologyRepo::new(&conn);
-            let (technologies_list, total_results) = match technology_repository.find(
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let filter = GetAllTechnologiesFilter::from_query(query.clone());
+        let technology_repository = TechnologyRepo::new(&conn);
+        let (technologies_list, total_results) = technology_repository
+            .find(
                 filter,
                 query.sort_type,
                 PaginationOptions {
                     page: query.page,
                     page_size: query.page_size,
                 },
-            ) {
-                Err(err) => {
-                    return Ok(server_error_response(err));
-                }
-                Ok(value) => value,
-            };
-            Ok(paginated_ok_response(
-                technologies_list,
-                query.page,
-                query.page_size,
-                total_results,
-            ))
-        })
-        .await?)
+            )
+            .map_err::<PgRepoError, _>(|e| e.into())?;
+        Ok(paginated_ok_response(
+            technologies_list,
+            query.page,
+            query.page_size,
+            total_results,
+        ))
+    })
 }
 
 pub async fn delete(

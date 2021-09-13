@@ -4,9 +4,10 @@ use crate::{
     util::{not_found_response, paginated_ok_response, simple_ok_response},
 };
 use backend_repo_pg::{
-    admin_logs::AdminLogRepo, filters::GetAllAdminLogsFilter,
-    models::queries::GetAllAdminLogsQuery, options::PaginationOptions,
+    admin_logs::AdminLogRepo, errors::PgRepoError, filters::GetAllAdminLogsFilter,
+    models::queries::GetAllAdminLogsQuery, options::PaginationOptions, pg_util::RepoConnection,
 };
+use tokio::task::block_in_place;
 
 pub async fn get(id: i32, _: Claims, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
     Ok(state
@@ -29,25 +30,25 @@ pub async fn get_all(
     query: GetAllAdminLogsQuery,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let filter = GetAllAdminLogsFilter::from_query(query.clone());
-            let admin_log_repository = AdminLogRepo::new(&conn);
-            let (admin_logs, total_results) = admin_log_repository.find(
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let filter = GetAllAdminLogsFilter::from_query(query.clone());
+        let admin_log_repository = AdminLogRepo::new(&conn);
+        let (admin_logs, total_results) = admin_log_repository
+            .find(
                 filter,
                 query.sort_type,
                 PaginationOptions {
                     page: query.page,
                     page_size: query.page_size,
                 },
-            )?;
-            Ok(paginated_ok_response(
-                admin_logs,
-                query.page,
-                query.page_size,
-                total_results,
-            ))
-        })
-        .await?)
+            )
+            .map_err::<PgRepoError, _>(|e| e.into())?;
+        Ok(paginated_ok_response(
+            admin_logs,
+            query.page,
+            query.page_size,
+            total_results,
+        ))
+    })
 }

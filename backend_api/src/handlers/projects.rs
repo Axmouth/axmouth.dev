@@ -11,8 +11,9 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
+use backend_repo_pg::errors::PgRepoError;
 use backend_repo_pg::models::queries::GetProjectQuery;
-use backend_repo_pg::pg_util::get_roll_back_err;
+use backend_repo_pg::pg_util::{get_roll_back_err, RepoConnection};
 use backend_repo_pg::{
     change_sets::UpdateProject,
     filters::GetAllProjectsFilter,
@@ -24,6 +25,7 @@ use backend_repo_pg::{
 };
 use backend_repo_pg::{options::PaginationOptions, projects::ProjectRepo};
 use chrono::Utc;
+use tokio::task::block_in_place;
 
 pub async fn get(
     id: String,
@@ -31,39 +33,43 @@ pub async fn get(
     claims: Option<Claims>,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let project_repository = ProjectRepo::new(&conn);
-            let project_result = if let Some(true) = query.use_slug {
-                match project_repository.find_one_by_slug(id)? {
-                    None => {
-                        return Ok(not_found_response("Project"));
-                    }
-                    Some(value) => value,
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let project_repository = ProjectRepo::new(&conn);
+        let project_result = if let Some(true) = query.use_slug {
+            match project_repository
+                .find_one_by_slug(id)
+                .map_err::<PgRepoError, _>(|e| e.into())?
+            {
+                None => {
+                    return Ok(not_found_response("Project"));
                 }
-            } else {
-                let id = match id.parse::<i32>() {
-                    Ok(v) => v,
-                    Err(_) => {
-                        return Ok(bad_request_response("Url: Bad Id value"));
-                    }
-                };
-                match project_repository.find_one(id)? {
-                    None => {
-                        return Ok(not_found_response("Project"));
-                    }
-                    Some(value) => value,
+                Some(value) => value,
+            }
+        } else {
+            let id = match id.parse::<i32>() {
+                Ok(v) => v,
+                Err(_) => {
+                    return Ok(bad_request_response("Url: Bad Id value"));
                 }
             };
-            if let Some(claims) = claims {
-                if claims.is_staff() == false && project_result.published == false {
-                    return Ok(not_found_response("Post"));
+            match project_repository
+                .find_one(id)
+                .map_err::<PgRepoError, _>(|e| e.into())?
+            {
+                None => {
+                    return Ok(not_found_response("Project"));
                 }
+                Some(value) => value,
             }
-            Ok(simple_ok_response(project_result))
-        })
-        .await?)
+        };
+        if let Some(claims) = claims {
+            if claims.is_staff() == false && project_result.published == false {
+                return Ok(not_found_response("Post"));
+            }
+        }
+        Ok(simple_ok_response(project_result))
+    })
 }
 
 pub async fn get_all(
@@ -71,34 +77,34 @@ pub async fn get_all(
     claims: Option<Claims>,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let mut filter = GetAllProjectsFilter::from_query(query.clone());
-            if let Some(claims) = claims {
-                if claims.is_staff() == false {
-                    filter.published = Some(true);
-                }
-            } else {
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let mut filter = GetAllProjectsFilter::from_query(query.clone());
+        if let Some(claims) = claims {
+            if claims.is_staff() == false {
                 filter.published = Some(true);
             }
-            let project_repository = ProjectRepo::new(&conn);
-            let (projects_list, total_results) = project_repository.find(
+        } else {
+            filter.published = Some(true);
+        }
+        let project_repository = ProjectRepo::new(&conn);
+        let (projects_list, total_results) = project_repository
+            .find(
                 filter,
                 query.sort_type,
                 PaginationOptions {
                     page: query.page,
                     page_size: query.page_size,
                 },
-            )?;
-            Ok(paginated_ok_response(
-                projects_list,
-                query.page,
-                query.page_size,
-                total_results,
-            ))
-        })
-        .await?)
+            )
+            .map_err::<PgRepoError, _>(|e| e.into())?;
+        Ok(paginated_ok_response(
+            projects_list,
+            query.page,
+            query.page_size,
+            total_results,
+        ))
+    })
 }
 
 pub async fn delete(

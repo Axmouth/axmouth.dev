@@ -8,7 +8,8 @@ use crate::{
         simple_no_content_response, simple_ok_response, unauthorized_response,
     },
 };
-use backend_repo_pg::pg_util::get_roll_back_err;
+use backend_repo_pg::errors::PgRepoError;
+use backend_repo_pg::pg_util::{get_roll_back_err, RepoConnection};
 use backend_repo_pg::{
     blog_comments::BlogPostCommentRepo, blog_posts::BlogPostRepo, options::PaginationOptions,
 };
@@ -22,48 +23,50 @@ use backend_repo_pg::{
     },
 };
 use chrono::Utc;
+use tokio::task::block_in_place;
 
 pub async fn get(id: i32, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let blog_comment_repository = BlogPostCommentRepo::new(&conn);
-            let comment_result = match blog_comment_repository.find_one(id)? {
-                None => {
-                    return Ok(not_found_response("Comment"));
-                }
-                Some(value) => value,
-            };
-            Ok(simple_ok_response(comment_result))
-        })
-        .await?)
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let blog_comment_repository = BlogPostCommentRepo::new(&conn);
+        let comment_result = match blog_comment_repository
+            .find_one(id)
+            .map_err::<PgRepoError, _>(|e| e.into())?
+        {
+            None => {
+                return Ok(not_found_response("Comment"));
+            }
+            Some(value) => value,
+        };
+        Ok(simple_ok_response(comment_result))
+    })
 }
 
 pub async fn get_all(
     query: GetAllBlogPostCommentsQuery,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let filter = GetAllBlogPostCommentsFilter::from_query(query.clone());
-            let blog_comment_repository = BlogPostCommentRepo::new(&conn);
-            let (comments_list, total_results) = blog_comment_repository.find(
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let filter = GetAllBlogPostCommentsFilter::from_query(query.clone());
+        let blog_comment_repository = BlogPostCommentRepo::new(&conn);
+        let (comments_list, total_results) = blog_comment_repository
+            .find(
                 filter,
                 query.sort_type,
                 PaginationOptions {
                     page: query.page,
                     page_size: query.page_size,
                 },
-            )?;
-            Ok(paginated_ok_response(
-                comments_list,
-                query.page,
-                query.page_size,
-                total_results,
-            ))
-        })
-        .await?)
+            )
+            .map_err::<PgRepoError, _>(|e| e.into())?;
+        Ok(paginated_ok_response(
+            comments_list,
+            query.page,
+            query.page_size,
+            total_results,
+        ))
+    })
 }
 
 pub async fn delete(

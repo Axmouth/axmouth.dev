@@ -11,8 +11,9 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
+use backend_repo_pg::errors::PgRepoError;
 use backend_repo_pg::models::queries::GetBlogPostQuery;
-use backend_repo_pg::pg_util::get_roll_back_err;
+use backend_repo_pg::pg_util::{get_roll_back_err, RepoConnection};
 use backend_repo_pg::{blog_posts::BlogPostRepo, options::PaginationOptions};
 use backend_repo_pg::{
     change_sets::UpdateBlogPost,
@@ -24,6 +25,7 @@ use backend_repo_pg::{
     },
 };
 use chrono::Utc;
+use tokio::task::block_in_place;
 
 pub async fn get(
     id: String,
@@ -31,39 +33,43 @@ pub async fn get(
     claims: Option<Claims>,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let blog_post_repository = BlogPostRepo::new(&conn);
-            let post_result = if let Some(true) = query.use_slug {
-                match blog_post_repository.find_one_by_slug(id)? {
-                    None => {
-                        return Ok(not_found_response("Post"));
-                    }
-                    Some(value) => value,
-                }
-            } else {
-                let id = match id.parse::<i32>() {
-                    Ok(v) => v,
-                    Err(_) => {
-                        return Ok(bad_request_response("Url: Bad Id value"));
-                    }
-                };
-                match blog_post_repository.find_one(id)? {
-                    None => {
-                        return Ok(not_found_response("Post"));
-                    }
-                    Some(value) => value,
-                }
-            };
-            if let Some(claims) = claims {
-                if claims.is_staff() == false && post_result.published == false {
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let blog_post_repository = BlogPostRepo::new(&conn);
+        let post_result = if let Some(true) = query.use_slug {
+            match blog_post_repository
+                .find_one_by_slug(id)
+                .map_err::<PgRepoError, _>(|e| e.into())?
+            {
+                None => {
                     return Ok(not_found_response("Post"));
                 }
+                Some(value) => value,
             }
-            Ok(simple_ok_response(post_result))
-        })
-        .await?)
+        } else {
+            let id = match id.parse::<i32>() {
+                Ok(v) => v,
+                Err(_) => {
+                    return Ok(bad_request_response("Url: Bad Id value"));
+                }
+            };
+            match blog_post_repository
+                .find_one(id)
+                .map_err::<PgRepoError, _>(|e| e.into())?
+            {
+                None => {
+                    return Ok(not_found_response("Post"));
+                }
+                Some(value) => value,
+            }
+        };
+        if let Some(claims) = claims {
+            if claims.is_staff() == false && post_result.published == false {
+                return Ok(not_found_response("Post"));
+            }
+        }
+        Ok(simple_ok_response(post_result))
+    })
 }
 
 pub async fn get_all(
@@ -71,34 +77,34 @@ pub async fn get_all(
     claims: Option<Claims>,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let mut filter = GetAllBlogPostsFilter::from_query(query.clone());
-            if let Some(claims) = claims {
-                if claims.is_staff() == false {
-                    filter.published = Some(true);
-                }
-            } else {
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let mut filter = GetAllBlogPostsFilter::from_query(query.clone());
+        if let Some(claims) = claims {
+            if claims.is_staff() == false {
                 filter.published = Some(true);
             }
-            let blog_post_repository = BlogPostRepo::new(&conn);
-            let (posts_list, total_results) = blog_post_repository.find(
+        } else {
+            filter.published = Some(true);
+        }
+        let blog_post_repository = BlogPostRepo::new(&conn);
+        let (posts_list, total_results) = blog_post_repository
+            .find(
                 filter,
                 query.sort_type,
                 PaginationOptions {
                     page: query.page,
                     page_size: query.page_size,
                 },
-            )?;
-            Ok(paginated_ok_response(
-                posts_list,
-                query.page,
-                query.page_size,
-                total_results,
-            ))
-        })
-        .await?)
+            )
+            .map_err::<PgRepoError, _>(|e| e.into())?;
+        Ok(paginated_ok_response(
+            posts_list,
+            query.page,
+            query.page_size,
+            total_results,
+        ))
+    })
 }
 
 pub async fn delete(

@@ -10,7 +10,8 @@ use crate::{
     },
 };
 use auth_tokens::Claims;
-use backend_repo_pg::pg_util::get_roll_back_err;
+use backend_repo_pg::errors::PgRepoError;
+use backend_repo_pg::pg_util::{get_roll_back_err, RepoConnection};
 use backend_repo_pg::{
     change_sets::UpdateTextBody,
     filters::GetAllTextBodiesFilter,
@@ -22,48 +23,50 @@ use backend_repo_pg::{
 };
 use backend_repo_pg::{options::PaginationOptions, text_bodies::TextBodyRepo};
 use chrono::Utc;
+use tokio::task::block_in_place;
 
 pub async fn get(slug: String, state: AppState) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let text_body_repository = TextBodyRepo::new(&conn);
-            let text_body_result = match text_body_repository.find_one_by_slug(slug)? {
-                None => {
-                    return Ok(not_found_response("TextBody"));
-                }
-                Some(value) => value,
-            };
-            Ok(simple_ok_response(text_body_result))
-        })
-        .await?)
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let text_body_repository = TextBodyRepo::new(&conn);
+        let text_body_result = match text_body_repository
+            .find_one_by_slug(slug)
+            .map_err::<PgRepoError, _>(|e| e.into())?
+        {
+            None => {
+                return Ok(not_found_response("TextBody"));
+            }
+            Some(value) => value,
+        };
+        Ok(simple_ok_response(text_body_result))
+    })
 }
 
 pub async fn get_all(
     query: GetAllTextBodiesQuery,
     state: AppState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(state
-        .repo
-        .transaction(|conn| {
-            let filter = GetAllTextBodiesFilter::from_query(query.clone());
-            let text_body_repository = TextBodyRepo::new(&conn);
-            let (text_bodies_list, total_results) = text_body_repository.find(
+    block_in_place(|| {
+        let conn = RepoConnection::new(state.repo)?;
+        let filter = GetAllTextBodiesFilter::from_query(query.clone());
+        let text_body_repository = TextBodyRepo::new(&conn);
+        let (text_bodies_list, total_results) = text_body_repository
+            .find(
                 filter,
                 query.sort_type,
                 PaginationOptions {
                     page: query.page,
                     page_size: query.page_size,
                 },
-            )?;
-            Ok(paginated_ok_response(
-                text_bodies_list,
-                query.page,
-                query.page_size,
-                total_results,
-            ))
-        })
-        .await?)
+            )
+            .map_err::<PgRepoError, _>(|e| e.into())?;
+        Ok(paginated_ok_response(
+            text_bodies_list,
+            query.page,
+            query.page_size,
+            total_results,
+        ))
+    })
 }
 
 pub async fn delete(
