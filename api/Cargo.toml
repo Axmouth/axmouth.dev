@@ -1,0 +1,48 @@
+[package]
+authors = ["Axmouth <aggronfg@yahoo.com>"]
+edition = "2018"
+name = "backend_api"
+version = "0.1.0"
+
+[dependencies]
+backend_repo_pg = {path = "../repo_pg"}
+bytes = "=1.1.0"
+chrono = "=0.4.19"
+dotenv = "=0.15.0"
+futures = "=0.3.21"
+jsonwebtoken = "=8.0.1"
+rand = "=0.8.4"
+rust-argon2 = "=1.0.0"
+sha2 = "=0.10.1"
+serde = { version = "=1.0.136", features = ["derive"] }
+serde_json = "=1.0.78"
+urlencoding = "=2.1.0"
+tokio = {version = "=1.16.1", features = ["full"]}
+uuid = {version = "=0.8.2", features = ["serde", "v4"]}
+validator = { version = "=0.14.0", features = ["derive"] }
+lettre = "=0.9.6"
+lettre_email = "=0.9.4"
+native-tls = "=0.2.8"
+hyper-tls="=0.5.0"
+tera = "=1.15.0"
+lazy_static = "=1.4.0"
+axum = { version = "=0.4.5", features = ["headers", "multipart"]}
+tracing = "=0.1.30"
+tracing-subscriber = { version="=0.3.8", features = ["env-filter"] }
+tower-http = { version = "=0.2.1", features = ["trace", "set-header", "cors", "fs"] }
+tower-cookies = "=0.4.1"
+tower = { version = "=0.4.11", features = ["util", "timeout", "filter"] }
+tower-service = "=0.3.1"
+tower-layer = "=0.3.1"
+headers = "=0.3.6"
+once_cell = "=1.9.0"
+thiserror = "=1.0.30"
+http-body = "=0.4.4"
+time = "=0.2.27"
+hyper = { version = "=0.14", features = ["full"] }
+
+[target.i686-unknown-linux-gnu.dependencies]
+tokio-uring = "=0.2.0"
+
+[target.x86_64-unknown-linux-gnu.dependencies]
+tokio-uring = "=0.2.0"

@@ -1,0 +1,19 @@
+[package]
+name = "tests"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "=0.4.5"
+backend_repo_pg = { path = "../repo_pg" }
+backend_api = { path = "../api" }
+console = "=0.15.0"
+dotenv = "=0.15.0"
+hyper = "=0.14.17"
+pretty_assertions = "=1.1.0"
+similar = { version = "=2.1.0", features = ["inline"] }
+test-case = "=1.2.3"
+toml = "=0.5.8"
+tokio = { version = "=1.16.1", features = ["full"] }
+tower = { version = "=0.4.11", features = ["util"] }
+serde = { version = "=1.0.136", features = ["derive"] }

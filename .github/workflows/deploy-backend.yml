@@ -91,6 +91,7 @@ jobs:
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
           MAIL_PORT: ${{ secrets.MAIL_PORT }}
           MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          ORIGIN: ${{ secrets.ORIGIN }}
           RUST_LOG: backend_api=error
           STATIC_FILE_DIR: /var/lib/axmouth/axmouth.dev/static-assets
           STATIC_FILE_ADDRESS: https://backend.axmouth.dev/static

@@ -1,0 +1,32 @@
+[package]
+name = "backend_repo_pg"
+version = "0.1.0"
+authors = ["axmouth"]
+edition = "2018"
+
+[dependencies]
+diesel = { version = "=1.4.8", features = ["chrono", "postgres", "r2d2", "uuidv07", "serde_json", "uuid"] }
+diesel_migrations = "=1.4.0"
+diesel_full_text_search = "=1.0.1"
+r2d2 = "=0.8.9"
+tokio = { version = "=1.16.1", features = ["rt-multi-thread", "time", "fs", "macros"] }
+dotenv = "=0.15.0"
+serde = { version = "=1.0.136", features = ["derive"] }
+uuid = { version = "=0.8.2", features = ["serde", "v4"] }
+rand = "=0.8.4"
+env_logger = "=0.9.0"
+log = "=0.4.14"
+chrono = { version = "=0.4.19", features = ["serde"] }
+validator = "=0.14.0"
+validator_derive = "=0.14.0"
+rust-argon2 = "=1.0.0"
+lazy_static = "=1.4.0"
+regex = "=1.5.4"
+ts-rs = { version = "=6.1.2", features = ["serde-compat", "chrono-impl", "uuid-impl"] }
+axum-derive = { path = "../axum-derive" }
+http-body = "=0.4.4"
+axum = { version = "=0.4.5" }
+
+sea-orm = { version = "=0.6.0", features = [ "sqlx-postgres", "runtime-tokio-native-tls", "macros" ], default-features = false }
+
+# sea-orm-cli generate entity -u postgres://postgres:postgres@localhost:5432/axmouth.dev -o repo_pg/src/entity
