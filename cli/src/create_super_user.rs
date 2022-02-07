@@ -3,7 +3,7 @@ use backend_repo_pg::{
     extra::UserRole,
     insertables::NewUser,
     passwords,
-    pg_util::{get_pg_pool, RepoConnection},
+    pg_util::{get_pg_pool, Repo, RepoConnection},
     users::UserRepo,
 };
 use std::env;
@@ -17,8 +17,8 @@ pub async fn create_super_user(
 ) -> Result<(), PgRepoError> {
     dotenv::dotenv().unwrap();
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let repo = get_pg_pool(database_url, 1);
-    let conn = RepoConnection::new(repo).expect("Could not get database connection");
+    let repo = get_pg_pool(database_url, 1).await;
+    let conn = repo.get_async_conn();
     let user_repository = UserRepo::new(&conn);
 
     let new_user = NewUser {
@@ -28,7 +28,7 @@ pub async fn create_super_user(
         role: UserRole::Admin,
     };
 
-    let user_result = user_repository.insert_one(new_user);
+    let user_result = user_repository.insert_one(new_user).await;
 
     let _ = user_result.expect("Could not create user");
 

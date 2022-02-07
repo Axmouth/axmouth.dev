@@ -213,14 +213,6 @@ async fn handler_404() -> impl IntoResponse {
     not_found_response("Route")
 }
 
-async fn handle_error(error: BoxError) -> Response<BoxBody> {
-    if error.is::<Elapsed>() {
-        simple_error_response("Request timeout", StatusCode::REQUEST_TIMEOUT)
-    } else {
-        server_error_response(format!("Unhandled internal error: {}", error))
-    }
-}
-
 async fn map_request(req: Request<Body>) -> Result<Request<Body>, BoxError> {
     let (parts, body) = req.into_parts();
     let bytes = buffer_and_print("request", body).await?;

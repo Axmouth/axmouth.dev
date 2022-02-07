@@ -1,6 +1,9 @@
+use crate::entity;
 use crate::extra::{AdminLogAction, UserRole};
 use crate::schema::*;
+use sea_orm::ActiveValue;
 use serde::Serialize;
+use ActiveValue::{NotSet, Set};
 
 use chrono::NaiveDateTime;
 
@@ -43,6 +46,20 @@ pub struct NewRefreshToken {
     pub expires_at: NaiveDateTime,
 }
 
+impl From<NewRefreshToken> for entity::refresh_tokens::ActiveModel {
+    fn from(value: NewRefreshToken) -> Self {
+        entity::refresh_tokens::ActiveModel {
+            id: NotSet,
+            created_at: NotSet,
+            jwt_id: Set(value.jwt_id),
+            user_id: Set(value.user_id),
+            invalidated: Set(value.invalidated),
+            used: Set(value.used),
+            expires_at: Set(value.expires_at),
+        }
+    }
+}
+
 #[derive(Insertable, Clone, Serialize)]
 #[table_name = "users"]
 pub struct NewUser {
@@ -50,6 +67,20 @@ pub struct NewUser {
     pub display_name: String,
     pub password: String,
     pub role: UserRole,
+}
+
+impl From<NewUser> for entity::users::ActiveModel {
+    fn from(value: NewUser) -> Self {
+        entity::users::ActiveModel {
+            email: Set(value.email),
+            display_name: Set(value.display_name),
+            password: Set(value.password),
+            role: Set(value.role.into()),
+            updated_at: NotSet,
+            id: NotSet,
+            created_at: NotSet,
+        }
+    }
 }
 
 #[derive(Insertable, Clone, Serialize)]
@@ -125,6 +156,22 @@ pub struct NewVerifyEmailToken {
     pub expires_at: NaiveDateTime,
 }
 
+impl From<NewVerifyEmailToken> for entity::verify_email_tokens::ActiveModel {
+    fn from(value: NewVerifyEmailToken) -> Self {
+        entity::verify_email_tokens::ActiveModel {
+            id: NotSet,
+            created_at: NotSet,
+            user_id: Set(value.user_id),
+            invalidated: NotSet,
+            used: NotSet,
+            expires_at: Set(value.expires_at),
+            token: Set(value.token),
+            email: Set(value.email),
+            old_email: Set(value.old_email),
+        }
+    }
+}
+
 #[derive(Insertable, Clone, Serialize)]
 #[table_name = "page_views"]
 pub struct NewPageView {
@@ -173,4 +220,17 @@ pub struct NewChangePasswordToken {
     pub token: String,
     pub user_id: i32,
     pub expires_at: NaiveDateTime,
+}
+impl From<NewChangePasswordToken> for entity::change_password_tokens::ActiveModel {
+    fn from(value: NewChangePasswordToken) -> Self {
+        entity::change_password_tokens::ActiveModel {
+            id: NotSet,
+            user_id: Set(value.user_id),
+            expires_at: Set(value.expires_at),
+            token: Set(value.token),
+            invalidated: NotSet,
+            used: NotSet,
+            created_at: NotSet,
+        }
+    }
 }

@@ -244,6 +244,7 @@ dependencies = [
 name = "backend_repo_pg"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "axum",
  "axum-derive",
  "chrono",

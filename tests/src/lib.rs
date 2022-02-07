@@ -20,7 +20,7 @@ mod tests {
             async fn $name() {
                 dotenv::dotenv().ok();
 
-                let app = routes::router(app::app_state());
+                let app = routes::router(app::app_state().await);
 
                 let response = app
                     .oneshot(

@@ -1,4 +1,5 @@
 use log::error;
+use sea_orm::DbErr;
 
 #[derive(Debug, Clone)]
 pub enum PgRepoErrorType {
@@ -17,6 +18,31 @@ impl std::error::Error for PgRepoError {}
 impl std::fmt::Display for PgRepoError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.error_message)
+    }
+}
+
+impl From<DbErr> for PgRepoError {
+    fn from(err: DbErr) -> Self {
+        match err {
+            DbErr::RecordNotFound(e) => {
+                error!("{}", e);
+                PgRepoError {
+                    error_message: "Not found".to_string(),
+                    error_type: PgRepoErrorType::NotFound,
+                }
+            }
+            DbErr::Conn(e)
+            | DbErr::Custom(e)
+            | DbErr::Exec(e)
+            | DbErr::Query(e)
+            | DbErr::Type(e) => {
+                error!("{}", e);
+                PgRepoError {
+                    error_message: "Unknown error".to_string(),
+                    error_type: PgRepoErrorType::Unknown,
+                }
+            }
+        }
     }
 }
 

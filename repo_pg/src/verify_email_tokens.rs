@@ -1,108 +1,94 @@
+use crate::entity::verify_email_tokens::{
+    ActiveModel as VerifyEmailTokenActiveModel, Column as VerifyEmailTokenColumn,
+    Entity as VerifyEmailTokenEntity,
+};
 use crate::errors::PgRepoError;
 use crate::filters::GetAllVerifyEmailTokensFilter;
-use crate::models::{db_models, domain};
+use crate::models::domain;
 use crate::options::{PaginationOptions, VerifyEmailTokenSortType};
-use crate::schema::verify_email_tokens;
 use crate::{change_sets::UpdateVerifyEmailToken, insertables::NewVerifyEmailToken};
-use diesel::prelude::*;
-use diesel::{QueryDsl, RunQueryDsl};
+use sea_orm::{prelude::*, ActiveValue, QueryOrder, QuerySelect};
 
 pub struct VerifyEmailTokenRepo<'a> {
-    conn: &'a crate::pg_util::RepoConnection,
+    conn: &'a DatabaseConnection,
 }
 
 impl<'a> VerifyEmailTokenRepo<'a> {
-    pub fn new(conn: &'a crate::pg_util::RepoConnection) -> Self {
+    pub fn new(conn: &'a DatabaseConnection) -> Self {
         Self { conn }
     }
 
-    pub fn insert_one(
+    pub async fn insert_one(
         &self,
         new_verify_email_token: NewVerifyEmailToken,
-    ) -> Result<domain::VerifyEmailToken, diesel::result::Error> {
-        let conn = &self.conn.pg_conn;
-        let query = diesel::insert_into(verify_email_tokens::table).values(&new_verify_email_token);
-        let result = query.get_result(conn)?;
-        Ok(domain::VerifyEmailToken::from(result))
+    ) -> Result<domain::VerifyEmailToken, PgRepoError> {
+        let verify_email_token: VerifyEmailTokenActiveModel = new_verify_email_token.into();
+        Ok(verify_email_token.insert(self.conn).await.map(From::from)?)
     }
 
-    pub fn update_one(
+    pub async fn update_one(
         &self,
         id_value: i32,
         updated_verify_email_token: UpdateVerifyEmailToken,
-    ) -> Result<domain::VerifyEmailToken, diesel::result::Error> {
-        use crate::schema::verify_email_tokens::dsl::{id, verify_email_tokens};
-        let conn = &self.conn.pg_conn;
-        let query = diesel::update(verify_email_tokens.filter(id.eq(id_value)))
-            .set(&updated_verify_email_token);
-        let result = query.get_result(conn)?;
-        Ok(domain::VerifyEmailToken::from(result))
+    ) -> Result<domain::VerifyEmailToken, PgRepoError> {
+        let mut verify_email_token: VerifyEmailTokenActiveModel = updated_verify_email_token.into();
+        verify_email_token.id = ActiveValue::Unchanged(id_value);
+        let result = verify_email_token.update(self.conn).await?;
+        Ok(result.into())
     }
 
-    pub fn delete_one(&self, id_value: i32) -> Result<usize, diesel::result::Error> {
-        use crate::schema::verify_email_tokens::dsl::{id, verify_email_tokens};
-        let conn = &self.conn.pg_conn;
-        let query = diesel::delete(verify_email_tokens.filter(id.eq(id_value)));
-        Ok(query.execute(conn)?)
+    pub async fn delete_one(&self, id_value: i32) -> Result<u64, PgRepoError> {
+        let token = VerifyEmailTokenEntity::find()
+            .filter(VerifyEmailTokenColumn::Id.eq(id_value))
+            .one(self.conn)
+            .await?;
+
+        if let Some(token) = token {
+            Ok(token.delete(self.conn).await?.rows_affected)
+        } else {
+            Ok(0)
+        }
     }
 
-    pub fn find_one(
+    pub async fn find_one(
         &self,
         id_value: i32,
-    ) -> Result<Option<domain::VerifyEmailToken>, diesel::result::Error> {
-        use crate::schema::verify_email_tokens::dsl::{id, verify_email_tokens};
-
-        let conn = &self.conn.pg_conn;
-        let query = verify_email_tokens
-            .filter(id.eq(id_value))
-            .select(verify_email_tokens::all_columns());
-        let verify_email_token: db_models::VerifyEmailToken = match query.first(conn).optional()? {
-            Some(value) => value,
-            None => return Ok(None),
-        };
-        Ok(Some(domain::VerifyEmailToken::from(verify_email_token)))
+    ) -> Result<Option<domain::VerifyEmailToken>, PgRepoError> {
+        Ok(VerifyEmailTokenEntity::find()
+            .filter(VerifyEmailTokenColumn::Id.eq(id_value))
+            .one(self.conn)
+            .await?
+            .map(From::from))
     }
 
-    pub fn find_one_by_token(
+    pub async fn find_one_by_token(
         &self,
         token_value: String,
-    ) -> Result<Option<domain::VerifyEmailToken>, diesel::result::Error> {
-        use crate::schema::verify_email_tokens::dsl::{token, verify_email_tokens};
-
-        let conn = &self.conn.pg_conn;
-        let query = verify_email_tokens
-            .filter(token.eq(token_value))
-            .select(verify_email_tokens::all_columns());
-        let verify_email_token: db_models::VerifyEmailToken = match query.first(conn).optional()? {
-            Some(value) => value,
-            None => return Ok(None),
-        };
-        Ok(Some(domain::VerifyEmailToken::from(verify_email_token)))
+    ) -> Result<Option<domain::VerifyEmailToken>, PgRepoError> {
+        Ok(VerifyEmailTokenEntity::find()
+            .filter(VerifyEmailTokenColumn::Token.eq(token_value))
+            .one(self.conn)
+            .await?
+            .map(From::from))
     }
 
-    pub fn find(
+    pub async fn find(
         &self,
-        filter: GetAllVerifyEmailTokensFilter,
-        sort: Option<VerifyEmailTokenSortType>,
+        _: GetAllVerifyEmailTokensFilter,
+        _: Option<VerifyEmailTokenSortType>,
         pagination: PaginationOptions,
-    ) -> Result<Vec<domain::VerifyEmailToken>, diesel::result::Error> {
-        use crate::schema::verify_email_tokens::dsl::verify_email_tokens;
-        let q = verify_email_tokens
-            .select(verify_email_tokens::all_columns())
-            .into_boxed();
+    ) -> Result<Vec<domain::VerifyEmailToken>, PgRepoError> {
+        let q = VerifyEmailTokenEntity::find().order_by_asc(VerifyEmailTokenColumn::CreatedAt);
 
         let q = if let (Some(page), Some(page_size)) = (pagination.page, pagination.page_size) {
-            q.offset((page - 1) * page_size).limit(page_size)
+            q.offset(((page - 1) * page_size) as u64)
+                .limit(page_size as u64)
         } else {
             q
         };
 
-        let conn = &self.conn.pg_conn;
-        let results: Vec<db_models::VerifyEmailToken> = q.load(conn)?;
+        let results = q.all(self.conn).await?;
 
-        Ok(results
-            .into_iter()
-            .map(|verify_email_token| domain::VerifyEmailToken::from(verify_email_token))
-            .collect::<Vec<_>>())
+        Ok(results.into_iter().map(From::from).collect::<Vec<_>>())
     }
 }

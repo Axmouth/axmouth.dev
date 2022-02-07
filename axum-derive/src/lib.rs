@@ -1,5 +1,3 @@
-use std::convert::Infallible;
-
 pub use axum;
 use axum::{
     body::BoxBody,

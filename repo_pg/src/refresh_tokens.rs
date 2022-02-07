@@ -1,46 +1,44 @@
-use crate::models::{db_models, domain};
-use crate::schema::refresh_tokens;
+use crate::entity::refresh_tokens::{
+    ActiveModel as RefreshTokenActiveModel, Column as RefreshTokenColumn,
+    Entity as RefreshTokenEntity,
+};
+use crate::models::domain;
 use crate::{
     change_sets::UpdateRefreshToken, filters::GetAllRefreshTokensFilter,
     insertables::NewRefreshToken, options::PaginationOptions,
 };
 use crate::{errors::PgRepoError, options::RefreshTokenSortType};
-use diesel::prelude::*;
-use diesel::{QueryDsl, RunQueryDsl};
+use sea_orm::{prelude::*, ActiveValue, QueryOrder, QuerySelect};
 
 pub struct RefreshTokenRepo<'a> {
-    conn: &'a crate::pg_util::RepoConnection,
+    conn: &'a DatabaseConnection,
 }
 
 impl<'a> RefreshTokenRepo<'a> {
-    pub fn new(conn: &'a crate::pg_util::RepoConnection) -> Self {
+    pub fn new(conn: &'a DatabaseConnection) -> Self {
         Self { conn }
     }
 
-    pub fn insert_one(
+    pub async fn insert_one(
         &self,
         new_token: NewRefreshToken,
-    ) -> Result<db_models::RefreshToken, diesel::result::Error> {
-        let conn = &self.conn.pg_conn;
-        let query = diesel::insert_into(refresh_tokens::table).values(&new_token);
-        Ok(query.get_result(conn)?)
+    ) -> Result<domain::RefreshToken, PgRepoError> {
+        let token: RefreshTokenActiveModel = new_token.into();
+        Ok(token.insert(self.conn).await.map(From::from)?)
     }
 
-    pub fn update_one(
+    pub async fn update_one(
         &self,
         id_value: uuid::Uuid,
         updated_token: UpdateRefreshToken,
-    ) -> Result<db_models::RefreshToken, diesel::result::Error> {
-        use crate::schema::refresh_tokens::dsl::{id, refresh_tokens};
-        let conn = &self.conn.pg_conn;
-        let query = diesel::update(refresh_tokens.filter(id.eq(id_value))).set(&updated_token);
-        Ok(query.get_result(conn)?)
+    ) -> Result<domain::RefreshToken, PgRepoError> {
+        let mut token: RefreshTokenActiveModel = updated_token.into();
+        token.id = ActiveValue::Unchanged(id_value);
+        let result = token.update(self.conn).await?;
+        Ok(result.into())
     }
 
-    pub fn use_up(
-        &self,
-        id_value: uuid::Uuid,
-    ) -> Result<db_models::RefreshToken, diesel::result::Error> {
+    pub async fn use_up(&self, id_value: uuid::Uuid) -> Result<domain::RefreshToken, PgRepoError> {
         self.update_one(
             id_value,
             UpdateRefreshToken {
@@ -48,12 +46,13 @@ impl<'a> RefreshTokenRepo<'a> {
                 used: Some(true),
             },
         )
+        .await
     }
 
-    pub fn invalidate(
+    pub async fn invalidate(
         &self,
         id_value: uuid::Uuid,
-    ) -> Result<db_models::RefreshToken, diesel::result::Error> {
+    ) -> Result<domain::RefreshToken, PgRepoError> {
         self.update_one(
             id_value,
             UpdateRefreshToken {
@@ -61,55 +60,50 @@ impl<'a> RefreshTokenRepo<'a> {
                 used: None,
             },
         )
+        .await
     }
 
-    pub fn delete_one(&self, id_value: uuid::Uuid) -> Result<usize, diesel::result::Error> {
-        use crate::schema::refresh_tokens::dsl::{id, refresh_tokens};
-        let conn = &self.conn.pg_conn;
-        let query = diesel::delete(refresh_tokens.filter(id.eq(id_value)));
-        Ok(query.execute(conn)?)
+    pub async fn delete_one(&self, id_value: uuid::Uuid) -> Result<u64, PgRepoError> {
+        let token = RefreshTokenEntity::find()
+            .filter(RefreshTokenColumn::Id.eq(id_value))
+            .one(self.conn)
+            .await?;
+
+        if let Some(token) = token {
+            Ok(token.delete(self.conn).await?.rows_affected)
+        } else {
+            Ok(0)
+        }
     }
 
-    pub fn find_one(
+    pub async fn find_one(
         &self,
         id_value: uuid::Uuid,
-    ) -> Result<Option<domain::RefreshToken>, diesel::result::Error> {
-        use crate::schema::refresh_tokens::dsl::{id, refresh_tokens};
-
-        let conn = &self.conn.pg_conn;
-        let query = refresh_tokens
-            .filter(id.eq(id_value))
-            .select(refresh_tokens::all_columns());
-        let token: db_models::RefreshToken = match query.first(conn).optional()? {
-            Some(value) => value,
-            None => return Ok(None),
-        };
-        Ok(Some(domain::RefreshToken::from(token)))
+    ) -> Result<Option<domain::RefreshToken>, PgRepoError> {
+        Ok(RefreshTokenEntity::find()
+            .filter(RefreshTokenColumn::Id.eq(id_value))
+            .one(self.conn)
+            .await?
+            .map(From::from))
     }
 
-    pub fn find(
+    pub async fn find(
         &self,
-        filter: GetAllRefreshTokensFilter,
-        sort: Option<RefreshTokenSortType>,
+        _: GetAllRefreshTokensFilter,
+        _: Option<RefreshTokenSortType>,
         pagination: PaginationOptions,
-    ) -> Result<Vec<domain::RefreshToken>, diesel::result::Error> {
-        use crate::schema::refresh_tokens::dsl::refresh_tokens;
-        let q = refresh_tokens
-            .select(refresh_tokens::all_columns())
-            .into_boxed();
+    ) -> Result<Vec<domain::RefreshToken>, PgRepoError> {
+        let q = RefreshTokenEntity::find().order_by_asc(RefreshTokenColumn::CreatedAt);
 
         let q = if let (Some(page), Some(page_size)) = (pagination.page, pagination.page_size) {
-            q.offset((page - 1) * page_size).limit(page_size)
+            q.offset(((page - 1) * page_size) as u64)
+                .limit(page_size as u64)
         } else {
             q
         };
 
-        let conn = &self.conn.pg_conn;
-        let results: Vec<db_models::RefreshToken> = q.load(conn)?;
+        let results = q.all(self.conn).await?;
 
-        Ok(results
-            .into_iter()
-            .map(|token| domain::RefreshToken::from(token))
-            .collect::<Vec<_>>())
+        Ok(results.into_iter().map(From::from).collect::<Vec<_>>())
     }
 }

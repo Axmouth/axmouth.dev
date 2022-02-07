@@ -123,7 +123,7 @@ impl StaticFileAddress for StaticFileAddressImpl {
 
 pub struct EmailSenderImpl(pub EmailSenderInner);
 
-pub fn app_state() -> AppState {
+pub async fn app_state() -> AppState {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let static_file_dir = env::var("STATIC_FILE_DIR").expect("STATIC_FILE_DIR must be set");
     let static_file_address =
@@ -135,7 +135,7 @@ pub fn app_state() -> AppState {
         .parse()
         .expect("Failed to parse JWT_DURATION");
     let captcha_secret = env::var("CAPTCHA_SECRET").expect("CAPTCHA_SECRET must be set");
-    let repo = get_pg_pool(database_url, 64);
+    let repo = get_pg_pool(database_url, 64).await;
     let origin = env::var("ORIGIN")
         .expect("ORIGIN must be set")
         .split(',')
@@ -179,7 +179,7 @@ pub async fn start() {
         .parse()
         .expect("BIND_ADDRESS is invalid");
 
-    let app_state = app_state();
+    let app_state = app_state().await;
 
     tracing_subscriber::fmt::init();
     tracing::debug!("listening on {}", bind_address);
