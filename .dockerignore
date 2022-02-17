@@ -8,7 +8,7 @@ docker-compose.yml
 */node_modules
 .gitignore
 .prettierrc
-backend_api/.env*
-backend_repo_pg/.env*
-backend_cli/.env*
+api/.env*
+repo_pg/.env*
+cli/.env*
 .github/

@@ -1,0 +1,17 @@
+[package]
+name = "backend_cli"
+version = "0.1.0"
+authors = ["Axmouth <aggronfg@yahoo.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "=1.16.1", features = ["rt-multi-thread", "time", "fs", "macros"] }
+dotenv = "=0.15.0"
+serde = { version = "=1.0.136", features = ["derive"] }
+uuid = { version = "=0.8.2", features = ["serde", "v4"] }
+rand = "=0.8.4"
+chrono = "=0.4.19"
+env_logger = "=0.9.0"
+backend_repo_pg = { path = "../repo_pg" }

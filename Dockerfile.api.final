@@ -15,14 +15,14 @@ RUN groupadd $APP_USER \
     && useradd -g $APP_USER $APP_USER \
     && mkdir -p ${APP}
 RUN mkdir -p ${APP}
-COPY --from=ghcr.io/axmouth/axmouth.dev-backend-builder /code/target/release/backend_api ${APP}
-COPY --from=ghcr.io/axmouth/axmouth.dev-backend-builder /code/target/release/backend_cli ${APP}
-COPY ./backend_api/templates ${APP}/templates
+COPY --from=ghcr.io/axmouth/axmouth.dev-backend-builder /code/target/release/api ${APP}
+COPY --from=ghcr.io/axmouth/axmouth.dev-backend-builder /code/target/release/cli ${APP}
+COPY ./api/templates ${APP}/templates
 RUN touch ${APP}/.env
 
 RUN chown -R $APP_USER:$APP_USER ${APP}
-RUN chmod +x ${APP}/backend_api
-RUN chmod +x ${APP}/backend_cli
+RUN chmod +x ${APP}/api
+RUN chmod +x ${APP}/cli
 
 
 COPY initialize-static-file-volume-permissions.sh /entrypoint.sh
@@ -30,4 +30,4 @@ ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
 
 WORKDIR ${APP}
 
-CMD ["/var/lib/axmouth/axmouth.dev/backend/backend_api"]
+CMD ["/var/lib/axmouth/axmouth.dev/backend/api"]
