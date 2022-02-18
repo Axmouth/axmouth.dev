@@ -26,6 +26,7 @@ ts-rs = { version = "=6.1.2", features = ["serde-compat", "chrono-impl", "uuid-i
 axum-derive = { path = "../axum-derive" }
 http-body = "=0.4.4"
 axum = { version = "=0.4.5" }
+async-trait = "0.1.52"
 
 sea-orm = { version = "=0.6.0", features = [ "sqlx-postgres", "runtime-tokio-native-tls", "macros" ], default-features = false }
 

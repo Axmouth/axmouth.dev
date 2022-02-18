@@ -1,3 +1,4 @@
+use crate::entity;
 use crate::extra::{AdminLogAction, SearchItemType, UserRole};
 use crate::models::db_models;
 use chrono::NaiveDateTime;
@@ -130,6 +131,19 @@ impl User {
     }
 }
 
+impl From<entity::users::Model> for User {
+    fn from(user: entity::users::Model) -> Self {
+        Self {
+            created_at: user.created_at.naive_utc(),
+            display_name: user.display_name,
+            id: user.id,
+            role: UserRole::from(user.role),
+            email: Some(user.email),
+            updated_at: user.updated_at.map(|u| u.naive_utc()),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, TS)]
 #[ts(export, export_to = "bindings/responses/HomePageLink.ts")]
 #[serde(rename_all = "camelCase")]
@@ -208,6 +222,20 @@ impl RefreshToken {
             jwt_id: token.jwt_id,
             used: token.used,
             user_id: token.user_id,
+        }
+    }
+}
+
+impl From<entity::refresh_tokens::Model> for RefreshToken {
+    fn from(user: entity::refresh_tokens::Model) -> Self {
+        Self {
+            id: user.id,
+            created_at: user.created_at.naive_utc(),
+            jwt_id: user.jwt_id,
+            user_id: user.user_id,
+            invalidated: user.invalidated,
+            used: user.used,
+            expires_at: user.expires_at.naive_utc(),
         }
     }
 }
@@ -321,6 +349,22 @@ impl VerifyEmailToken {
             used: token.used,
             created_at: token.created_at,
             expires_at: token.created_at,
+        }
+    }
+}
+
+impl From<entity::verify_email_tokens::Model> for VerifyEmailToken {
+    fn from(token: entity::verify_email_tokens::Model) -> Self {
+        Self {
+            id: token.id,
+            created_at: token.created_at.naive_utc(),
+            user_id: token.user_id,
+            invalidated: token.invalidated,
+            used: token.used,
+            expires_at: token.expires_at.naive_utc(),
+            token: token.token,
+            email: token.email,
+            old_email: token.old_email,
         }
     }
 }
@@ -460,6 +504,20 @@ impl ChangePasswordToken {
             used: change_pass_token.used,
             created_at: change_pass_token.created_at,
             expires_at: change_pass_token.expires_at,
+        }
+    }
+}
+
+impl From<entity::change_password_tokens::Model> for ChangePasswordToken {
+    fn from(token: entity::change_password_tokens::Model) -> Self {
+        Self {
+            id: token.id,
+            token: token.token,
+            user_id: token.user_id,
+            invalidated: token.invalidated,
+            used: token.used,
+            created_at: token.created_at.naive_utc(),
+            expires_at: token.expires_at.naive_utc(),
         }
     }
 }

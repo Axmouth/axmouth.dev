@@ -1,3 +1,4 @@
+use crate::entity;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -22,6 +23,28 @@ pub enum UserRole {
     Moderator,
     User,
     Ghost,
+}
+
+impl From<entity::sea_orm_active_enums::UserRole> for UserRole {
+    fn from(value: entity::sea_orm_active_enums::UserRole) -> Self {
+        match value {
+            entity::sea_orm_active_enums::UserRole::Admin => UserRole::Admin,
+            entity::sea_orm_active_enums::UserRole::Moderator => UserRole::Moderator,
+            entity::sea_orm_active_enums::UserRole::User => UserRole::User,
+            entity::sea_orm_active_enums::UserRole::Ghost => UserRole::Ghost,
+        }
+    }
+}
+
+impl From<UserRole> for entity::sea_orm_active_enums::UserRole {
+    fn from(value: UserRole) -> Self {
+        match value {
+            UserRole::Admin => entity::sea_orm_active_enums::UserRole::Admin,
+            UserRole::Moderator => entity::sea_orm_active_enums::UserRole::Moderator,
+            UserRole::User => entity::sea_orm_active_enums::UserRole::User,
+            UserRole::Ghost => entity::sea_orm_active_enums::UserRole::Ghost,
+        }
+    }
 }
 
 #[derive(SqlType)]

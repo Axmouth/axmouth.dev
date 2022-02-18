@@ -252,7 +252,7 @@ pub fn upload_error_response<E: std::error::Error>(err: E) -> Response<BoxBody> 
     (StatusCode::INTERNAL_SERVER_ERROR, resp_body).into_response()
 }
 
-pub fn create_refresh_token(
+pub async fn create_refresh_token(
     user_id: i32,
     jwt_id: uuid::Uuid,
     repo: RefreshTokenRepo<'_>,
@@ -264,7 +264,7 @@ pub fn create_refresh_token(
         used: false,
         expires_at: (Utc::now() + Duration::days(30 * 6)).naive_utc(),
     };
-    Ok(repo.insert_one(new_token)?.id)
+    Ok(repo.insert_one(new_token).await?.id)
 }
 
 #[allow(clippy::too_many_arguments)]
