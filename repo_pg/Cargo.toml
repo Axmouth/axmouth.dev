@@ -21,7 +21,7 @@ validator = "=0.14.0"
 validator_derive = "=0.14.0"
 rust-argon2 = "=1.0.0"
 lazy_static = "=1.4.0"
-regex = "=1.5.4"
+regex = "=1.5.5"
 ts-rs = { version = "=6.1.2", features = ["serde-compat", "chrono-impl", "uuid-impl"] }
 axum-derive = { path = "../axum-derive" }
 http-body = "=0.4.4"
