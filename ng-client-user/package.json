@@ -42,7 +42,7 @@
     "@nguniversal/express-engine": "^11.2.0",
     "bootstrap": "^4.5.2",
     "class-transformer": "^0.2.3",
-    "class-validator": "^0.9.1",
+    "class-validator": "^0.14.0",
     "express": "^4.15.2",
     "ngx-highlightjs": "^4.1.1",
     "reflect-metadata": "^0.1.13",
